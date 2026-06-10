@@ -119,6 +119,15 @@ class _SplashScreenState extends State<SplashScreen>
                             offset: Offset(-_leftAnim.value, 0),
                             child: _buildDot(),
                           ),
+                          Text(
+                            '\$',
+                            style: TextStyle(
+                              fontFamily: 'MonumentExtended',
+                              fontSize: 19,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.white,
+                            ),
+                          ),
                         ],
                       ),
                     );
@@ -148,8 +157,8 @@ class _SplashScreenState extends State<SplashScreen>
 
   Widget _buildDot() {
     return Container(
-      width: 26,
-      height: 26,
+      width: 28,
+      height: 28,
       decoration: BoxDecoration(
         color: const Color(0xFF00E676),
         borderRadius: BorderRadius.circular(4),
