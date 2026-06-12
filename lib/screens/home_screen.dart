@@ -1,0 +1,319 @@
+import 'package:flutter/material.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String currentSort = 'Date';
+  double sortTurns = 0.0;
+
+  void _cycleSort() {
+    setState(() {
+      if (currentSort == 'Date') {
+        currentSort = 'Highest';
+        sortTurns = 0.25;
+      } else if (currentSort == 'Highest') {
+        currentSort = 'Category';
+        sortTurns = 0.5;
+      } else if (currentSort == 'Category') {
+        currentSort = 'Flow';
+        sortTurns = 0.75;
+      } else {
+        // Flow -> back to Date
+        currentSort = 'Date';
+        sortTurns = 0.0;
+      }
+    });
+    debugPrint('Sort changed to: $currentSort');
+  }
+
+  // Mock transaction data
+  final List<_TransactionGroup> _transactions = [
+    _TransactionGroup(
+      date: 'Thursdays, 25 November',
+      items: [
+        _TransactionItem(
+          icon: Icons.work_outline,
+          category: 'Salary',
+          amount: 50.00,
+          isIncome: true,
+        ),
+        _TransactionItem(
+          icon: Icons.restaurant_outlined,
+          category: 'Food',
+          amount: 20.00,
+          isIncome: false,
+        ),
+      ],
+    ),
+    _TransactionGroup(
+      date: 'Wednesday, 24 November',
+      items: [
+        _TransactionItem(
+          icon: Icons.shopping_bag_outlined,
+          category: 'Shopping',
+          amount: 35.00,
+          isIncome: false,
+        ),
+        _TransactionItem(
+          icon: Icons.directions_car_outlined,
+          category: 'Transport',
+          amount: 12.00,
+          isIncome: false,
+        ),
+      ],
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          'RADIX',
+          style: TextStyle(
+            color: Colors.black,
+            fontFamily: 'MonumentExtended',
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ),
+      body: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: Column(
+            children: [
+              // Balance Card
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.fromLTRB(0, 8, 0, 16),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: const Color(0xFFA3E4D7), width: 3),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: const Column(
+                  children: [
+                    Text(
+                      'SPENT',
+                      style: TextStyle(
+                        fontFamily: 'MonumentExtended',
+                        fontSize: 14,
+                        color: Colors.black,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      '\$40',
+                      style: TextStyle(
+                        fontSize: 54,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black,
+                      ),
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      'BUDGET LEFT: \$500',
+                      style: TextStyle(
+                        fontFamily: 'MonumentExtended',
+                        fontSize: 14,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Sort Row
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: _cycleSort,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Sort: $currentSort',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          AnimatedRotation(
+                            turns: sortTurns,
+                            duration: const Duration(milliseconds: 350),
+                            curve: Curves.easeOutBack,
+                            child: const Icon(Icons.arrow_upward, size: 16),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    Icon(Icons.info_outline, color: Colors.grey[700]),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Transaction List
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 350),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  transitionBuilder:
+                      (Widget child, Animation<double> animation) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, 0.1),
+                              end: Offset.zero,
+                            ).animate(animation),
+                            child: child,
+                          ),
+                        );
+                      },
+                  child: ListView.builder(
+                    key: ValueKey<String>(currentSort),
+                    padding: const EdgeInsets.only(bottom: 80),
+                    itemCount: _transactions.length,
+                    itemBuilder: (context, groupIndex) {
+                      final group = _transactions[groupIndex];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Date title
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Text(
+                              group.date,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[500],
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                          // Transaction cards
+                          ...group.items.map(
+                            (item) => Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: _buildTransactionCard(item),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.black,
+        onPressed: () => _showInputSheet(context),
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildTransactionCard(_TransactionItem item) {
+    final bool isIncome = item.isIncome;
+    final Color bgColor = isIncome
+        ? const Color(0xFFE8F8F5)
+        : const Color(0xFFFADBD8);
+    final Color fgColor = isIncome
+        ? const Color(0xFF117A65)
+        : const Color(0xFF78281F);
+    final String amountText = isIncome
+        ? '+ \$${item.amount.toStringAsFixed(2)}'
+        : '- \$${item.amount.toStringAsFixed(2)}';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Icon(item.icon, color: fgColor, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              item.category,
+              style: TextStyle(
+                fontFamily: 'MonumentExtended',
+                fontSize: 16,
+                color: fgColor,
+              ),
+            ),
+          ),
+          Text(
+            amountText,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: fgColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showInputSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          height: 200,
+          child: const Center(
+            child: Text('Input amount sheet', style: TextStyle(fontSize: 18)),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// Data models
+class _TransactionGroup {
+  final String date;
+  final List<_TransactionItem> items;
+
+  _TransactionGroup({required this.date, required this.items});
+}
+
+class _TransactionItem {
+  final IconData icon;
+  final String category;
+  final double amount;
+  final bool isIncome;
+
+  _TransactionItem({
+    required this.icon,
+    required this.category,
+    required this.amount,
+    required this.isIncome,
+  });
+}
