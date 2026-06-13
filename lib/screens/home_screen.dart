@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'instruction_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -10,6 +11,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String currentSort = 'Date';
   double sortTurns = 0.0;
+  double monthlyBudget = 500.0;
 
   void _cycleSort() {
     setState(() {
@@ -69,6 +71,93 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
   ];
 
+  void _showBudgetInputDialog(BuildContext context) {
+    final TextEditingController budgetController = TextEditingController(
+      text: monthlyBudget == 0 ? '' : monthlyBudget.toStringAsFixed(0),
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            top: 20,
+            left: 20,
+            right: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'ENTER MONTHLY BUDGET',
+                style: TextStyle(
+                  fontFamily: 'MonumentExtended-Regular',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w100,
+                ),
+              ),
+              const SizedBox(height: 15),
+              TextField(
+                controller: budgetController,
+                keyboardType: TextInputType.number,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'e.g. 500',
+                  prefixText: '\$',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFF00E676)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () {
+                    double? enteredBudget = double.tryParse(
+                      budgetController.text,
+                    );
+                    if (enteredBudget != null) {
+                      setState(() {
+                        monthlyBudget = enteredBudget;
+                      });
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text(
+                    'SAVE BUDGET',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'MonumentExtended-Regular',
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,6 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        scrolledUnderElevation: 0,
         title: const Text(
           'RADIX',
           style: TextStyle(
@@ -92,44 +182,52 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               // Balance Card
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.fromLTRB(0, 8, 0, 16),
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: const Color(0xFFA3E4D7), width: 3),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: const Column(
-                  children: [
-                    Text(
-                      'SPENT',
-                      style: TextStyle(
-                        fontFamily: 'MonumentExtended',
-                        fontSize: 14,
-                        color: Colors.black,
-                      ),
+              GestureDetector(
+                onTap: () {
+                  _showBudgetInputDialog(context);
+                },
+                child: Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.fromLTRB(0, 8, 0, 16),
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(
+                      color: const Color(0xFFA3E4D7),
+                      width: 3,
                     ),
-                    SizedBox(height: 4),
-                    Text(
-                      '\$40',
-                      style: TextStyle(
-                        fontSize: 54,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.black,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'SPENT',
+                        style: TextStyle(
+                          fontFamily: 'MonumentExtended',
+                          fontSize: 14,
+                          color: Colors.black,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 6),
-                    Text(
-                      'BUDGET LEFT: \$500',
-                      style: TextStyle(
-                        fontFamily: 'MonumentExtended',
-                        fontSize: 14,
-                        color: Colors.black,
+                      SizedBox(height: 4),
+                      Text(
+                        '\$40',
+                        style: TextStyle(
+                          fontSize: 54,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black,
+                        ),
                       ),
-                    ),
-                  ],
+                      SizedBox(height: 6),
+                      Text(
+                        'BUDGET LEFT: \$${monthlyBudget.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          fontFamily: 'MonumentExtended',
+                          fontSize: 14,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
 
@@ -162,7 +260,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const Spacer(),
-                    Icon(Icons.info_outline, color: Colors.grey[700]),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const InstructionScreen(),
+                        ),
+                      ),
+                      child: Icon(Icons.info_outline, color: Colors.grey[700]),
+                    ),
                   ],
                 ),
               ),
@@ -286,9 +392,27 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context) {
         return Container(
           padding: const EdgeInsets.all(24),
-          height: 200,
-          child: const Center(
-            child: Text('Input amount sheet', style: TextStyle(fontSize: 18)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'ADD EXPENSE',
+                style: TextStyle(
+                  fontFamily: 'MonumentExtended',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'e.g. 500',
+                  prefixText: '\$',
+                ),
+              ),
+            ],
           ),
         );
       },
