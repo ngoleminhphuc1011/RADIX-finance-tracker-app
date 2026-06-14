@@ -12,6 +12,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String currentSort = 'Date';
   double sortTurns = 0.0;
   double monthlyBudget = 500.0;
+  bool _isPlusRotated = false;
 
   void _cycleSort() {
     setState(() {
@@ -345,10 +346,23 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.black,
-        onPressed: () => _showInputSheet(context),
-        child: const Icon(Icons.add, color: Colors.white),
+      floatingActionButton: BounceCard(
+        onTap: () {
+          setState(() {
+            _isPlusRotated = true;
+          });
+          _showAddTransactionDialog(context);
+        },
+        child: FloatingActionButton(
+          backgroundColor: Colors.black,
+          onPressed: null,
+          child: AnimatedRotation(
+            turns: _isPlusRotated ? 0.5 : 0.0,
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeOutCubic,
+            child: const Icon(Icons.add, color: Colors.white, size: 28),
+          ),
+        ),
       ),
     );
   }
@@ -399,37 +413,119 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showInputSheet(BuildContext context) {
+  void _showAddTransactionDialog(BuildContext context) {
+    final TextEditingController titleController = TextEditingController();
+    final TextEditingController amountController = TextEditingController();
+
     showModalBottomSheet(
       context: context,
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'ADD EXPENSE',
-                style: TextStyle(
-                  fontFamily: 'MonumentExtended',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.4),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            top: 20,
+            left: 20,
+            right: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: 'e.g. 500',
-                  prefixText: '\$',
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'ADD TRANSACTION',
+                  style: TextStyle(
+                    fontFamily: 'MonumentExtended-Regular',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                TextField(
+                  controller: titleController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: 'e.g. Food / Shopping',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFF00E676)),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: amountController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: '',
+                    prefixText: '\$',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFF00E676)),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: () {
+                      String title = titleController.text;
+                      double? amount = double.tryParse(amountController.text);
+                      if (title.isNotEmpty && amount != null) {
+                        // TODO: handle adding transaction
+                        Navigator.pop(context);
+                      }
+                    },
+                    child: const Text(
+                      'ADD',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'MonumentExtended-Regular',
+                        fontWeight: FontWeight.w100,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
-    );
+    ).then((_) {
+      if (mounted) {
+        setState(() {
+          _isPlusRotated = false;
+        });
+      }
+    });
   }
 }
 
@@ -473,12 +569,10 @@ class _BounceCardState extends State<BounceCard>
   @override
   void initState() {
     super.initState();
-    // tạo chuyển động nảy trong 100ms
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 100),
+      duration: const Duration(milliseconds: 120),
     );
-    // khi nhấn vào, card sẽ thu nhỏ lại còn 95% (0.95)
     _scaleAnimation = Tween<double>(
       begin: 1.0,
       end: 0.95,
@@ -494,12 +588,12 @@ class _BounceCardState extends State<BounceCard>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => _controller.forward(), // nhấn xuống thì thu nhỏ
+      onTapDown: (_) => _controller.forward(),
       onTapUp: (_) {
-        _controller.reverse(); // thả ra thì nảy lại cũ
-        widget.onTap(); // kích hoạt hàm mở cửa sổ nhập
+        _controller.reverse();
+        widget.onTap();
       },
-      onTapCancel: () => _controller.reverse(), // Hủy nhấn thì hồi lại
+      onTapCancel: () => _controller.reverse(),
       child: ScaleTransition(scale: _scaleAnimation, child: widget.child),
     );
   }
