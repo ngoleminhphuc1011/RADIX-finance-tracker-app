@@ -79,10 +79,8 @@ class _HomeScreenState extends State<HomeScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.4),
       builder: (BuildContext context) {
         return Padding(
           padding: EdgeInsets.only(
@@ -91,67 +89,82 @@ class _HomeScreenState extends State<HomeScreen> {
             right: 20,
             bottom: MediaQuery.of(context).viewInsets.bottom + 20,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'ENTER MONTHLY BUDGET',
-                style: TextStyle(
-                  fontFamily: 'MonumentExtended-Regular',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w100,
+
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
                 ),
-              ),
-              const SizedBox(height: 15),
-              TextField(
-                controller: budgetController,
-                keyboardType: TextInputType.number,
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: 'e.g. 500',
-                  prefixText: '\$',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFF00E676)),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'ENTER MONTHLY BUDGET',
+                  style: TextStyle(
+                    fontFamily: 'MonumentExtended-Regular',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
+                const SizedBox(height: 16),
+                TextField(
+                  controller: budgetController,
+                  keyboardType: TextInputType.number,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: 'e.g. 500',
+                    prefixText: '\$',
+                    border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                  ),
-                  onPressed: () {
-                    double? enteredBudget = double.tryParse(
-                      budgetController.text,
-                    );
-                    if (enteredBudget != null) {
-                      setState(() {
-                        monthlyBudget = enteredBudget;
-                      });
-                      Navigator.pop(context);
-                    }
-                  },
-                  child: const Text(
-                    'SAVE BUDGET',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontFamily: 'MonumentExtended-Regular',
-                      fontWeight: FontWeight.bold,
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFF00E676)),
                     ),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: () {
+                      double? enteredBudget = double.tryParse(
+                        budgetController.text,
+                      );
+                      if (enteredBudget != null) {
+                        setState(() {
+                          monthlyBudget = enteredBudget;
+                        });
+                        Navigator.pop(context);
+                      }
+                    },
+                    child: const Text(
+                      'SAVE BUDGET',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'MonumentExtended-Regular',
+                        fontWeight: FontWeight.w100,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -182,7 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               // Balance Card
-              GestureDetector(
+              BounceCard(
                 onTap: () {
                   _showBudgetInputDialog(context);
                 },
@@ -203,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         'SPENT',
                         style: TextStyle(
-                          fontFamily: 'MonumentExtended',
+                          fontFamily: 'MonumentExtended-Regular',
                           fontSize: 14,
                           color: Colors.black,
                         ),
@@ -221,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         'BUDGET LEFT: \$${monthlyBudget.toStringAsFixed(0)}',
                         style: TextStyle(
-                          fontFamily: 'MonumentExtended',
+                          fontFamily: 'MonumentExtended-Regular',
                           fontSize: 14,
                           color: Colors.black,
                         ),
@@ -367,7 +380,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Text(
               item.category,
               style: TextStyle(
-                fontFamily: 'MonumentExtended',
+                fontFamily: 'MonumentExtended-Regular',
                 fontSize: 16,
                 color: fgColor,
               ),
@@ -440,4 +453,54 @@ class _TransactionItem {
     required this.amount,
     required this.isIncome,
   });
+}
+
+class BounceCard extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onTap;
+
+  const BounceCard({super.key, required this.child, required this.onTap});
+
+  @override
+  State<BounceCard> createState() => _BounceCardState();
+}
+
+class _BounceCardState extends State<BounceCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    // tạo chuyển động nảy trong 100ms
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 100),
+    );
+    // khi nhấn vào, card sẽ thu nhỏ lại còn 95% (0.95)
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.95,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _controller.forward(), // nhấn xuống thì thu nhỏ
+      onTapUp: (_) {
+        _controller.reverse(); // thả ra thì nảy lại cũ
+        widget.onTap(); // kích hoạt hàm mở cửa sổ nhập
+      },
+      onTapCancel: () => _controller.reverse(), // Hủy nhấn thì hồi lại
+      child: ScaleTransition(scale: _scaleAnimation, child: widget.child),
+    );
+  }
 }
