@@ -8,11 +8,25 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+enum _TransactionMode { expense, income }
+
 class _HomeScreenState extends State<HomeScreen> {
   String currentSort = 'Date';
   double sortTurns = 0.0;
   double monthlyBudget = 500.0;
   bool _isPlusRotated = false;
+
+  _TransactionMode _transactionMode = _TransactionMode.expense;
+  bool _showAllocationDialog = false;
+
+  // Independent controllers for Expense mode
+  final TextEditingController _expenseTitleController = TextEditingController();
+  final TextEditingController _expenseAmountController =
+      TextEditingController();
+
+  // Independent controllers for Income mode
+  final TextEditingController _incomeTitleController = TextEditingController();
+  final TextEditingController _incomeAmountController = TextEditingController();
 
   void _cycleSort() {
     setState(() {
@@ -414,109 +428,304 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showAddTransactionDialog(BuildContext context) {
-    final TextEditingController titleController = TextEditingController();
-    final TextEditingController amountController = TextEditingController();
+    final PageController pageController = PageController(initialPage: 0);
+    _transactionMode = _TransactionMode.expense;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.4),
-      builder: (BuildContext context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            top: 20,
-            left: 20,
-            right: 20,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'ADD TRANSACTION',
-                  style: TextStyle(
-                    fontFamily: 'MonumentExtended-Regular',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: titleController,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    hintText: 'e.g. Food / Shopping',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+      builder: (BuildContext ctx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final bool isExpense = _transactionMode == _TransactionMode.expense;
+            final Color accentColor = isExpense
+                ? const Color(0xFFE57373) // Muted soft red
+                : const Color(0xFF81C784); // Muted soft green
+            final Color accentBgColor = isExpense
+                ? const Color(0xFFFFEBEE) // Soft pastel red background
+                : const Color(0xFFE8F5E9); // Soft pastel green background
+            final Color accentTextColor = isExpense
+                ? const Color(0xFF78281F) // Muted red text
+                : const Color(0xFF117A65); // Muted green text
+
+            return Padding(
+              padding: EdgeInsets.only(
+                top: 20,
+                left: 20,
+                right: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+              ),
+              child: Container(
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: accentColor, width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accentColor.withValues(alpha: 0.15),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFF00E676)),
-                    ),
-                  ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: amountController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    hintText: '',
-                    prefixText: '\$',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+                child: Stack(
+                  children: [
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Top indicator bar: subtle accent color strip
+                        Container(
+                          width: double.infinity,
+                          height: 4,
+                          color: accentColor.withValues(alpha: 0.6),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'ADD TRANSACTION',
+                                style: TextStyle(
+                                  fontFamily: 'MonumentExtended-Regular',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              // Toggle tabs: Expense / Income
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.all(3),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          if (_transactionMode !=
+                                              _TransactionMode.expense) {
+                                            setDialogState(() {
+                                              _transactionMode =
+                                                  _TransactionMode.expense;
+                                            });
+                                            pageController.animateToPage(
+                                              0,
+                                              duration: const Duration(
+                                                milliseconds: 300,
+                                              ),
+                                              curve:
+                                                  Curves.fastLinearToSlowEaseIn,
+                                            );
+                                          }
+                                        },
+                                        child: AnimatedContainer(
+                                          duration: const Duration(
+                                            milliseconds: 200,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 10,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: isExpense
+                                                ? accentColor.withValues(
+                                                    alpha: 0.25,
+                                                  )
+                                                : Colors.transparent,
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
+                                          alignment: Alignment.center,
+                                          child: Text(
+                                            'Expense',
+                                            style: TextStyle(
+                                              fontFamily:
+                                                  'MonumentExtended-Regular',
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w100,
+                                              color: isExpense
+                                                  ? accentTextColor
+                                                  : Colors.grey[600],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          if (_transactionMode !=
+                                              _TransactionMode.income) {
+                                            setDialogState(() {
+                                              _transactionMode =
+                                                  _TransactionMode.income;
+                                            });
+                                            pageController.animateToPage(
+                                              1,
+                                              duration: const Duration(
+                                                milliseconds: 300,
+                                              ),
+                                              curve:
+                                                  Curves.fastLinearToSlowEaseIn,
+                                            );
+                                          }
+                                        },
+                                        child: AnimatedContainer(
+                                          duration: const Duration(
+                                            milliseconds: 200,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 10,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: !isExpense
+                                                ? accentColor.withValues(
+                                                    alpha: 0.25,
+                                                  )
+                                                : Colors.transparent,
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
+                                          alignment: Alignment.center,
+                                          child: Text(
+                                            'Income',
+                                            style: TextStyle(
+                                              fontFamily:
+                                                  'MonumentExtended-Regular',
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w100,
+                                              color: !isExpense
+                                                  ? accentTextColor
+                                                  : Colors.grey[600],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+                          ),
+                        ),
+                        // Sliding pages: input fields
+                        SizedBox(
+                          // Fixed height for the page view area to keep it compact
+                          height: 168,
+                          child: PageView(
+                            controller: pageController,
+                            physics: const BouncingScrollPhysics(),
+                            onPageChanged: (index) {
+                              setDialogState(() {
+                                _transactionMode = index == 0
+                                    ? _TransactionMode.expense
+                                    : _TransactionMode.income;
+                              });
+                            },
+                            children: [
+                              // Page 0: Expense inputs
+                              _buildModeInputs(
+                                titleController: _expenseTitleController,
+                                amountController: _expenseAmountController,
+                                hintText: 'e.g. Food / Shopping',
+                                accentColor: accentColor,
+                              ),
+                              // Page 1: Income inputs
+                              _buildModeInputs(
+                                titleController: _incomeTitleController,
+                                amountController: _incomeAmountController,
+                                hintText: 'e.g. Salary / Freelance',
+                                accentColor: accentColor,
+                              ),
+                            ],
+                          ),
+                        ),
+                        // ADD button with matching accent color
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: accentColor,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              onPressed: () {
+                                final String title;
+                                final double? amount;
+                                if (isExpense) {
+                                  title = _expenseTitleController.text;
+                                  amount = double.tryParse(
+                                    _expenseAmountController.text,
+                                  );
+                                  if (title.isNotEmpty && amount != null) {
+                                    Navigator.pop(context);
+                                  }
+                                } else {
+                                  title = _incomeTitleController.text;
+                                  amount = double.tryParse(
+                                    _incomeAmountController.text,
+                                  );
+                                  if (title.isNotEmpty && amount != null) {
+                                    setDialogState(() {
+                                      _showAllocationDialog = true;
+                                    });
+                                  }
+                                }
+                              },
+                              child: const Text(
+                                'ADD',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: 'MonumentExtended-Regular',
+                                  fontWeight: FontWeight.w100,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFF00E676)),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                    // Allocation sub-window overlay — slides up when Income ADD is pressed
+                    if (_showAllocationDialog)
+                      Positioned.fill(
+                        child: _buildAllocationSubWindow(
+                          context: context,
+                          onCancel: () {
+                            setDialogState(() {
+                              _showAllocationDialog = false;
+                            });
+                          },
+                          onSelected: (String selection) {
+                            debugPrint('Selected: $selection');
+                            setDialogState(() {
+                              _showAllocationDialog = false;
+                            });
+                            // Clear all input controllers for clean restart
+                            _expenseTitleController.clear();
+                            _expenseAmountController.clear();
+                            _incomeTitleController.clear();
+                            _incomeAmountController.clear();
+                            Navigator.pop(context);
+                          },
+                        ),
                       ),
-                    ),
-                    onPressed: () {
-                      String title = titleController.text;
-                      double? amount = double.tryParse(amountController.text);
-                      if (title.isNotEmpty && amount != null) {
-                        // TODO: handle adding transaction
-                        Navigator.pop(context);
-                      }
-                    },
-                    child: const Text(
-                      'ADD',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontFamily: 'MonumentExtended-Regular',
-                        fontWeight: FontWeight.w100,
-                      ),
-                    ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     ).then((_) {
@@ -524,8 +733,202 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           _isPlusRotated = false;
         });
+        // Clear controllers for the next open
+        _expenseTitleController.clear();
+        _expenseAmountController.clear();
+        _incomeTitleController.clear();
+        _incomeAmountController.clear();
       }
     });
+  }
+
+  Widget _buildModeInputs({
+    required TextEditingController titleController,
+    required TextEditingController amountController,
+    required String hintText,
+    required Color accentColor,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: titleController,
+            autofocus: true,
+            decoration: InputDecoration(
+              hintText: hintText,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: accentColor),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: amountController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              hintText: '\$0.00',
+              hintStyle: TextStyle(color: Colors.grey[400]),
+              prefixText: '',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: accentColor),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Premium allocation sub-window — two large cards with icons and descriptions
+  Widget _buildAllocationSubWindow({
+    required BuildContext context,
+    required VoidCallback onCancel,
+    required void Function(String) onSelected,
+  }) {
+    return Container(
+      color: Colors.white,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Spacer(),
+          // Title
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              'Allocate Your Income',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'MonumentExtended-Regular',
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                height: 1.3,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          // Card 1: Add to Budget — soft mint/green
+          _buildAllocationCard(
+            label: 'Add to Budget',
+            description: 'Increase your monthly limit',
+            icon: Icons.trending_up,
+            bgColor: const Color(0xFFE8F5E9),
+            iconColor: const Color(0xFF2E7D32),
+            onTap: () => onSelected('Add to Budget'),
+          ),
+          const SizedBox(height: 14),
+          // Card 2: Deduct from Spent — soft charcoal/neutral
+          _buildAllocationCard(
+            label: 'Deduct from Spent',
+            description: 'Offset what you spent',
+            icon: Icons.remove_circle_outline,
+            bgColor: const Color.fromARGB(255, 216, 224, 247),
+            iconColor: const Color.fromARGB(255, 76, 140, 180),
+            onTap: () => onSelected('Deduct from Spent'),
+          ),
+          const Spacer(),
+          // Cancel button
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+            child: SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: onCancel,
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(
+                    fontFamily: 'MonumentExtended-Regular',
+                    fontSize: 12,
+                    color: Colors.grey[500],
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Single premium allocation card with BounceCard animation
+  Widget _buildAllocationCard({
+    required String label,
+    required String description,
+    required IconData icon,
+    required Color bgColor,
+    required Color iconColor,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: BounceCard(
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: iconColor.withValues(alpha: 0.15),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              // Icon container
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, color: iconColor, size: 26),
+              ),
+              const SizedBox(width: 16),
+              // Text content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontFamily: 'MonumentExtended-Regular',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      description,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[600],
+                        height: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
