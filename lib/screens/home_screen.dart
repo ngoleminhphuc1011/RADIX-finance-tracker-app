@@ -234,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         'SPENT',
                         style: TextStyle(
                           fontFamily: 'MonumentExtended-Regular',
-                          fontSize: 14,
+                          fontSize: 18,
                           color: Colors.black,
                         ),
                       ),
@@ -242,7 +242,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         '\$${spent.toStringAsFixed(0)}',
                         style: TextStyle(
-                          fontSize: 54,
+                          fontFamily: 'MonumentExtended-Bold',
+                          fontSize: 55,
                           fontWeight: FontWeight.w900,
                           color: Colors.black,
                         ),
@@ -252,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         'BUDGET LEFT: \$${(monthlyBudget - spent).toStringAsFixed(0)}',
                         style: TextStyle(
                           fontFamily: 'MonumentExtended-Regular',
-                          fontSize: 14,
+                          fontSize: 18,
                           color: Colors.black,
                         ),
                       ),
