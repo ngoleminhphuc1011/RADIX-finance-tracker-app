@@ -14,10 +14,12 @@ class _HomeScreenState extends State<HomeScreen> {
   String currentSort = 'Date';
   double sortTurns = 0.0;
   double monthlyBudget = 500.0;
+  double spent = 0.0;
   bool _isPlusRotated = false;
 
   _TransactionMode _transactionMode = _TransactionMode.expense;
   bool _showAllocationDialog = false;
+  double? _pendingIncomeAmount;
 
   // Independent controllers for Expense mode
   final TextEditingController _expenseTitleController = TextEditingController();
@@ -238,7 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        '\$40',
+                        '\$${spent.toStringAsFixed(0)}',
                         style: TextStyle(
                           fontSize: 54,
                           fontWeight: FontWeight.w900,
@@ -247,7 +249,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       SizedBox(height: 6),
                       Text(
-                        'BUDGET LEFT: \$${monthlyBudget.toStringAsFixed(0)}',
+                        'BUDGET LEFT: \$${(monthlyBudget - spent).toStringAsFixed(0)}',
                         style: TextStyle(
                           fontFamily: 'MonumentExtended-Regular',
                           fontSize: 14,
@@ -670,6 +672,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                     _expenseAmountController.text,
                                   );
                                   if (title.isNotEmpty && amount != null) {
+                                    // Expense: increase spent by the amount
+                                    final double expenseAmount = amount;
+                                    setState(() {
+                                      spent += expenseAmount;
+                                    });
                                     Navigator.pop(context);
                                   }
                                 } else {
@@ -679,6 +686,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   );
                                   if (title.isNotEmpty && amount != null) {
                                     setDialogState(() {
+                                      _pendingIncomeAmount = amount;
                                       _showAllocationDialog = true;
                                     });
                                   }
@@ -709,6 +717,19 @@ class _HomeScreenState extends State<HomeScreen> {
                           },
                           onSelected: (String selection) {
                             debugPrint('Selected: $selection');
+                            final double amount = _pendingIncomeAmount ?? 0.0;
+                            setState(() {
+                              if (selection == 'Add to Budget') {
+                                // Income -> Add to Budget: increase monthlyBudget
+                                monthlyBudget += amount;
+                              } else if (selection == 'Deduct from Spent') {
+                                // Income -> Deduct from Spent: decrease spent (never below 0)
+                                spent = (spent - amount)
+                                    .clamp(0.0, double.infinity)
+                                    .toDouble();
+                              }
+                              _pendingIncomeAmount = null;
+                            });
                             setDialogState(() {
                               _showAllocationDialog = false;
                             });
