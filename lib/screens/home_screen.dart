@@ -11,6 +11,41 @@ class HomeScreen extends StatefulWidget {
 enum _TransactionMode { expense, income }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // Icon picker state
+  String? _selectedIconKey;
+  static const Map<String, IconData> _iconOptions = {
+    'fastfood': Icons.fastfood_outlined,
+    'shopping_bag': Icons.shopping_bag_outlined,
+    'directions_car': Icons.directions_car_filled_outlined,
+    'home': Icons.home_outlined,
+    'payments': Icons.payments_outlined,
+    'work': Icons.work_outline,
+    'school': Icons.school_outlined,
+    'flight': Icons.flight_outlined,
+    'fitness_center': Icons.fitness_center_outlined,
+    'health_and_safety': Icons.health_and_safety_outlined,
+    'pets': Icons.pets_outlined,
+    'celebration': Icons.celebration_outlined,
+    'local_gas_station': Icons.local_gas_station_outlined,
+    'train': Icons.train_outlined,
+  };
+  static const Set<String> _validIconKeys = <String>{
+    'fastfood',
+    'shopping_bag',
+    'directions_car',
+    'home',
+    'payments',
+    'work',
+    'school',
+    'flight',
+    'fitness_center',
+    'health_and_safety',
+    'pets',
+    'celebration',
+    'local_gas_station',
+    'train',
+  };
+
   String currentSort = 'Date';
   double sortTurns = 0.0;
   double monthlyBudget = 500.0;
@@ -623,7 +658,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         // Sliding pages: input fields
                         SizedBox(
                           // Fixed height for the page view area to keep it compact
-                          height: 168,
+                          height: 196,
                           child: PageView(
                             controller: pageController,
                             physics: const BouncingScrollPhysics(),
@@ -641,6 +676,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 amountController: _expenseAmountController,
                                 hintText: 'e.g. Food / Shopping',
                                 accentColor: accentColor,
+                                onIconSelected: () => setDialogState(() {}),
                               ),
                               // Page 1: Income inputs
                               _buildModeInputs(
@@ -648,6 +684,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 amountController: _incomeAmountController,
                                 hintText: 'e.g. Salary / Freelance',
                                 accentColor: accentColor,
+                                onIconSelected: () => setDialogState(() {}),
                               ),
                             ],
                           ),
@@ -665,6 +702,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               onPressed: () {
+                                // Security: sanitize icon key - only valid preset keys allowed
+                                final String sanitizedIconKey;
+                                if (_selectedIconKey != null &&
+                                    _validIconKeys.contains(_selectedIconKey)) {
+                                  sanitizedIconKey = _selectedIconKey!;
+                                } else {
+                                  sanitizedIconKey = '';
+                                }
+                                // Use sanitizedIconKey for payload (optional)
+                                debugPrint(
+                                  'Selected icon key: $sanitizedIconKey',
+                                );
+
                                 final String title;
                                 final double? amount;
                                 if (isExpense) {
@@ -769,25 +819,59 @@ class _HomeScreenState extends State<HomeScreen> {
     required TextEditingController amountController,
     required String hintText,
     required Color accentColor,
+    VoidCallback? onIconSelected,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          TextField(
-            controller: titleController,
-            autofocus: true,
-            decoration: InputDecoration(
-              hintText: hintText,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: titleController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: hintText,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: accentColor),
+                    ),
+                  ),
+                ),
               ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: accentColor),
+              const SizedBox(width: 12),
+              // Icon Selector Square
+              GestureDetector(
+                onTap: () => _showIconPickerSheet(
+                  context,
+                  accentColor: accentColor,
+                  onIconSelected: onIconSelected,
+                ),
+                child: Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: accentColor, width: 1.5),
+                  ),
+                  child: Icon(
+                    _selectedIconKey != null
+                        ? _iconOptions[_selectedIconKey]!
+                        : Icons.widgets_outlined,
+                    color: _selectedIconKey != null
+                        ? accentColor
+                        : Colors.grey[400],
+                    size: 26,
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
           const SizedBox(height: 12),
           TextField(
@@ -808,6 +892,116 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showIconPickerSheet(
+    BuildContext context, {
+    VoidCallback? onIconSelected,
+    Color accentColor = const Color(0xFFE57373),
+  }) {
+    final Color selectedBgColor = accentColor.withValues(alpha: 0.15);
+    final Color selectedBorderColor = accentColor;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.3),
+      builder: (BuildContext ctx) {
+        return Padding(
+          padding: const EdgeInsets.only(
+            top: 20,
+            left: 20,
+            right: 20,
+            bottom: 20,
+          ),
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(ctx).size.height * 0.35,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+                  child: Row(
+                    children: [
+                      Text(
+                        'SELECT ICON',
+                        style: TextStyle(
+                          fontFamily: 'MonumentExtended-Regular',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedIconKey = null;
+                          });
+                          onIconSelected?.call();
+                          Navigator.pop(ctx);
+                        },
+                        child: Text(
+                          'None',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[400],
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                    child: GridView.builder(
+                      shrinkWrap: true,
+                      physics: const BouncingScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4,
+                            mainAxisSpacing: 12,
+                            crossAxisSpacing: 12,
+                          ),
+                      itemCount: _iconOptions.length,
+                      itemBuilder: (context, index) {
+                        final entry = _iconOptions.entries.elementAt(index);
+                        final String key = entry.key;
+                        final IconData icon = entry.value;
+                        final bool isSelected = _selectedIconKey == key;
+                        return _IconTile(
+                          icon: icon,
+                          isSelected: isSelected,
+                          selectedBgColor: selectedBgColor,
+                          selectedBorderColor: selectedBorderColor,
+                          onTap: () {
+                            setState(() {
+                              _selectedIconKey = key;
+                            });
+                            onIconSelected?.call();
+                            Navigator.pop(ctx);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -974,6 +1168,84 @@ class _TransactionItem {
     required this.amount,
     required this.isIncome,
   });
+}
+
+class _IconTile extends StatefulWidget {
+  final IconData icon;
+  final bool isSelected;
+  final Color selectedBgColor;
+  final Color selectedBorderColor;
+  final VoidCallback onTap;
+
+  const _IconTile({
+    required this.icon,
+    required this.isSelected,
+    required this.selectedBgColor,
+    required this.selectedBorderColor,
+    required this.onTap,
+  });
+
+  @override
+  State<_IconTile> createState() => _IconTileState();
+}
+
+class _IconTileState extends State<_IconTile>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _scaleController;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _scaleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 100),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.93).animate(
+      CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _scaleController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _scaleController.forward(),
+      onTapUp: (_) {
+        _scaleController.reverse();
+        widget.onTap();
+      },
+      onTapCancel: () => _scaleController.reverse(),
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: widget.isSelected
+                ? widget.selectedBgColor
+                : const Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.circular(12),
+            border: widget.isSelected
+                ? Border.all(color: widget.selectedBorderColor, width: 1.5)
+                : null,
+          ),
+          child: Icon(
+            widget.icon,
+            color: widget.isSelected
+                ? widget.selectedBorderColor
+                : Colors.grey[600],
+            size: 26,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class BounceCard extends StatefulWidget {
