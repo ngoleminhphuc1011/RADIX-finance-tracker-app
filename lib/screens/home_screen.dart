@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'instruction_screen.dart';
+import '../models/transaction_model.dart';
+import '../widgets/transaction_tile.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,22 +15,6 @@ enum _TransactionMode { expense, income }
 class _HomeScreenState extends State<HomeScreen> {
   // Icon picker state
   String? _selectedIconKey;
-  static const Map<String, IconData> _iconOptions = {
-    'fastfood': Icons.fastfood_outlined,
-    'shopping_bag': Icons.shopping_bag_outlined,
-    'directions_car': Icons.directions_car_filled_outlined,
-    'home': Icons.home_outlined,
-    'payments': Icons.payments_outlined,
-    'work': Icons.work_outline,
-    'school': Icons.school_outlined,
-    'flight': Icons.flight_outlined,
-    'fitness_center': Icons.fitness_center_outlined,
-    'health_and_safety': Icons.health_and_safety_outlined,
-    'pets': Icons.pets_outlined,
-    'celebration': Icons.celebration_outlined,
-    'local_gas_station': Icons.local_gas_station_outlined,
-    'train': Icons.train_outlined,
-  };
   static const Set<String> _validIconKeys = <String>{
     'fastfood',
     'shopping_bag',
@@ -65,6 +51,10 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _incomeTitleController = TextEditingController();
   final TextEditingController _incomeAmountController = TextEditingController();
 
+  // In-memory transaction list
+  final List<TransactionModel> _transactions = [];
+  String _pendingIncomeIconKey = '';
+
   void _cycleSort() {
     setState(() {
       if (currentSort == 'Date') {
@@ -84,44 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
     debugPrint('Sort changed to: $currentSort');
   }
-
-  // Mock transaction data
-  final List<_TransactionGroup> _transactions = [
-    _TransactionGroup(
-      date: 'Thursdays, 25 November',
-      items: [
-        _TransactionItem(
-          icon: Icons.work_outline,
-          category: 'Salary',
-          amount: 50.00,
-          isIncome: true,
-        ),
-        _TransactionItem(
-          icon: Icons.restaurant_outlined,
-          category: 'Food',
-          amount: 20.00,
-          isIncome: false,
-        ),
-      ],
-    ),
-    _TransactionGroup(
-      date: 'Wednesday, 24 November',
-      items: [
-        _TransactionItem(
-          icon: Icons.shopping_bag_outlined,
-          category: 'Shopping',
-          amount: 35.00,
-          isIncome: false,
-        ),
-        _TransactionItem(
-          icon: Icons.directions_car_outlined,
-          category: 'Transport',
-          amount: 12.00,
-          isIncome: false,
-        ),
-      ],
-    ),
-  ];
 
   void _showBudgetInputDialog(BuildContext context) {
     final TextEditingController budgetController = TextEditingController(
@@ -363,33 +315,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     key: ValueKey<String>(currentSort),
                     padding: const EdgeInsets.only(bottom: 80),
                     itemCount: _transactions.length,
-                    itemBuilder: (context, groupIndex) {
-                      final group = _transactions[groupIndex];
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Date title
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            child: Text(
-                              group.date,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey[500],
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ),
-                          // Transaction cards
-                          ...group.items.map(
-                            (item) => Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: _buildTransactionCard(item),
-                            ),
-                          ),
-                        ],
-                      );
+                    itemBuilder: (context, index) {
+                      return TransactionTile(model: _transactions[index]);
                     },
                   ),
                 ),
@@ -419,50 +346,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildTransactionCard(_TransactionItem item) {
-    final bool isIncome = item.isIncome;
-    final Color bgColor = isIncome
-        ? const Color(0xFFE8F8F5)
-        : const Color(0xFFFADBD8);
-    final Color fgColor = isIncome
-        ? const Color(0xFF117A65)
-        : const Color(0xFF78281F);
-    final String amountText = isIncome
-        ? '+ \$${item.amount.toStringAsFixed(2)}'
-        : '- \$${item.amount.toStringAsFixed(2)}';
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Icon(item.icon, color: fgColor, size: 24),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              item.category,
-              style: TextStyle(
-                fontFamily: 'MonumentExtended-Regular',
-                fontSize: 16,
-                color: fgColor,
-              ),
-            ),
-          ),
-          Text(
-            amountText,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: fgColor,
-            ),
-          ),
-        ],
-      ),
-    );
+  String _sanitizeIconKey() {
+    if (_selectedIconKey != null && _validIconKeys.contains(_selectedIconKey)) {
+      return _selectedIconKey!;
+    }
+    return '';
   }
 
   void _showAddTransactionDialog(BuildContext context) {
@@ -479,14 +367,11 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context, setDialogState) {
             final bool isExpense = _transactionMode == _TransactionMode.expense;
             final Color accentColor = isExpense
-                ? const Color(0xFFE57373) // Muted soft red
-                : const Color(0xFF81C784); // Muted soft green
-            final Color accentBgColor = isExpense
-                ? const Color(0xFFFFEBEE) // Soft pastel red background
-                : const Color(0xFFE8F5E9); // Soft pastel green background
+                ? const Color(0xFFE57373)
+                : const Color(0xFF81C784);
             final Color accentTextColor = isExpense
-                ? const Color(0xFF78281F) // Muted red text
-                : const Color(0xFF117A65); // Muted green text
+                ? const Color(0xFF78281F)
+                : const Color(0xFF117A65);
 
             return Padding(
               padding: EdgeInsets.only(
@@ -514,7 +399,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Top indicator bar: subtle accent color strip
                         Container(
                           width: double.infinity,
                           height: 4,
@@ -535,7 +419,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               const SizedBox(height: 16),
-                              // Toggle tabs: Expense / Income
                               Container(
                                 decoration: BoxDecoration(
                                   color: Colors.grey[100],
@@ -655,9 +538,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                           ),
                         ),
-                        // Sliding pages: input fields
                         SizedBox(
-                          // Fixed height for the page view area to keep it compact
                           height: 196,
                           child: PageView(
                             controller: pageController,
@@ -670,7 +551,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               });
                             },
                             children: [
-                              // Page 0: Expense inputs
                               _buildModeInputs(
                                 titleController: _expenseTitleController,
                                 amountController: _expenseAmountController,
@@ -678,7 +558,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 accentColor: accentColor,
                                 onIconSelected: () => setDialogState(() {}),
                               ),
-                              // Page 1: Income inputs
                               _buildModeInputs(
                                 titleController: _incomeTitleController,
                                 amountController: _incomeAmountController,
@@ -689,7 +568,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                           ),
                         ),
-                        // ADD button with matching accent color
                         Padding(
                           padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                           child: SizedBox(
@@ -702,40 +580,41 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               onPressed: () {
-                                // Security: sanitize icon key - only valid preset keys allowed
-                                final String sanitizedIconKey;
-                                if (_selectedIconKey != null &&
-                                    _validIconKeys.contains(_selectedIconKey)) {
-                                  sanitizedIconKey = _selectedIconKey!;
-                                } else {
-                                  sanitizedIconKey = '';
-                                }
-                                // Use sanitizedIconKey for payload (optional)
-                                debugPrint(
-                                  'Selected icon key: $sanitizedIconKey',
-                                );
+                                final String iconKey = _sanitizeIconKey();
+                                debugPrint('Selected icon key: $iconKey');
 
-                                final String title;
-                                final double? amount;
                                 if (isExpense) {
-                                  title = _expenseTitleController.text;
-                                  amount = double.tryParse(
+                                  final String title =
+                                      _expenseTitleController.text;
+                                  final double? amount = double.tryParse(
                                     _expenseAmountController.text,
                                   );
                                   if (title.isNotEmpty && amount != null) {
-                                    // Expense: increase spent by the amount
-                                    final double expenseAmount = amount;
+                                    final String id = DateTime.now()
+                                        .millisecondsSinceEpoch
+                                        .toString();
                                     setState(() {
-                                      spent += expenseAmount;
+                                      _transactions.add(
+                                        TransactionModel(
+                                          id: id,
+                                          title: title,
+                                          amount: amount,
+                                          iconKey: iconKey,
+                                          isExpense: true,
+                                        ),
+                                      );
+                                      spent += amount;
                                     });
                                     Navigator.pop(context);
                                   }
                                 } else {
-                                  title = _incomeTitleController.text;
-                                  amount = double.tryParse(
+                                  final String title =
+                                      _incomeTitleController.text;
+                                  final double? amount = double.tryParse(
                                     _incomeAmountController.text,
                                   );
                                   if (title.isNotEmpty && amount != null) {
+                                    _pendingIncomeIconKey = iconKey;
                                     setDialogState(() {
                                       _pendingIncomeAmount = amount;
                                       _showAllocationDialog = true;
@@ -756,7 +635,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    // Allocation sub-window overlay — slides up when Income ADD is pressed
                     if (_showAllocationDialog)
                       Positioned.fill(
                         child: _buildAllocationSubWindow(
@@ -769,12 +647,22 @@ class _HomeScreenState extends State<HomeScreen> {
                           onSelected: (String selection) {
                             debugPrint('Selected: $selection');
                             final double amount = _pendingIncomeAmount ?? 0.0;
+                            final String id = DateTime.now()
+                                .millisecondsSinceEpoch
+                                .toString();
                             setState(() {
+                              _transactions.add(
+                                TransactionModel(
+                                  id: id,
+                                  title: _incomeTitleController.text,
+                                  amount: amount,
+                                  iconKey: _pendingIncomeIconKey,
+                                  isExpense: false,
+                                ),
+                              );
                               if (selection == 'Add to Budget') {
-                                // Income -> Add to Budget: increase monthlyBudget
                                 monthlyBudget += amount;
                               } else if (selection == 'Deduct from Spent') {
-                                // Income -> Deduct from Spent: decrease spent (never below 0)
                                 spent = (spent - amount)
                                     .clamp(0.0, double.infinity)
                                     .toDouble();
@@ -784,7 +672,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             setDialogState(() {
                               _showAllocationDialog = false;
                             });
-                            // Clear all input controllers for clean restart
                             _expenseTitleController.clear();
                             _expenseAmountController.clear();
                             _incomeTitleController.clear();
@@ -805,7 +692,6 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           _isPlusRotated = false;
         });
-        // Clear controllers for the next open
         _expenseTitleController.clear();
         _expenseAmountController.clear();
         _incomeTitleController.clear();
@@ -845,7 +731,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              // Icon Selector Square
               GestureDetector(
                 onTap: () => _showIconPickerSheet(
                   context,
@@ -862,7 +747,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   child: Icon(
                     _selectedIconKey != null
-                        ? _iconOptions[_selectedIconKey]!
+                        ? iconOptions[_selectedIconKey]!
                         : Icons.widgets_outlined,
                     color: _selectedIconKey != null
                         ? accentColor
@@ -974,9 +859,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             mainAxisSpacing: 12,
                             crossAxisSpacing: 12,
                           ),
-                      itemCount: _iconOptions.length,
+                      itemCount: iconOptions.length,
                       itemBuilder: (context, index) {
-                        final entry = _iconOptions.entries.elementAt(index);
+                        final entry = iconOptions.entries.elementAt(index);
                         final String key = entry.key;
                         final IconData icon = entry.value;
                         final bool isSelected = _selectedIconKey == key;
@@ -1005,7 +890,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Premium allocation sub-window — two large cards with icons and descriptions
   Widget _buildAllocationSubWindow({
     required BuildContext context,
     required VoidCallback onCancel,
@@ -1018,7 +902,6 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Spacer(),
-          // Title
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 24),
             child: Text(
@@ -1033,7 +916,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          // Card 1: Add to Budget — soft mint/green
           _buildAllocationCard(
             label: 'Add to Budget',
             description: 'Increase your monthly limit',
@@ -1043,7 +925,6 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () => onSelected('Add to Budget'),
           ),
           const SizedBox(height: 14),
-          // Card 2: Deduct from Spent — soft charcoal/neutral
           _buildAllocationCard(
             label: 'Deduct from Spent',
             description: 'Offset what you spent',
@@ -1053,7 +934,6 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () => onSelected('Deduct from Spent'),
           ),
           const Spacer(),
-          // Cancel button
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
             child: SizedBox(
@@ -1077,7 +957,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Single premium allocation card with BounceCard animation
   Widget _buildAllocationCard({
     required String label,
     required String description,
@@ -1103,7 +982,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: Row(
             children: [
-              // Icon container
               Container(
                 width: 48,
                 height: 48,
@@ -1114,7 +992,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Icon(icon, color: iconColor, size: 26),
               ),
               const SizedBox(width: 16),
-              // Text content
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1146,28 +1023,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
-
-// Data models
-class _TransactionGroup {
-  final String date;
-  final List<_TransactionItem> items;
-
-  _TransactionGroup({required this.date, required this.items});
-}
-
-class _TransactionItem {
-  final IconData icon;
-  final String category;
-  final double amount;
-  final bool isIncome;
-
-  _TransactionItem({
-    required this.icon,
-    required this.category,
-    required this.amount,
-    required this.isIncome,
-  });
 }
 
 class _IconTile extends StatefulWidget {
