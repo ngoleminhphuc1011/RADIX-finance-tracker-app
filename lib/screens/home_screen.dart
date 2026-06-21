@@ -4,7 +4,22 @@ import '../models/transaction_model.dart';
 import '../widgets/transaction_tile.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final List<TransactionModel> transactions;
+  final void Function(TransactionModel) onAddTransaction;
+  final double monthlyBudget;
+  final double spent;
+  final ValueChanged<double> onBudgetChanged;
+  final ValueChanged<double> onSpentChanged;
+
+  const HomeScreen({
+    super.key,
+    required this.transactions,
+    required this.onAddTransaction,
+    required this.monthlyBudget,
+    required this.spent,
+    required this.onBudgetChanged,
+    required this.onSpentChanged,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -34,8 +49,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String currentSort = 'Date';
   double sortTurns = 0.0;
-  double monthlyBudget = 500.0;
-  double spent = 0.0;
   bool _isPlusRotated = false;
 
   _TransactionMode _transactionMode = _TransactionMode.expense;
@@ -51,8 +64,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _incomeTitleController = TextEditingController();
   final TextEditingController _incomeAmountController = TextEditingController();
 
-  // In-memory transaction list
-  final List<TransactionModel> _transactions = [];
   String _pendingIncomeIconKey = '';
 
   void _cycleSort() {
@@ -67,7 +78,6 @@ class _HomeScreenState extends State<HomeScreen> {
         currentSort = 'Flow';
         sortTurns = 0.75;
       } else {
-        // Flow -> back to Date
         currentSort = 'Date';
         sortTurns = 0.0;
       }
@@ -77,7 +87,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showBudgetInputDialog(BuildContext context) {
     final TextEditingController budgetController = TextEditingController(
-      text: monthlyBudget == 0 ? '' : monthlyBudget.toStringAsFixed(0),
+      text: widget.monthlyBudget == 0
+          ? ''
+          : widget.monthlyBudget.toStringAsFixed(0),
     );
 
     showModalBottomSheet(
@@ -93,7 +105,6 @@ class _HomeScreenState extends State<HomeScreen> {
             right: 20,
             bottom: MediaQuery.of(context).viewInsets.bottom + 20,
           ),
-
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -151,9 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         budgetController.text,
                       );
                       if (enteredBudget != null) {
-                        setState(() {
-                          monthlyBudget = enteredBudget;
-                        });
+                        widget.onBudgetChanged(enteredBudget);
                         Navigator.pop(context);
                       }
                     },
@@ -227,7 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        '\$${spent.toStringAsFixed(0)}',
+                        '\$${widget.spent.toStringAsFixed(0)}',
                         style: TextStyle(
                           fontFamily: 'MonumentExtended-Bold',
                           fontSize: 55,
@@ -237,7 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       SizedBox(height: 6),
                       Text(
-                        'BUDGET LEFT: \$${(monthlyBudget - spent).toStringAsFixed(0)}',
+                        'BUDGET LEFT: \$${(widget.monthlyBudget - widget.spent).toStringAsFixed(0)}',
                         style: TextStyle(
                           fontFamily: 'MonumentExtended-Regular',
                           fontSize: 18,
@@ -292,34 +301,48 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 8),
 
-              // Transaction List
+              // Transaction List or Empty State
               Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 350),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                        return FadeTransition(
-                          opacity: animation,
-                          child: SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(0, 0.1),
-                              end: Offset.zero,
-                            ).animate(animation),
-                            child: child,
+                child: widget.transactions.isEmpty
+                    ? Center(
+                        child: Text(
+                          "PRESS '+' TO ADD\nTRANSACTION",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontFamily: 'MonumentExtended-Regular',
+                            fontSize: 14,
+                            color: Colors.grey[400],
                           ),
-                        );
-                      },
-                  child: ListView.builder(
-                    key: ValueKey<String>(currentSort),
-                    padding: const EdgeInsets.only(bottom: 80),
-                    itemCount: _transactions.length,
-                    itemBuilder: (context, index) {
-                      return TransactionTile(model: _transactions[index]);
-                    },
-                  ),
-                ),
+                        ),
+                      )
+                    : AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 350),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeInCubic,
+                        transitionBuilder:
+                            (Widget child, Animation<double> animation) {
+                              return FadeTransition(
+                                opacity: animation,
+                                child: SlideTransition(
+                                  position: Tween<Offset>(
+                                    begin: const Offset(0, 0.1),
+                                    end: Offset.zero,
+                                  ).animate(animation),
+                                  child: child,
+                                ),
+                              );
+                            },
+                        child: ListView.builder(
+                          key: ValueKey<String>(currentSort),
+                          padding: const EdgeInsets.only(bottom: 80),
+                          itemCount: widget.transactions.length,
+                          itemBuilder: (context, index) {
+                            return TransactionTile(
+                              model: widget.transactions[index],
+                            );
+                          },
+                        ),
+                      ),
               ),
             ],
           ),
@@ -593,18 +616,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                     final String id = DateTime.now()
                                         .millisecondsSinceEpoch
                                         .toString();
-                                    setState(() {
-                                      _transactions.add(
-                                        TransactionModel(
-                                          id: id,
-                                          title: title,
-                                          amount: amount,
-                                          iconKey: iconKey,
-                                          isExpense: true,
-                                        ),
-                                      );
-                                      spent += amount;
-                                    });
+                                    widget.onAddTransaction(
+                                      TransactionModel(
+                                        id: id,
+                                        title: title,
+                                        amount: amount,
+                                        iconKey: iconKey,
+                                        isExpense: true,
+                                      ),
+                                    );
+                                    widget.onSpentChanged(
+                                      widget.spent + amount,
+                                    );
                                     Navigator.pop(context);
                                   }
                                 } else {
@@ -650,25 +673,27 @@ class _HomeScreenState extends State<HomeScreen> {
                             final String id = DateTime.now()
                                 .millisecondsSinceEpoch
                                 .toString();
-                            setState(() {
-                              _transactions.add(
-                                TransactionModel(
-                                  id: id,
-                                  title: _incomeTitleController.text,
-                                  amount: amount,
-                                  iconKey: _pendingIncomeIconKey,
-                                  isExpense: false,
-                                ),
+                            widget.onAddTransaction(
+                              TransactionModel(
+                                id: id,
+                                title: _incomeTitleController.text,
+                                amount: amount,
+                                iconKey: _pendingIncomeIconKey,
+                                isExpense: false,
+                              ),
+                            );
+                            if (selection == 'Add to Budget') {
+                              widget.onBudgetChanged(
+                                widget.monthlyBudget + amount,
                               );
-                              if (selection == 'Add to Budget') {
-                                monthlyBudget += amount;
-                              } else if (selection == 'Deduct from Spent') {
-                                spent = (spent - amount)
+                            } else if (selection == 'Deduct from Spent') {
+                              widget.onSpentChanged(
+                                (widget.spent - amount)
                                     .clamp(0.0, double.infinity)
-                                    .toDouble();
-                              }
-                              _pendingIncomeAmount = null;
-                            });
+                                    .toDouble(),
+                              );
+                            }
+                            _pendingIncomeAmount = null;
                             setDialogState(() {
                               _showAllocationDialog = false;
                             });

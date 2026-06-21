@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'graph_screen.dart';
 import 'home_screen.dart';
 import 'settings_screen.dart';
+import '../models/transaction_model.dart';
 
 class NavWrapper extends StatefulWidget {
   const NavWrapper({super.key});
@@ -13,7 +14,12 @@ class NavWrapper extends StatefulWidget {
 class _NavWrapperState extends State<NavWrapper> {
   final PageController _pageController = PageController(initialPage: 1);
   int _currentIndex = 1;
-  double _pagePosition = 1.0; // continuous page value for indicator tracking
+  double _pagePosition = 1.0;
+
+  // Lifted global state — persists across page switches
+  final List<TransactionModel> _transactions = [];
+  double monthlyBudget = 500.0;
+  double spent = 0.0;
 
   @override
   void initState() {
@@ -51,13 +57,42 @@ class _NavWrapperState extends State<NavWrapper> {
     );
   }
 
+  void _addTransaction(TransactionModel tx) {
+    setState(() {
+      _transactions.insert(0, tx);
+    });
+  }
+
+  void _setBudget(double val) {
+    setState(() {
+      monthlyBudget = val;
+    });
+  }
+
+  void _setSpent(double val) {
+    setState(() {
+      spent = val;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: PageView(
         controller: _pageController,
         onPageChanged: _onPageChanged,
-        children: const [GraphScreen(), HomeScreen(), SettingsScreen()],
+        children: [
+          const GraphScreen(),
+          HomeScreen(
+            transactions: _transactions,
+            onAddTransaction: _addTransaction,
+            monthlyBudget: monthlyBudget,
+            spent: spent,
+            onBudgetChanged: _setBudget,
+            onSpentChanged: _setSpent,
+          ),
+          const SettingsScreen(),
+        ],
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.only(bottom: 24, left: 20, right: 20),
@@ -80,7 +115,6 @@ class _NavWrapperState extends State<NavWrapper> {
                 final double barWidth = constraints.maxWidth;
                 final double itemWidth = barWidth / 3;
                 final double indicatorWidth = itemWidth * 0.48;
-                // Continuous indicator center = maps page position linearly
                 final double indicatorCenterX =
                     itemWidth * (0.5 + _pagePosition);
                 final double indicatorLeft =
@@ -91,7 +125,6 @@ class _NavWrapperState extends State<NavWrapper> {
 
                 return Stack(
                   children: [
-                    // Sliding indicator pill — glides in real-time with scroll
                     Positioned(
                       left: indicatorLeft,
                       top: 12,
@@ -104,7 +137,6 @@ class _NavWrapperState extends State<NavWrapper> {
                         ),
                       ),
                     ),
-                    // Navigation icon row
                     Row(
                       children: [
                         _buildNavItem(

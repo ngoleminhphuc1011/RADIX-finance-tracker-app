@@ -47,15 +47,20 @@ class TransactionTile extends StatelessWidget {
           Expanded(
             child: Text(
               model.title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                fontFamily: 'MonumentExtended-Regular',
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+              ),
             ),
           ),
           // Amount
           Text(
             amountText,
             style: TextStyle(
+              fontFamily: 'MonumentExtended-Regular',
               fontSize: 16,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w400,
               color: fgColor,
             ),
           ),
