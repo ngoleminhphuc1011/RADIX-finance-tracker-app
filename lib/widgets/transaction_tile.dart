@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/transaction_model.dart';
 
 class TransactionTile extends StatelessWidget {
   final TransactionModel model;
+  static final NumberFormat _amountFormat = NumberFormat('#,##0.00');
 
   const TransactionTile({super.key, required this.model});
 
@@ -16,7 +18,7 @@ class TransactionTile extends StatelessWidget {
         ? const Color(0xFF78281F)
         : const Color(0xFF117A65);
     final String amountText =
-        '${isExpense ? '-' : '+'} \$${model.amount.toStringAsFixed(2)}';
+        '${isExpense ? '-' : '+'} \$${_amountFormat.format(model.amount)}';
     final IconData? resolvedIcon = iconOptions[model.iconKey];
 
     return Container(

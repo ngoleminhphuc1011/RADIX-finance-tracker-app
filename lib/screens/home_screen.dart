@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'instruction_screen.dart';
 import '../models/transaction_model.dart';
 import '../widgets/transaction_tile.dart';
@@ -28,6 +29,7 @@ class HomeScreen extends StatefulWidget {
 enum _TransactionMode { expense, income }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static final NumberFormat _currencyFormat = NumberFormat('#,###');
   // Icon picker state
   String? _selectedIconKey;
   static const Set<String> _validIconKeys = <String>{
@@ -65,6 +67,13 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _incomeAmountController = TextEditingController();
 
   String _pendingIncomeIconKey = '';
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   void _cycleSort() {
     setState(() {
@@ -242,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        '\$${widget.spent.toStringAsFixed(0)}',
+                        '\$${_currencyFormat.format(widget.spent)}',
                         style: TextStyle(
                           fontFamily: 'MonumentExtended-Bold',
                           fontSize: 55,
@@ -252,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       SizedBox(height: 6),
                       Text(
-                        'BUDGET LEFT: \$${(widget.monthlyBudget - widget.spent).toStringAsFixed(0)}',
+                        'BUDGET LEFT: \$${_currencyFormat.format(widget.monthlyBudget - widget.spent)}',
                         style: TextStyle(
                           fontFamily: 'MonumentExtended-Regular',
                           fontSize: 18,
@@ -338,15 +347,28 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               );
                             },
-                        child: ListView.builder(
-                          key: ValueKey<String>(currentSort),
-                          padding: const EdgeInsets.only(bottom: 80),
-                          itemCount: widget.transactions.length,
-                          itemBuilder: (context, index) {
-                            return TransactionTile(
-                              model: widget.transactions[index],
-                            );
-                          },
+                        child: ScrollbarTheme(
+                          data: const ScrollbarThemeData(
+                            thumbColor: WidgetStatePropertyAll(Colors.black45),
+                            radius: Radius.circular(20.0),
+                            thickness: WidgetStatePropertyAll(6.0),
+                            interactive: true,
+                          ),
+                          child: Scrollbar(
+                            controller: _scrollController,
+                            child: ListView.builder(
+                              controller: _scrollController,
+                              key: ValueKey<String>(currentSort),
+                              padding: const EdgeInsets.only(bottom: 80),
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: widget.transactions.length,
+                              itemBuilder: (context, index) {
+                                return TransactionTile(
+                                  model: widget.transactions[index],
+                                );
+                              },
+                            ),
+                          ),
                         ),
                       ),
               ),
