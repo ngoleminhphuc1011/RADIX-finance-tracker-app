@@ -71,15 +71,21 @@ class _HomeScreenState extends State<HomeScreen> {
       if (currentSort == 'Date') {
         currentSort = 'Highest';
         sortTurns = 0.25;
+        widget.transactions.sort((a, b) => b.amount.compareTo(a.amount));
       } else if (currentSort == 'Highest') {
         currentSort = 'Category';
         sortTurns = 0.5;
+        widget.transactions.sort((a, b) => a.iconKey.compareTo(b.iconKey));
       } else if (currentSort == 'Category') {
         currentSort = 'Flow';
         sortTurns = 0.75;
+        widget.transactions.sort(
+          (a, b) => (b.isExpense ? 1 : 0) - (a.isExpense ? 1 : 0),
+        );
       } else {
         currentSort = 'Date';
         sortTurns = 0.0;
+        widget.transactions.sort((a, b) => b.id.compareTo(a.id));
       }
     });
     debugPrint('Sort changed to: $currentSort');
