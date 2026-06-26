@@ -100,6 +100,169 @@ class _HomeScreenState extends State<HomeScreen> {
     debugPrint('Sort changed to: $currentSort');
   }
 
+  void _showMorphDialog(BuildContext context, TransactionModel model) {
+    final Color bgColor = model.isExpense
+        ? const Color(0xFFFFEBEE)
+        : const Color(0xFFE8F5E9);
+    final Color amountColor = model.isExpense
+        ? const Color(0xFFB71C1C)
+        : const Color(0xFF1B5E20);
+    final Color badgeColor = model.isExpense
+        ? const Color(0xFFC62828)
+        : const Color(0xFF2E7D32);
+    final IconData? resolvedIcon = iconOptions[model.iconKey];
+    final String amountText =
+        '${model.isExpense ? '-' : '+'} \$${_currencyFormat.format(model.amount)}';
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss Morph Dialog',
+      transitionDuration: const Duration(milliseconds: 400),
+      barrierColor: Colors.black.withValues(alpha: 0.4),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
+            CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+          ),
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.85, end: 1.0).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+            ),
+            child: child,
+          ),
+        );
+      },
+      pageBuilder: (context, animation, secondaryAnimation) {
+        final Size screenSize = MediaQuery.of(context).size;
+        return Center(
+          child: Material(
+            type: MaterialType.transparency,
+            child: Container(
+              constraints: BoxConstraints(maxWidth: screenSize.width * 0.80),
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  width: 1.5,
+                ),
+              ),
+              child: IntrinsicHeight(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Top Row: date + type badge
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'date (chưa có)',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.black38,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: amountColor.withValues(alpha: 0.10),
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: Text(
+                              model.isExpense ? 'EXPENSE' : 'INCOME',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: badgeColor,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      // Category icon
+                      if (resolvedIcon != null)
+                        Container(
+                          width: 86,
+                          height: 86,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            borderRadius: BorderRadius.circular(22),
+                          ),
+                          child: Icon(
+                            resolvedIcon,
+                            color: amountColor,
+                            size: 48,
+                          ),
+                        ),
+                      if (resolvedIcon != null) const SizedBox(height: 20),
+                      // Description
+                      Text(
+                        model.title,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontFamily: 'MonumentExtended-Regular',
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      // Amount (heavy visual anchor)
+                      Text(
+                        amountText,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'MonumentExtended-Regular',
+                          fontSize: 50,
+                          fontWeight: FontWeight.w800,
+                          color: amountColor,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      // Bottom Row: SAVE + trash
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            'SAVE',
+                            style: TextStyle(
+                              fontFamily: 'MonumentExtended-Bold',
+                              fontSize: 19,
+                              fontWeight: FontWeight.w900,
+                              color: badgeColor,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                          Icon(
+                            Icons.delete_outline,
+                            color: Colors.black.withValues(alpha: 0.45),
+                            size: 28,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _showBudgetInputDialog(BuildContext context) {
     final TextEditingController budgetController = TextEditingController(
       text: widget.monthlyBudget == 0
@@ -365,6 +528,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               itemBuilder: (context, index) {
                                 return TransactionTile(
                                   model: widget.transactions[index],
+                                  onTap: () => _showMorphDialog(
+                                    context,
+                                    widget.transactions[index],
+                                  ),
                                 );
                               },
                             ),

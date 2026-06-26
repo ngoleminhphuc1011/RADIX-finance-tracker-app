@@ -4,9 +4,10 @@ import '../models/transaction_model.dart';
 
 class TransactionTile extends StatelessWidget {
   final TransactionModel model;
+  final VoidCallback? onTap;
   static final NumberFormat _amountFormat = NumberFormat('#,##0.00');
 
-  const TransactionTile({super.key, required this.model});
+  const TransactionTile({super.key, required this.model, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -21,52 +22,55 @@ class TransactionTile extends StatelessWidget {
         '${isExpense ? '-' : '+'} \$${_amountFormat.format(model.amount)}';
     final IconData? resolvedIcon = iconOptions[model.iconKey];
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          // Icon square
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.6),
-              borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            // Icon square
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                resolvedIcon ?? Icons.widgets_outlined,
+                color: fgColor,
+                size: 24,
+              ),
             ),
-            child: Icon(
-              resolvedIcon ?? Icons.widgets_outlined,
-              color: fgColor,
-              size: 24,
+            const SizedBox(width: 12),
+            // Title
+            Expanded(
+              child: Text(
+                model.title,
+                style: const TextStyle(
+                  fontFamily: 'MonumentExtended-Regular',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          // Title
-          Expanded(
-            child: Text(
-              model.title,
-              style: const TextStyle(
+            // Amount
+            Text(
+              amountText,
+              style: TextStyle(
                 fontFamily: 'MonumentExtended-Regular',
                 fontSize: 16,
                 fontWeight: FontWeight.w400,
+                color: fgColor,
               ),
             ),
-          ),
-          // Amount
-          Text(
-            amountText,
-            style: TextStyle(
-              fontFamily: 'MonumentExtended-Regular',
-              fontSize: 16,
-              fontWeight: FontWeight.w400,
-              color: fgColor,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
