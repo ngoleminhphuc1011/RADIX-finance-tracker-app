@@ -12,9 +12,8 @@ class TransactionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isExpense = model.isExpense;
-    final Color bgColor = isExpense
-        ? const Color(0xFFFFEBEE)
-        : const Color(0xFFE8F5E9);
+    final colors = model.getColors();
+    // Tile uses a lighter foreground than the edit dialog's accent color
     final Color fgColor = isExpense
         ? const Color(0xFF78281F)
         : const Color(0xFF117A65);
@@ -28,7 +27,7 @@ class TransactionTile extends StatelessWidget {
         margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: bgColor,
+          color: colors.bg,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(

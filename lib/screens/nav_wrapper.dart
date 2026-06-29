@@ -119,11 +119,11 @@ class _NavWrapperState extends State<NavWrapper> {
             height: 64,
             decoration: BoxDecoration(
               color: Colors.white,
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
+                  color: Color(0x14000000),
                   blurRadius: 20,
-                  offset: const Offset(0, 4),
+                  offset: Offset(0, 4),
                 ),
               ],
             ),

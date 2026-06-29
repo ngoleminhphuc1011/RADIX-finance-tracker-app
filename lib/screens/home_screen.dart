@@ -33,6 +33,14 @@ enum _TransactionMode { expense, income }
 
 class _HomeScreenState extends State<HomeScreen> {
   static final NumberFormat _currencyFormat = NumberFormat('#,###');
+
+  // -- Shared constants (DRY) --
+  static const Color _barrierColor = Color(0x66000000); // black @ 0.4
+  static const Color _barrierColorLight = Color(0x4D000000); // black @ 0.3
+  static const EdgeInsets _ltrb24_16_24_0 = EdgeInsets.fromLTRB(24, 16, 24, 0);
+  static const EdgeInsets _ltrb24_0_24_24 = EdgeInsets.fromLTRB(24, 0, 24, 24);
+  static const EdgeInsets _all24 = EdgeInsets.all(24);
+
   // Icon picker state
   String? _selectedIconKey;
   static const Set<String> _validIconKeys = <String>{
@@ -114,15 +122,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showMorphDialog(BuildContext context, TransactionModel model) {
-    final Color bgColor = model.isExpense
-        ? const Color(0xFFFFEBEE)
-        : const Color(0xFFE8F5E9);
-    final Color amountColor = model.isExpense
-        ? const Color(0xFFB71C1C)
-        : const Color(0xFF1B5E20);
-    final Color badgeColor = model.isExpense
-        ? const Color(0xFFC62828)
-        : const Color(0xFF2E7D32);
+    final colors = model.getColors();
+    final Color amountColor = colors.fg;
+    final Color badgeColor = colors.badge;
     final String amountText =
         '${model.isExpense ? '-' : '+'} \$${_currencyFormat.format(model.amount)}';
 
@@ -137,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
       barrierDismissible: true,
       barrierLabel: 'Dismiss Morph Dialog',
       transitionDuration: const Duration(milliseconds: 400),
-      barrierColor: Colors.black.withValues(alpha: 0.4),
+      barrierColor: _barrierColor,
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(
           opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -166,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
-                    color: bgColor,
+                    color: colors.bg,
                     borderRadius: BorderRadius.circular(28),
                     border: Border.all(
                       color: Colors.black.withValues(alpha: 0.06),
@@ -352,7 +354,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: 0.4),
+      barrierColor: _barrierColor,
       builder: (BuildContext context) {
         return Padding(
           padding: EdgeInsets.only(
@@ -362,7 +364,7 @@ class _HomeScreenState extends State<HomeScreen> {
             bottom: MediaQuery.of(context).viewInsets.bottom + 20,
           ),
           child: Container(
-            padding: const EdgeInsets.all(24),
+            padding: _all24,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(24),
@@ -442,6 +444,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isOverBudget = widget.spent > widget.monthlyBudget;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -475,7 +478,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     border: Border.all(
-                      color: const Color(0xFFA3E4D7),
+                      color: isOverBudget
+                          ? Colors.redAccent.withValues(alpha: 0.7)
+                          : const Color(0xFFA3E4D7),
                       width: 3,
                     ),
                     borderRadius: BorderRadius.circular(24),
@@ -590,7 +595,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             },
                         child: ScrollbarTheme(
                           data: const ScrollbarThemeData(
-                            thumbColor: WidgetStatePropertyAll(Colors.black45),
+                            thumbColor: WidgetStatePropertyAll(Colors.black),
                             radius: Radius.circular(20.0),
                             thickness: WidgetStatePropertyAll(6.0),
                             interactive: true,
@@ -657,7 +662,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: 0.4),
+      barrierColor: _barrierColor,
       builder: (BuildContext ctx) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
@@ -701,7 +706,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: accentColor.withValues(alpha: 0.6),
                         ),
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                          padding: _ltrb24_16_24_0,
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -865,7 +870,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                          padding: _ltrb24_0_24_24,
                           child: SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
@@ -1090,7 +1095,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: 0.3),
+      barrierColor: _barrierColorLight,
       builder: (BuildContext ctx) {
         return Padding(
           padding: const EdgeInsets.only(
