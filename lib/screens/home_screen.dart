@@ -7,6 +7,8 @@ import '../widgets/transaction_tile.dart';
 class HomeScreen extends StatefulWidget {
   final List<TransactionModel> transactions;
   final void Function(TransactionModel) onAddTransaction;
+  final void Function(String id, String newIcon, String newDescription)?
+  onUpdateTransactionLocal;
   final double monthlyBudget;
   final double spent;
   final ValueChanged<double> onBudgetChanged;
@@ -16,6 +18,7 @@ class HomeScreen extends StatefulWidget {
     super.key,
     required this.transactions,
     required this.onAddTransaction,
+    this.onUpdateTransactionLocal,
     required this.monthlyBudget,
     required this.spent,
     required this.onBudgetChanged,
@@ -75,27 +78,37 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  /// Re-applies the currently active sort mode to the list (RAM only).
+  void _applyCurrentSort() {
+    if (currentSort == 'Date') {
+      widget.transactions.sort((a, b) => b.id.compareTo(a.id));
+    } else if (currentSort == 'Highest') {
+      widget.transactions.sort((a, b) => b.amount.compareTo(a.amount));
+    } else if (currentSort == 'Category') {
+      widget.transactions.sort((a, b) => a.iconKey.compareTo(b.iconKey));
+    } else if (currentSort == 'Flow') {
+      widget.transactions.sort(
+        (a, b) => (b.isExpense ? 1 : 0) - (a.isExpense ? 1 : 0),
+      );
+    }
+  }
+
   void _cycleSort() {
     setState(() {
       if (currentSort == 'Date') {
         currentSort = 'Highest';
         sortTurns = 0.25;
-        widget.transactions.sort((a, b) => b.amount.compareTo(a.amount));
       } else if (currentSort == 'Highest') {
         currentSort = 'Category';
         sortTurns = 0.5;
-        widget.transactions.sort((a, b) => a.iconKey.compareTo(b.iconKey));
       } else if (currentSort == 'Category') {
         currentSort = 'Flow';
         sortTurns = 0.75;
-        widget.transactions.sort(
-          (a, b) => (b.isExpense ? 1 : 0) - (a.isExpense ? 1 : 0),
-        );
       } else {
         currentSort = 'Date';
         sortTurns = 0.0;
-        widget.transactions.sort((a, b) => b.id.compareTo(a.id));
       }
+      _applyCurrentSort();
     });
     debugPrint('Sort changed to: $currentSort');
   }
@@ -110,9 +123,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final Color badgeColor = model.isExpense
         ? const Color(0xFFC62828)
         : const Color(0xFF2E7D32);
-    final IconData? resolvedIcon = iconOptions[model.iconKey];
     final String amountText =
         '${model.isExpense ? '-' : '+'} \$${_currencyFormat.format(model.amount)}';
+
+    // -- Local editing state (isolated per dialog instance) --
+    String localIconKey = model.iconKey;
+    final TextEditingController descController = TextEditingController(
+      text: model.title,
+    );
 
     showGeneralDialog(
       context: context,
@@ -135,129 +153,189 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       pageBuilder: (context, animation, secondaryAnimation) {
         final Size screenSize = MediaQuery.of(context).size;
-        return Center(
-          child: Material(
-            type: MaterialType.transparency,
-            child: Container(
-              constraints: BoxConstraints(maxWidth: screenSize.width * 0.80),
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(
-                color: bgColor,
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  width: 1.5,
-                ),
-              ),
-              child: IntrinsicHeight(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Top Row: date + type badge
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final IconData? currentIcon = iconOptions[localIconKey];
+            return Center(
+              child: Material(
+                type: MaterialType.transparency,
+                child: Container(
+                  constraints: BoxConstraints(
+                    maxWidth: screenSize.width * 0.80,
+                  ),
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: IntrinsicHeight(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            'date (chưa có)',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.black38,
-                              fontWeight: FontWeight.w500,
-                            ),
+                          // Top Row: date + type badge
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'date (chưa có)',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black38,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: amountColor.withValues(alpha: 0.10),
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                                child: Text(
+                                  model.isExpense ? 'EXPENSE' : 'INCOME',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: badgeColor,
+                                    letterSpacing: 1.5,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 5,
+                          // Category icon — clickable to open icon picker
+                          GestureDetector(
+                            onTap: () => _showIconPickerSheet(
+                              context,
+                              accentColor: amountColor,
+                              onIconSelected: () {
+                                // The icon picker already set _selectedIconKey;
+                                // read it and update local state.
+                                if (_selectedIconKey != null) {
+                                  setDialogState(() {
+                                    localIconKey = _selectedIconKey!;
+                                  });
+                                  // Clear global selection so it doesn't
+                                  // leak into the "Add" dialog.
+                                  setState(() {
+                                    _selectedIconKey = null;
+                                  });
+                                }
+                              },
                             ),
-                            decoration: BoxDecoration(
-                              color: amountColor.withValues(alpha: 0.10),
-                              borderRadius: BorderRadius.circular(18),
-                            ),
-                            child: Text(
-                              model.isExpense ? 'EXPENSE' : 'INCOME',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: badgeColor,
-                                letterSpacing: 1.5,
+                            child: Container(
+                              width: 86,
+                              height: 86,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.7),
+                                borderRadius: BorderRadius.circular(22),
+                              ),
+                              child: Icon(
+                                currentIcon ?? Icons.widgets_outlined,
+                                color: amountColor,
+                                size: 48,
                               ),
                             ),
                           ),
-                        ],
-                      ),
-                      // Category icon
-                      if (resolvedIcon != null)
-                        Container(
-                          width: 86,
-                          height: 86,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.7),
-                            borderRadius: BorderRadius.circular(22),
-                          ),
-                          child: Icon(
-                            resolvedIcon,
-                            color: amountColor,
-                            size: 48,
-                          ),
-                        ),
-                      if (resolvedIcon != null) const SizedBox(height: 20),
-                      // Description
-                      Text(
-                        model.title,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontFamily: 'MonumentExtended-Regular',
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      // Amount (heavy visual anchor)
-                      Text(
-                        amountText,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontFamily: 'MonumentExtended-Regular',
-                          fontSize: 50,
-                          fontWeight: FontWeight.w800,
-                          color: amountColor,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      // Bottom Row: SAVE + trash
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            'SAVE',
-                            style: TextStyle(
-                              fontFamily: 'MonumentExtended-Bold',
-                              fontSize: 19,
-                              fontWeight: FontWeight.w900,
-                              color: badgeColor,
-                              letterSpacing: 1.5,
+                          const SizedBox(height: 20),
+                          // Description — editable TextField
+                          TextField(
+                            controller: descController,
+                            style: const TextStyle(
+                              fontFamily: 'MonumentExtended-Regular',
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                              letterSpacing: 0.5,
+                            ),
+                            textAlign: TextAlign.center,
+                            decoration: InputDecoration(
+                              hintText: 'Enter description',
+                              hintStyle: TextStyle(
+                                fontFamily: 'MonumentExtended-Regular',
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black38,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white.withValues(alpha: 0.5),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
                             ),
                           ),
-                          Icon(
-                            Icons.delete_outline,
-                            color: Colors.black.withValues(alpha: 0.45),
-                            size: 28,
+                          const SizedBox(height: 24),
+                          // Amount (heavy visual anchor)
+                          Text(
+                            amountText,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontFamily: 'MonumentExtended-Regular',
+                              fontSize: 50,
+                              fontWeight: FontWeight.w800,
+                              color: amountColor,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          // Bottom Row: SAVE + trash
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              // SAVE button — update RAM data, re-sort, then close
+                              GestureDetector(
+                                onTap: () {
+                                  widget.onUpdateTransactionLocal?.call(
+                                    model.id,
+                                    localIconKey,
+                                    descController.text,
+                                  );
+                                  // Re-apply current sort so the tile jumps
+                                  // to its correct position instantly.
+                                  _applyCurrentSort();
+                                  setState(() {});
+                                  Navigator.pop(context);
+                                },
+                                child: Text(
+                                  'SAVE',
+                                  style: TextStyle(
+                                    fontFamily: 'MonumentExtended-Bold',
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.w900,
+                                    color: badgeColor,
+                                    letterSpacing: 1.5,
+                                  ),
+                                ),
+                              ),
+                              Icon(
+                                Icons.delete_outline,
+                                color: Colors.black.withValues(alpha: 0.45),
+                                size: 28,
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );

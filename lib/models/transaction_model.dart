@@ -1,8 +1,8 @@
 class TransactionModel {
   final String id;
-  final String title;
+  String title;
   final double amount;
-  final String iconKey;
+  String iconKey;
   final bool isExpense;
 
   TransactionModel({

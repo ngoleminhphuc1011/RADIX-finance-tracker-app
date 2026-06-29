@@ -75,6 +75,22 @@ class _NavWrapperState extends State<NavWrapper> {
     });
   }
 
+  /// Updates a transaction's icon and title locally in RAM only.
+  /// Does NOT touch the database.
+  void updateTransactionLocal(
+    String id,
+    String newIcon,
+    String newDescription,
+  ) {
+    final index = _transactions.indexWhere((t) => t.id == id);
+    if (index != -1) {
+      setState(() {
+        _transactions[index].iconKey = newIcon;
+        _transactions[index].title = newDescription;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,6 +102,7 @@ class _NavWrapperState extends State<NavWrapper> {
           HomeScreen(
             transactions: _transactions,
             onAddTransaction: _addTransaction,
+            onUpdateTransactionLocal: updateTransactionLocal,
             monthlyBudget: monthlyBudget,
             spent: spent,
             onBudgetChanged: _setBudget,
