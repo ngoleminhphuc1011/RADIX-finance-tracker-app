@@ -7,8 +7,13 @@ import '../widgets/transaction_tile.dart';
 class HomeScreen extends StatefulWidget {
   final List<TransactionModel> transactions;
   final void Function(TransactionModel) onAddTransaction;
-  final void Function(String id, String newIcon, String newDescription)?
-  onUpdateTransactionLocal;
+  final void Function(
+    String id,
+    String newIcon,
+    String newDescription,
+    double newAmount,
+  )?
+  onUpdateTransaction;
   final void Function(String id) onDeleteTransaction;
   final double monthlyBudget;
   final double spent;
@@ -19,7 +24,7 @@ class HomeScreen extends StatefulWidget {
     super.key,
     required this.transactions,
     required this.onAddTransaction,
-    this.onUpdateTransactionLocal,
+    this.onUpdateTransaction,
     required this.onDeleteTransaction,
     required this.monthlyBudget,
     required this.spent,
@@ -127,13 +132,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final colors = model.getColors();
     final Color amountColor = colors.fg;
     final Color badgeColor = colors.badge;
-    final String amountText =
-        '${model.isExpense ? '-' : '+'} \$${_currencyFormat.format(model.amount)}';
 
     // -- Local editing state (isolated per dialog instance) --
     String localIconKey = model.iconKey;
     final TextEditingController descController = TextEditingController(
       text: model.title,
+    );
+    final TextEditingController amountController = TextEditingController(
+      text: model.amount.toString(),
     );
 
     showGeneralDialog(
@@ -283,15 +289,30 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           const SizedBox(height: 24),
-                          // Amount (heavy visual anchor)
-                          Text(
-                            amountText,
+                          // Amount (heavy visual anchor) — editable
+                          TextField(
+                            controller: amountController,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontFamily: 'MonumentExtended-Regular',
                               fontSize: 50,
                               fontWeight: FontWeight.w800,
                               color: amountColor,
+                            ),
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white.withValues(alpha: 0.5),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -317,10 +338,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               // SAVE button — prominent primary action
                               GestureDetector(
                                 onTap: () {
-                                  widget.onUpdateTransactionLocal?.call(
+                                  final double? parsedNewAmount =
+                                      double.tryParse(amountController.text);
+                                  if (parsedNewAmount == null) return;
+                                  widget.onUpdateTransaction?.call(
                                     model.id,
                                     localIconKey,
                                     descController.text,
+                                    parsedNewAmount,
                                   );
                                   // Re-apply current sort so the tile jumps
                                   // to its correct position instantly.

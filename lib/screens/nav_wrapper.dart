@@ -75,20 +75,41 @@ class _NavWrapperState extends State<NavWrapper> {
     });
   }
 
-  /// Updates a transaction's icon and title locally in RAM only.
+  /// Updates a transaction's icon, description, and amount locally in RAM only.
+  /// Performs delta calculus to adjust global money variables accordingly.
   /// Does NOT touch the database.
-  void updateTransactionLocal(
+  void updateTransaction(
     String id,
     String newIcon,
     String newDescription,
+    double newAmount,
   ) {
     final index = _transactions.indexWhere((t) => t.id == id);
-    if (index != -1) {
-      setState(() {
-        _transactions[index].iconKey = newIcon;
-        _transactions[index].title = newDescription;
-      });
+    if (index == -1) return;
+
+    final tx = _transactions[index];
+    final double oldAmount = tx.amount;
+    final double delta = newAmount - oldAmount;
+
+    // Step 3: Global State Adjustment
+    if (tx.isExpense) {
+      // Expense: Adjust spent
+      spent += delta;
+    } else {
+      // Income: Check allocation tag
+      if (tx.incomeAllocation == 'budget') {
+        monthlyBudget += delta;
+      } else if (tx.incomeAllocation == 'spent') {
+        spent -= delta;
+      }
     }
+
+    // Step 4: RAM Modification
+    setState(() {
+      _transactions[index].iconKey = newIcon;
+      _transactions[index].title = newDescription;
+      _transactions[index].amount = newAmount;
+    });
   }
 
   /// Deletes a transaction from RAM and reverses its financial impact.
@@ -121,7 +142,7 @@ class _NavWrapperState extends State<NavWrapper> {
           HomeScreen(
             transactions: _transactions,
             onAddTransaction: _addTransaction,
-            onUpdateTransactionLocal: updateTransactionLocal,
+            onUpdateTransaction: updateTransaction,
             onDeleteTransaction: deleteTransaction,
             monthlyBudget: monthlyBudget,
             spent: spent,

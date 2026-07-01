@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class TransactionModel {
   final String id;
   String title;
-  final double amount;
+  double amount;
   String iconKey;
   final bool isExpense;
   final String?
