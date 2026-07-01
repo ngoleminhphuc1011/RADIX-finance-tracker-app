@@ -6,6 +6,8 @@ class TransactionModel {
   final double amount;
   String iconKey;
   final bool isExpense;
+  final String?
+  incomeAllocation; // 'budget' | 'spent' for income; null for expense
 
   TransactionModel({
     required this.id,
@@ -13,6 +15,7 @@ class TransactionModel {
     required this.amount,
     required this.iconKey,
     required this.isExpense,
+    this.incomeAllocation,
   });
 
   /// Returns the (background, foreground, badge) color triplet for this
@@ -40,6 +43,7 @@ class TransactionModel {
       'amount': amount,
       'iconKey': iconKey,
       'isExpense': isExpense ? 1 : 0,
+      'incomeAllocation': incomeAllocation,
     };
   }
 
@@ -50,6 +54,7 @@ class TransactionModel {
       amount: map['amount'] as double,
       iconKey: map['iconKey'] as String,
       isExpense: (map['isExpense'] as int) == 1,
+      incomeAllocation: map['incomeAllocation'] as String?,
     );
   }
 }

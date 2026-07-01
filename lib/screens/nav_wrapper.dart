@@ -91,6 +91,25 @@ class _NavWrapperState extends State<NavWrapper> {
     }
   }
 
+  /// Deletes a transaction from RAM and reverses its financial impact.
+  void deleteTransaction(String id) {
+    final tx = _transactions.firstWhere((t) => t.id == id);
+    // Step 1: Reverse the cash flow
+    if (tx.isExpense) {
+      spent -= tx.amount;
+    } else {
+      // Income — check allocation tag
+      if (tx.incomeAllocation == 'budget') {
+        monthlyBudget -= tx.amount;
+      } else if (tx.incomeAllocation == 'spent') {
+        spent += tx.amount;
+      }
+    }
+    // Step 2: Remove from list & re-render
+    _transactions.removeWhere((t) => t.id == id);
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -103,6 +122,7 @@ class _NavWrapperState extends State<NavWrapper> {
             transactions: _transactions,
             onAddTransaction: _addTransaction,
             onUpdateTransactionLocal: updateTransactionLocal,
+            onDeleteTransaction: deleteTransaction,
             monthlyBudget: monthlyBudget,
             spent: spent,
             onBudgetChanged: _setBudget,

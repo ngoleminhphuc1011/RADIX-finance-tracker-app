@@ -9,6 +9,7 @@ class HomeScreen extends StatefulWidget {
   final void Function(TransactionModel) onAddTransaction;
   final void Function(String id, String newIcon, String newDescription)?
   onUpdateTransactionLocal;
+  final void Function(String id) onDeleteTransaction;
   final double monthlyBudget;
   final double spent;
   final ValueChanged<double> onBudgetChanged;
@@ -19,6 +20,7 @@ class HomeScreen extends StatefulWidget {
     required this.transactions,
     required this.onAddTransaction,
     this.onUpdateTransactionLocal,
+    required this.onDeleteTransaction,
     required this.monthlyBudget,
     required this.spent,
     required this.onBudgetChanged,
@@ -293,12 +295,26 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          // Bottom Row: SAVE + trash
+                          // Bottom Row: delete (left) + SAVE (right)
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              // SAVE button — update RAM data, re-sort, then close
+                              // Delete icon — low-profile, muted pastel red
+                              IconButton(
+                                icon: Icon(
+                                  Icons.delete_outline_rounded,
+                                  color: const Color(
+                                    0xFFE57373,
+                                  ).withValues(alpha: 0.6),
+                                  size: 28,
+                                ),
+                                splashRadius: 20,
+                                onPressed: () {
+                                  _showDeleteConfirmDialog(context, model);
+                                },
+                              ),
+                              // SAVE button — prominent primary action
                               GestureDetector(
                                 onTap: () {
                                   widget.onUpdateTransactionLocal?.call(
@@ -312,21 +328,26 @@ class _HomeScreenState extends State<HomeScreen> {
                                   setState(() {});
                                   Navigator.pop(context);
                                 },
-                                child: Text(
-                                  'SAVE',
-                                  style: TextStyle(
-                                    fontFamily: 'MonumentExtended-Bold',
-                                    fontSize: 19,
-                                    fontWeight: FontWeight.w900,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 28,
+                                    vertical: 14,
+                                  ),
+                                  decoration: BoxDecoration(
                                     color: badgeColor,
-                                    letterSpacing: 1.5,
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: const Text(
+                                    'SAVE',
+                                    style: TextStyle(
+                                      fontFamily: 'MonumentExtended-Bold',
+                                      fontSize: 19,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white,
+                                      letterSpacing: 1.5,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              Icon(
-                                Icons.delete_outline,
-                                color: Colors.black.withValues(alpha: 0.45),
-                                size: 28,
                               ),
                             ],
                           ),
@@ -654,6 +675,136 @@ class _HomeScreenState extends State<HomeScreen> {
     return '';
   }
 
+  /// Shows a modern minimalist delete confirmation with fluid bounce animation.
+  void _showDeleteConfirmDialog(
+    BuildContext dialogContext,
+    TransactionModel model,
+  ) {
+    showGeneralDialog(
+      context: dialogContext,
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss Delete Confirm',
+      transitionDuration: const Duration(milliseconds: 350),
+      barrierColor: _barrierColor,
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
+            CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+          ),
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.85, end: 1.0).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+            ),
+            child: child,
+          ),
+        );
+      },
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Center(
+          child: Material(
+            type: MaterialType.transparency,
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 48),
+              constraints: const BoxConstraints(maxWidth: 360),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  width: 1,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(28),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Delete Transaction?',
+                      style: TextStyle(
+                        fontFamily: 'MonumentExtended-Regular',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Are you sure you want to delete this?'
+                      ' This action cannot be undone.',
+                      style: TextStyle(
+                        fontFamily: 'MonumentExtended-Regular',
+                        fontSize: 14,
+                        color: Colors.black54,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: Colors.black.withValues(alpha: 0.15),
+                                ),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                    fontFamily: 'MonumentExtended-Regular',
+                                    fontSize: 13,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              widget.onDeleteTransaction(model.id);
+                              Navigator.pop(context); // confirm dialog
+                              Navigator.pop(dialogContext); // morph dialog
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFC62828),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'Delete',
+                                  style: TextStyle(
+                                    fontFamily: 'MonumentExtended-Regular',
+                                    fontSize: 13,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _showAddTransactionDialog(BuildContext context) {
     final PageController pageController = PageController(initialPage: 0);
     _transactionMode = _TransactionMode.expense;
@@ -951,6 +1102,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             final String id = DateTime.now()
                                 .millisecondsSinceEpoch
                                 .toString();
+                            final String allocationTag =
+                                selection == 'Add to Budget'
+                                ? 'budget'
+                                : 'spent';
                             widget.onAddTransaction(
                               TransactionModel(
                                 id: id,
@@ -958,6 +1113,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 amount: amount,
                                 iconKey: _pendingIncomeIconKey,
                                 isExpense: false,
+                                incomeAllocation: allocationTag,
                               ),
                             );
                             if (selection == 'Add to Budget') {
