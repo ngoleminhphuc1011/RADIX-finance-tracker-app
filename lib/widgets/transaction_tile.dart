@@ -7,13 +7,23 @@ class TransactionTile extends StatelessWidget {
   final VoidCallback? onTap;
   static final NumberFormat _amountFormat = NumberFormat('#,##0.00');
 
+  static const TextStyle _titleStyle = TextStyle(
+    fontFamily: 'MonumentExtended-Regular',
+    fontSize: 16,
+    fontWeight: FontWeight.w400,
+  );
+  static const TextStyle _amountStyle = TextStyle(
+    fontFamily: 'MonumentExtended-Regular',
+    fontSize: 16,
+    fontWeight: FontWeight.w400,
+  );
+
   const TransactionTile({super.key, required this.model, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final bool isExpense = model.isExpense;
     final colors = model.getColors();
-    // Tile uses a lighter foreground than the edit dialog's accent color
     final Color fgColor = isExpense
         ? const Color(0xFF78281F)
         : const Color(0xFF117A65);
@@ -32,12 +42,12 @@ class TransactionTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Icon square
+            // Icon square — no redundant white overlay, icon sits directly on tinted bg
             Container(
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.6),
+                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -48,26 +58,9 @@ class TransactionTile extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             // Title
-            Expanded(
-              child: Text(
-                model.title,
-                style: const TextStyle(
-                  fontFamily: 'MonumentExtended-Regular',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ),
+            Expanded(child: Text(model.title, style: _titleStyle)),
             // Amount
-            Text(
-              amountText,
-              style: TextStyle(
-                fontFamily: 'MonumentExtended-Regular',
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-                color: fgColor,
-              ),
-            ),
+            Text(amountText, style: _amountStyle.copyWith(color: fgColor)),
           ],
         ),
       ),

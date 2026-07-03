@@ -42,11 +42,82 @@ class _HomeScreenState extends State<HomeScreen> {
   static final NumberFormat _currencyFormat = NumberFormat('#,###');
 
   // -- Shared constants (DRY) --
-  static const Color _barrierColor = Color(0x66000000); // black @ 0.4
-  static const Color _barrierColorLight = Color(0x4D000000); // black @ 0.3
+  static const Color _barrierColor = Color(0x66000000);
+  static const Color _barrierColorLight = Color(0x4D000000);
   static const EdgeInsets _ltrb24_16_24_0 = EdgeInsets.fromLTRB(24, 16, 24, 0);
   static const EdgeInsets _ltrb24_0_24_24 = EdgeInsets.fromLTRB(24, 0, 24, 24);
   static const EdgeInsets _all24 = EdgeInsets.all(24);
+
+  // -- Static const TextStyles (cache re-rendering) --
+  static const TextStyle _styleLabelBlack18 = TextStyle(
+    fontFamily: 'MonumentExtended-Regular',
+    fontSize: 18,
+    color: Colors.black,
+  );
+  static const TextStyle _styleBalance55 = TextStyle(
+    fontFamily: 'MonumentExtended-Bold',
+    fontSize: 55,
+    fontWeight: FontWeight.w900,
+    color: Colors.black,
+  );
+  static const TextStyle _styleBudgetLeft18 = TextStyle(
+    fontFamily: 'MonumentExtended-Regular',
+    fontSize: 18,
+    color: Colors.black,
+  );
+  static const TextStyle _styleEmptyState = TextStyle(
+    fontFamily: 'MonumentExtended-Regular',
+    fontSize: 14,
+    color: Color(0xFF9E9E9E),
+  );
+  static const TextStyle _styleDeleteTitle = TextStyle(
+    fontFamily: 'MonumentExtended-Regular',
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+  );
+  static const TextStyle _styleDeleteDesc = TextStyle(
+    fontFamily: 'MonumentExtended-Regular',
+    fontSize: 14,
+    color: Colors.black54,
+    height: 1.4,
+  );
+  static const TextStyle _styleDialogBtn = TextStyle(
+    fontFamily: 'MonumentExtended-Regular',
+    fontSize: 13,
+    color: Colors.black54,
+  );
+  static const TextStyle _styleDialogBtnWhite = TextStyle(
+    fontFamily: 'MonumentExtended-Regular',
+    fontSize: 13,
+    color: Colors.white,
+  );
+  static const TextStyle _styleAddTransTitle = TextStyle(
+    fontFamily: 'MonumentExtended-Regular',
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+  );
+  static const TextStyle _styleTabLabel = TextStyle(
+    fontFamily: 'MonumentExtended-Regular',
+    fontSize: 13,
+    fontWeight: FontWeight.w100,
+  );
+  static const TextStyle _styleAllocateTitle = TextStyle(
+    fontFamily: 'MonumentExtended-Regular',
+    fontSize: 16,
+    fontWeight: FontWeight.w400,
+    height: 1.3,
+  );
+  static const TextStyle _styleAllocCardLabel = TextStyle(
+    fontFamily: 'MonumentExtended-Regular',
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    color: Colors.black,
+  );
+  static const TextStyle _styleSelectIcon = TextStyle(
+    fontFamily: 'MonumentExtended-Regular',
+    fontSize: 13,
+    fontWeight: FontWeight.w400,
+  );
 
   // Icon picker state
   String? _selectedIconKey;
@@ -193,9 +264,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
+                              const Text(
                                 'date (chưa có)',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.black38,
                                   fontWeight: FontWeight.w500,
@@ -508,146 +579,127 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       body: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 500),
-          child: Column(
-            children: [
-              // Balance Card
-              BounceCard(
-                onTap: () {
-                  _showBudgetInputDialog(context);
-                },
-                child: Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.fromLTRB(0, 8, 0, 16),
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(
-                      color: isOverBudget
-                          ? Colors.redAccent.withValues(alpha: 0.7)
-                          : const Color(0xFFA3E4D7),
-                      width: 3,
+        child: RepaintBoundary(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Column(
+              children: [
+                // Balance Card
+                BounceCard(
+                  onAnimationComplete: () {
+                    _showBudgetInputDialog(context);
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                    ).add(const EdgeInsets.only(top: 8, bottom: 16)),
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(
+                        color: isOverBudget
+                            ? Colors.redAccent.withValues(alpha: 0.7)
+                            : const Color(0xFFA3E4D7),
+                        width: 3,
+                      ),
+                      borderRadius: BorderRadius.circular(24),
                     ),
-                    borderRadius: BorderRadius.circular(24),
+                    child: Column(
+                      children: [
+                        Text('SPENT', style: _styleLabelBlack18),
+                        const SizedBox(height: 4),
+                        Text(
+                          '\$${_currencyFormat.format(widget.spent)}',
+                          style: _styleBalance55,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'BUDGET LEFT: \$${_currencyFormat.format(widget.monthlyBudget - widget.spent)}',
+                          style: _styleBudgetLeft18,
+                        ),
+                      ],
+                    ),
                   ),
-                  child: Column(
+                ),
+
+                // Sort Row
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
                     children: [
-                      Text(
-                        'SPENT',
-                        style: TextStyle(
-                          fontFamily: 'MonumentExtended-Regular',
-                          fontSize: 18,
-                          color: Colors.black,
+                      GestureDetector(
+                        onTap: _cycleSort,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Sort: $currentSort',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            AnimatedRotation(
+                              turns: sortTurns,
+                              duration: const Duration(milliseconds: 350),
+                              curve: Curves.easeOutBack,
+                              child: const Icon(Icons.arrow_upward, size: 16),
+                            ),
+                          ],
                         ),
                       ),
-                      SizedBox(height: 4),
-                      Text(
-                        '\$${_currencyFormat.format(widget.spent)}',
-                        style: TextStyle(
-                          fontFamily: 'MonumentExtended-Bold',
-                          fontSize: 55,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.black,
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const InstructionScreen(),
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 6),
-                      Text(
-                        'BUDGET LEFT: \$${_currencyFormat.format(widget.monthlyBudget - widget.spent)}',
-                        style: TextStyle(
-                          fontFamily: 'MonumentExtended-Regular',
-                          fontSize: 18,
-                          color: Colors.black,
+                        child: Icon(
+                          Icons.info_outline,
+                          color: Colors.grey[700],
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
+                const SizedBox(height: 8),
 
-              // Sort Row
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: _cycleSort,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Sort: $currentSort',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[700],
+                // Transaction List or Empty State
+                Expanded(
+                  child: widget.transactions.isEmpty
+                      ? Center(
+                          child: Text(
+                            "PRESS '+' TO ADD\nTRANSACTION",
+                            textAlign: TextAlign.center,
+                            style: _styleEmptyState,
+                          ),
+                        )
+                      : AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 350),
+                          switchInCurve: Curves.easeOutCubic,
+                          switchOutCurve: Curves.easeInCubic,
+                          transitionBuilder:
+                              (Widget child, Animation<double> animation) {
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: const Offset(0, 0.1),
+                                      end: Offset.zero,
+                                    ).animate(animation),
+                                    child: child,
+                                  ),
+                                );
+                              },
+                          child: ScrollConfiguration(
+                            behavior: const ScrollBehavior().copyWith(
+                              scrollbars: false,
                             ),
-                          ),
-                          const SizedBox(width: 4),
-                          AnimatedRotation(
-                            turns: sortTurns,
-                            duration: const Duration(milliseconds: 350),
-                            curve: Curves.easeOutBack,
-                            child: const Icon(Icons.arrow_upward, size: 16),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const InstructionScreen(),
-                        ),
-                      ),
-                      child: Icon(Icons.info_outline, color: Colors.grey[700]),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              // Transaction List or Empty State
-              Expanded(
-                child: widget.transactions.isEmpty
-                    ? Center(
-                        child: Text(
-                          "PRESS '+' TO ADD\nTRANSACTION",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: 'MonumentExtended-Regular',
-                            fontSize: 14,
-                            color: Colors.grey[400],
-                          ),
-                        ),
-                      )
-                    : AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 350),
-                        switchInCurve: Curves.easeOutCubic,
-                        switchOutCurve: Curves.easeInCubic,
-                        transitionBuilder:
-                            (Widget child, Animation<double> animation) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: SlideTransition(
-                                  position: Tween<Offset>(
-                                    begin: const Offset(0, 0.1),
-                                    end: Offset.zero,
-                                  ).animate(animation),
-                                  child: child,
-                                ),
-                              );
-                            },
-                        child: ScrollbarTheme(
-                          data: const ScrollbarThemeData(
-                            thumbColor: WidgetStatePropertyAll(Colors.black),
-                            radius: Radius.circular(20.0),
-                            thickness: WidgetStatePropertyAll(6.0),
-                            interactive: true,
-                          ),
-                          child: Scrollbar(
-                            controller: _scrollController,
                             child: ListView.builder(
                               controller: _scrollController,
                               key: ValueKey<String>(currentSort),
@@ -666,22 +718,27 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-                      ),
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
       floatingActionButton: BounceCard(
-        onTap: () {
+        onAnimationComplete: () {
           setState(() {
             _isPlusRotated = true;
           });
-          _showAddTransactionDialog(context);
+          Future.delayed(
+            const Duration(milliseconds: 150),
+            _showAddTransactionDialogDelayed,
+          );
         },
         child: FloatingActionButton(
           backgroundColor: Colors.black,
           onPressed: null,
+          elevation: 0,
+          highlightElevation: 0,
           child: AnimatedRotation(
             turns: _isPlusRotated ? 0.5 : 0.0,
             duration: const Duration(milliseconds: 350),
@@ -698,6 +755,12 @@ class _HomeScreenState extends State<HomeScreen> {
       return _selectedIconKey!;
     }
     return '';
+  }
+
+  void _showAddTransactionDialogDelayed() {
+    if (mounted) {
+      _showAddTransactionDialog(context);
+    }
   }
 
   /// Shows a modern minimalist delete confirmation with fluid bounce animation.
@@ -745,24 +808,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Delete Transaction?',
-                      style: TextStyle(
-                        fontFamily: 'MonumentExtended-Regular',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    const Text('Delete Transaction?', style: _styleDeleteTitle),
                     const SizedBox(height: 12),
                     const Text(
                       'Are you sure you want to delete this?'
                       ' This action cannot be undone.',
-                      style: TextStyle(
-                        fontFamily: 'MonumentExtended-Regular',
-                        fontSize: 14,
-                        color: Colors.black54,
-                        height: 1.4,
-                      ),
+                      style: _styleDeleteDesc,
                     ),
                     const SizedBox(height: 28),
                     Row(
@@ -779,14 +830,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               child: const Center(
-                                child: Text(
-                                  'Cancel',
-                                  style: TextStyle(
-                                    fontFamily: 'MonumentExtended-Regular',
-                                    fontSize: 13,
-                                    color: Colors.black54,
-                                  ),
-                                ),
+                                child: Text('Cancel', style: _styleDialogBtn),
                               ),
                             ),
                           ),
@@ -808,11 +852,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: const Center(
                                 child: Text(
                                   'Delete',
-                                  style: TextStyle(
-                                    fontFamily: 'MonumentExtended-Regular',
-                                    fontSize: 13,
-                                    color: Colors.white,
-                                  ),
+                                  style: _styleDialogBtnWhite,
                                 ),
                               ),
                             ),
@@ -871,301 +911,279 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-                child: Stack(
-                  children: [
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          height: 4,
-                          color: accentColor.withValues(alpha: 0.6),
-                        ),
-                        Padding(
-                          padding: _ltrb24_16_24_0,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'ADD TRANSACTION',
-                                style: TextStyle(
-                                  fontFamily: 'MonumentExtended-Regular',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[100],
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                padding: const EdgeInsets.all(3),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          if (_transactionMode !=
-                                              _TransactionMode.expense) {
-                                            setDialogState(() {
-                                              _transactionMode =
-                                                  _TransactionMode.expense;
-                                            });
-                                            pageController.animateToPage(
-                                              0,
-                                              duration: const Duration(
-                                                milliseconds: 300,
-                                              ),
-                                              curve:
-                                                  Curves.fastLinearToSlowEaseIn,
-                                            );
-                                          }
-                                        },
-                                        child: AnimatedContainer(
-                                          duration: const Duration(
-                                            milliseconds: 200,
-                                          ),
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 10,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: isExpense
-                                                ? accentColor.withValues(
-                                                    alpha: 0.25,
-                                                  )
-                                                : Colors.transparent,
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            'Expense',
-                                            style: TextStyle(
-                                              fontFamily:
-                                                  'MonumentExtended-Regular',
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w100,
-                                              color: isExpense
-                                                  ? accentTextColor
-                                                  : Colors.grey[600],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          if (_transactionMode !=
-                                              _TransactionMode.income) {
-                                            setDialogState(() {
-                                              _transactionMode =
-                                                  _TransactionMode.income;
-                                            });
-                                            pageController.animateToPage(
-                                              1,
-                                              duration: const Duration(
-                                                milliseconds: 300,
-                                              ),
-                                              curve:
-                                                  Curves.fastLinearToSlowEaseIn,
-                                            );
-                                          }
-                                        },
-                                        child: AnimatedContainer(
-                                          duration: const Duration(
-                                            milliseconds: 200,
-                                          ),
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 10,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: !isExpense
-                                                ? accentColor.withValues(
-                                                    alpha: 0.25,
-                                                  )
-                                                : Colors.transparent,
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            'Income',
-                                            style: TextStyle(
-                                              fontFamily:
-                                                  'MonumentExtended-Regular',
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w100,
-                                              color: !isExpense
-                                                  ? accentTextColor
-                                                  : Colors.grey[600],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                            ],
+                child: _showAllocationDialog
+                    ? Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            height: 4,
+                            color: accentColor.withValues(alpha: 0.6),
                           ),
-                        ),
-                        SizedBox(
-                          height: 196,
-                          child: PageView(
-                            controller: pageController,
-                            physics: const BouncingScrollPhysics(),
-                            onPageChanged: (index) {
+                          _buildAllocationSubWindow(
+                            context: context,
+                            onCancel: () {
                               setDialogState(() {
-                                _transactionMode = index == 0
-                                    ? _TransactionMode.expense
-                                    : _TransactionMode.income;
+                                _showAllocationDialog = false;
                               });
                             },
-                            children: [
-                              _buildModeInputs(
-                                titleController: _expenseTitleController,
-                                amountController: _expenseAmountController,
-                                hintText: 'e.g. Food / Shopping',
-                                accentColor: accentColor,
-                                onIconSelected: () => setDialogState(() {}),
-                              ),
-                              _buildModeInputs(
-                                titleController: _incomeTitleController,
-                                amountController: _incomeAmountController,
-                                hintText: 'e.g. Salary / Freelance',
-                                accentColor: accentColor,
-                                onIconSelected: () => setDialogState(() {}),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: _ltrb24_0_24_24,
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: accentColor,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                            onSelected: (String selection) {
+                              debugPrint('Selected: $selection');
+                              final double amount = _pendingIncomeAmount ?? 0.0;
+                              final String id = DateTime.now()
+                                  .millisecondsSinceEpoch
+                                  .toString();
+                              final String allocationTag =
+                                  selection == 'Add to Budget'
+                                  ? 'budget'
+                                  : 'spent';
+                              widget.onAddTransaction(
+                                TransactionModel(
+                                  id: id,
+                                  title: _incomeTitleController.text,
+                                  amount: amount,
+                                  iconKey: _pendingIncomeIconKey,
+                                  isExpense: false,
+                                  incomeAllocation: allocationTag,
                                 ),
-                              ),
-                              onPressed: () {
-                                final String iconKey = _sanitizeIconKey();
-                                debugPrint('Selected icon key: $iconKey');
-
-                                if (isExpense) {
-                                  final String title =
-                                      _expenseTitleController.text;
-                                  final double? amount = double.tryParse(
-                                    _expenseAmountController.text,
-                                  );
-                                  if (title.isNotEmpty && amount != null) {
-                                    final String id = DateTime.now()
-                                        .millisecondsSinceEpoch
-                                        .toString();
-                                    widget.onAddTransaction(
-                                      TransactionModel(
-                                        id: id,
-                                        title: title,
-                                        amount: amount,
-                                        iconKey: iconKey,
-                                        isExpense: true,
+                              );
+                              // Balances are recomputed from scratch by
+                              // recalculateGlobalBalances() inside _addTransaction.
+                              _pendingIncomeAmount = null;
+                              setDialogState(() {
+                                _showAllocationDialog = false;
+                              });
+                              _expenseTitleController.clear();
+                              _expenseAmountController.clear();
+                              _incomeTitleController.clear();
+                              _incomeAmountController.clear();
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ],
+                      )
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            height: 4,
+                            color: accentColor.withValues(alpha: 0.6),
+                          ),
+                          Padding(
+                            padding: _ltrb24_16_24_0,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'ADD TRANSACTION',
+                                  style: _styleAddTransTitle,
+                                ),
+                                const SizedBox(height: 16),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[100],
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  padding: const EdgeInsets.all(3),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            if (_transactionMode !=
+                                                _TransactionMode.expense) {
+                                              setDialogState(() {
+                                                _transactionMode =
+                                                    _TransactionMode.expense;
+                                              });
+                                              pageController.animateToPage(
+                                                0,
+                                                duration: const Duration(
+                                                  milliseconds: 300,
+                                                ),
+                                                curve: Curves
+                                                    .fastLinearToSlowEaseIn,
+                                              );
+                                            }
+                                          },
+                                          child: AnimatedContainer(
+                                            duration: const Duration(
+                                              milliseconds: 200,
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 10,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: isExpense
+                                                  ? accentColor.withValues(
+                                                      alpha: 0.25,
+                                                    )
+                                                  : Colors.transparent,
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            alignment: Alignment.center,
+                                            child: Text(
+                                              'Expense',
+                                              style: _styleTabLabel.copyWith(
+                                                color: isExpense
+                                                    ? accentTextColor
+                                                    : Colors.grey[600],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                    );
-                                    widget.onSpentChanged(
-                                      widget.spent + amount,
-                                    );
-                                    Navigator.pop(context);
-                                  }
-                                } else {
-                                  final String title =
-                                      _incomeTitleController.text;
-                                  final double? amount = double.tryParse(
-                                    _incomeAmountController.text,
-                                  );
-                                  if (title.isNotEmpty && amount != null) {
-                                    _pendingIncomeIconKey = iconKey;
-                                    setDialogState(() {
-                                      _pendingIncomeAmount = amount;
-                                      _showAllocationDialog = true;
-                                    });
-                                  }
-                                }
+                                      Expanded(
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            if (_transactionMode !=
+                                                _TransactionMode.income) {
+                                              setDialogState(() {
+                                                _transactionMode =
+                                                    _TransactionMode.income;
+                                              });
+                                              pageController.animateToPage(
+                                                1,
+                                                duration: const Duration(
+                                                  milliseconds: 300,
+                                                ),
+                                                curve: Curves
+                                                    .fastLinearToSlowEaseIn,
+                                              );
+                                            }
+                                          },
+                                          child: AnimatedContainer(
+                                            duration: const Duration(
+                                              milliseconds: 200,
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 10,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: !isExpense
+                                                  ? accentColor.withValues(
+                                                      alpha: 0.25,
+                                                    )
+                                                  : Colors.transparent,
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            alignment: Alignment.center,
+                                            child: Text(
+                                              'Income',
+                                              style: _styleTabLabel.copyWith(
+                                                color: !isExpense
+                                                    ? accentTextColor
+                                                    : Colors.grey[600],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            height: 196,
+                            child: PageView(
+                              controller: pageController,
+                              physics: const BouncingScrollPhysics(),
+                              onPageChanged: (index) {
+                                setDialogState(() {
+                                  _transactionMode = index == 0
+                                      ? _TransactionMode.expense
+                                      : _TransactionMode.income;
+                                });
                               },
-                              child: const Text(
-                                'ADD',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontFamily: 'MonumentExtended-Regular',
-                                  fontWeight: FontWeight.w100,
+                              children: [
+                                _buildModeInputs(
+                                  titleController: _expenseTitleController,
+                                  amountController: _expenseAmountController,
+                                  hintText: 'e.g. Food / Shopping',
+                                  accentColor: accentColor,
+                                  onIconSelected: () => setDialogState(() {}),
+                                ),
+                                _buildModeInputs(
+                                  titleController: _incomeTitleController,
+                                  amountController: _incomeAmountController,
+                                  hintText: 'e.g. Salary / Freelance',
+                                  accentColor: accentColor,
+                                  onIconSelected: () => setDialogState(() {}),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: _ltrb24_0_24_24,
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: accentColor,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                onPressed: () {
+                                  final String iconKey = _sanitizeIconKey();
+                                  debugPrint('Selected icon key: $iconKey');
+
+                                  if (isExpense) {
+                                    final String title =
+                                        _expenseTitleController.text;
+                                    final double? amount = double.tryParse(
+                                      _expenseAmountController.text,
+                                    );
+                                    if (title.isNotEmpty && amount != null) {
+                                      final String id = DateTime.now()
+                                          .millisecondsSinceEpoch
+                                          .toString();
+                                      widget.onAddTransaction(
+                                        TransactionModel(
+                                          id: id,
+                                          title: title,
+                                          amount: amount,
+                                          iconKey: iconKey,
+                                          isExpense: true,
+                                        ),
+                                      );
+                                      Navigator.pop(context);
+                                    }
+                                  } else {
+                                    final String title =
+                                        _incomeTitleController.text;
+                                    final double? amount = double.tryParse(
+                                      _incomeAmountController.text,
+                                    );
+                                    if (title.isNotEmpty && amount != null) {
+                                      _pendingIncomeIconKey = iconKey;
+                                      setDialogState(() {
+                                        _pendingIncomeAmount = amount;
+                                        _showAllocationDialog = true;
+                                      });
+                                    }
+                                  }
+                                },
+                                child: const Text(
+                                  'ADD',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: 'MonumentExtended-Regular',
+                                    fontWeight: FontWeight.w100,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    if (_showAllocationDialog)
-                      Positioned.fill(
-                        child: _buildAllocationSubWindow(
-                          context: context,
-                          onCancel: () {
-                            setDialogState(() {
-                              _showAllocationDialog = false;
-                            });
-                          },
-                          onSelected: (String selection) {
-                            debugPrint('Selected: $selection');
-                            final double amount = _pendingIncomeAmount ?? 0.0;
-                            final String id = DateTime.now()
-                                .millisecondsSinceEpoch
-                                .toString();
-                            final String allocationTag =
-                                selection == 'Add to Budget'
-                                ? 'budget'
-                                : 'spent';
-                            widget.onAddTransaction(
-                              TransactionModel(
-                                id: id,
-                                title: _incomeTitleController.text,
-                                amount: amount,
-                                iconKey: _pendingIncomeIconKey,
-                                isExpense: false,
-                                incomeAllocation: allocationTag,
-                              ),
-                            );
-                            if (selection == 'Add to Budget') {
-                              widget.onBudgetChanged(
-                                widget.monthlyBudget + amount,
-                              );
-                            } else if (selection == 'Deduct from Spent') {
-                              widget.onSpentChanged(
-                                (widget.spent - amount)
-                                    .clamp(0.0, double.infinity)
-                                    .toDouble(),
-                              );
-                            }
-                            _pendingIncomeAmount = null;
-                            setDialogState(() {
-                              _showAllocationDialog = false;
-                            });
-                            _expenseTitleController.clear();
-                            _expenseAmountController.clear();
-                            _incomeTitleController.clear();
-                            _incomeAmountController.clear();
-                            Navigator.pop(context);
-                          },
-                        ),
+                        ],
                       ),
-                  ],
-                ),
               ),
             );
           },
@@ -1201,7 +1219,6 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: TextField(
                   controller: titleController,
-                  autofocus: true,
                   decoration: InputDecoration(
                     hintText: hintText,
                     border: OutlineInputBorder(
@@ -1246,6 +1263,7 @@ class _HomeScreenState extends State<HomeScreen> {
           TextField(
             controller: amountController,
             keyboardType: TextInputType.number,
+            autofocus: true,
             decoration: InputDecoration(
               hintText: '\$0.00',
               hintStyle: TextStyle(color: Colors.grey[400]),
@@ -1302,10 +1320,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         'SELECT ICON',
-                        style: TextStyle(
-                          fontFamily: 'MonumentExtended-Regular',
-                          fontSize: 13,
-                          fontWeight: FontWeight.w400,
+                        style: _styleSelectIcon.copyWith(
                           color: Colors.grey[600],
                         ),
                       ),
@@ -1379,24 +1394,18 @@ class _HomeScreenState extends State<HomeScreen> {
     required VoidCallback onCancel,
     required void Function(String) onSelected,
   }) {
-    return Container(
-      color: Colors.white,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Spacer(),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 24),
             child: Text(
               'Allocate Your Income',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'MonumentExtended-Regular',
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-                height: 1.3,
-              ),
+              style: _styleAllocateTitle,
             ),
           ),
           const SizedBox(height: 24),
@@ -1417,9 +1426,9 @@ class _HomeScreenState extends State<HomeScreen> {
             iconColor: const Color.fromARGB(255, 76, 140, 180),
             onTap: () => onSelected('Deduct from Spent'),
           ),
-          const Spacer(),
+          const SizedBox(height: 8),
           Padding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
             child: SizedBox(
               width: double.infinity,
               child: TextButton(
@@ -1480,15 +1489,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontFamily: 'MonumentExtended-Regular',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.black,
-                      ),
-                    ),
+                    Text(label, style: _styleAllocCardLabel),
                     const SizedBox(height: 4),
                     Text(
                       description,
@@ -1589,9 +1590,15 @@ class _IconTileState extends State<_IconTile>
 
 class BounceCard extends StatefulWidget {
   final Widget child;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final VoidCallback? onAnimationComplete;
 
-  const BounceCard({super.key, required this.child, required this.onTap});
+  const BounceCard({
+    super.key,
+    required this.child,
+    this.onTap,
+    this.onAnimationComplete,
+  });
 
   @override
   State<BounceCard> createState() => _BounceCardState();
@@ -1611,8 +1618,8 @@ class _BounceCardState extends State<BounceCard>
     );
     _scaleAnimation = Tween<double>(
       begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+      end: 0.96,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
   }
 
   @override
@@ -1621,16 +1628,30 @@ class _BounceCardState extends State<BounceCard>
     super.dispose();
   }
 
+  void _handlePointerDown(PointerDownEvent event) {
+    _controller.forward();
+  }
+
+  void _handlePointerUp(PointerUpEvent event) {
+    _controller.reverse().whenComplete(() {
+      widget.onAnimationComplete?.call();
+    });
+  }
+
+  void _handlePointerCancel(PointerCancelEvent event) {
+    _controller.reverse();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _controller.forward(),
-      onTapUp: (_) {
-        _controller.reverse();
-        widget.onTap();
-      },
-      onTapCancel: () => _controller.reverse(),
-      child: ScaleTransition(scale: _scaleAnimation, child: widget.child),
+    return Listener(
+      onPointerDown: _handlePointerDown,
+      onPointerUp: _handlePointerUp,
+      onPointerCancel: _handlePointerCancel,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: ScaleTransition(scale: _scaleAnimation, child: widget.child),
+      ),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'graph_screen.dart';
 import 'home_screen.dart';
@@ -18,6 +19,7 @@ class _NavWrapperState extends State<NavWrapper> {
 
   // Lifted global state — persists across page switches
   final List<TransactionModel> _transactions = [];
+  double _userSetBudget = 500.0;
   double monthlyBudget = 500.0;
   double spent = 0.0;
 
@@ -57,26 +59,53 @@ class _NavWrapperState extends State<NavWrapper> {
     );
   }
 
+  /// Full recomputation of all balance variables from transaction ground truth.
+  /// This is the SINGLE source of truth — never use incremental delta math.
+  void recalculateGlobalBalances() {
+    double totalExpenses = 0.0;
+    double totalDeductions = 0.0; // Income "Deduct from Spent" amounts
+    double totalIncomeToBudget = 0.0; // Income "Add to Budget" amounts
+
+    for (final tx in _transactions) {
+      if (tx.isExpense) {
+        totalExpenses += tx.amount;
+      } else {
+        // Income transaction
+        if (tx.incomeAllocation == 'spent') {
+          totalDeductions += tx.amount;
+        } else if (tx.incomeAllocation == 'budget') {
+          totalIncomeToBudget += tx.amount;
+        }
+      }
+    }
+
+    setState(() {
+      monthlyBudget = max(0.0, _userSetBudget + totalIncomeToBudget);
+      spent = max(0.0, totalExpenses - totalDeductions);
+    });
+  }
+
   void _addTransaction(TransactionModel tx) {
     setState(() {
       _transactions.insert(0, tx);
     });
+    recalculateGlobalBalances();
   }
 
   void _setBudget(double val) {
     setState(() {
-      monthlyBudget = val;
+      _userSetBudget = val;
     });
+    recalculateGlobalBalances();
   }
 
   void _setSpent(double val) {
-    setState(() {
-      spent = val;
-    });
+    // Kept for API compatibility but not used in the recalculate pipeline.
+    // The recalculate method computes spent from transaction data.
+    recalculateGlobalBalances();
   }
 
   /// Updates a transaction's icon, description, and amount locally in RAM only.
-  /// Performs delta calculus to adjust global money variables accordingly.
   /// Does NOT touch the database.
   void updateTransaction(
     String id,
@@ -87,48 +116,24 @@ class _NavWrapperState extends State<NavWrapper> {
     final index = _transactions.indexWhere((t) => t.id == id);
     if (index == -1) return;
 
-    final tx = _transactions[index];
-    final double oldAmount = tx.amount;
-    final double delta = newAmount - oldAmount;
-
-    // Step 3: Global State Adjustment
-    if (tx.isExpense) {
-      // Expense: Adjust spent
-      spent += delta;
-    } else {
-      // Income: Check allocation tag
-      if (tx.incomeAllocation == 'budget') {
-        monthlyBudget += delta;
-      } else if (tx.incomeAllocation == 'spent') {
-        spent -= delta;
-      }
-    }
-
-    // Step 4: RAM Modification
+    // Apply the mutation to RAM
     setState(() {
       _transactions[index].iconKey = newIcon;
       _transactions[index].title = newDescription;
       _transactions[index].amount = newAmount;
     });
+
+    // Recompute balances from scratch — never do incremental delta math
+    recalculateGlobalBalances();
   }
 
-  /// Deletes a transaction from RAM and reverses its financial impact.
+  /// Deletes a transaction from RAM and recomputes global balances from scratch.
   void deleteTransaction(String id) {
-    final tx = _transactions.firstWhere((t) => t.id == id);
-    // Step 1: Reverse the cash flow
-    if (tx.isExpense) {
-      spent -= tx.amount;
-    } else {
-      // Income — check allocation tag
-      if (tx.incomeAllocation == 'budget') {
-        monthlyBudget -= tx.amount;
-      } else if (tx.incomeAllocation == 'spent') {
-        spent += tx.amount;
-      }
-    }
-    // Step 2: Remove from list & re-render
+    // Remove the transaction
     _transactions.removeWhere((t) => t.id == id);
-    setState(() {});
+
+    // Recompute balances from scratch — never do incremental reversal math
+    recalculateGlobalBalances();
   }
 
   @override
@@ -157,7 +162,7 @@ class _NavWrapperState extends State<NavWrapper> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(32),
           child: Container(
-            height: 64,
+            height: 68,
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: const [
@@ -172,7 +177,7 @@ class _NavWrapperState extends State<NavWrapper> {
               builder: (context, constraints) {
                 final double barWidth = constraints.maxWidth;
                 final double itemWidth = barWidth / 3;
-                final double indicatorWidth = itemWidth * 0.48;
+                final double indicatorWidth = itemWidth * 0.65;
                 final double indicatorCenterX =
                     itemWidth * (0.5 + _pagePosition);
                 final double indicatorLeft =
@@ -185,13 +190,13 @@ class _NavWrapperState extends State<NavWrapper> {
                   children: [
                     Positioned(
                       left: indicatorLeft,
-                      top: 12,
-                      bottom: 12,
+                      top: 6,
+                      bottom: 6,
                       width: indicatorWidth,
                       child: Container(
                         decoration: BoxDecoration(
                           color: const Color.fromARGB(255, 207, 227, 251),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(30),
                         ),
                       ),
                     ),
