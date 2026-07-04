@@ -636,8 +636,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             Text(
                               'Sort: $currentSort',
                               style: TextStyle(
+                                fontFamily: 'MonumentExtended-Regular',
                                 fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w300,
                                 color: Colors.grey[700],
                               ),
                             ),
