@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 enum ThemeOption { light, dark, system }
@@ -28,9 +29,16 @@ class SettingsScreen extends StatefulWidget {
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends State<SettingsScreen>
+    with TickerProviderStateMixin {
   ThemeOption _selectedTheme = ThemeOption.light;
   String _searchQuery = '';
+  late AnimationController _resetController;
+  late Animation<double> _resetScale;
+  late AnimationController _holdController;
+  late Animation<double> _holdProgress;
+  bool _isHolding = false;
+  static const Color _accentRed = Color(0xFFE57373);
 
   List<_Currency> get _filteredCurrencies {
     if (_searchQuery.isEmpty) return _allCurrencies;
@@ -65,6 +73,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
       case ThemeOption.dark:
         return const Color(0xFF1C1C1E);
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _resetController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    _resetScale = Tween<double>(begin: 1.0, end: 0.92).animate(
+      CurvedAnimation(parent: _resetController, curve: Curves.elasticOut),
+    );
+
+    _holdController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    );
+    _holdProgress = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _holdController, curve: Curves.linear));
+    _holdController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        debugPrint('Hold Confirm Success');
+        Navigator.pop(context);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _resetController.dispose();
+    _holdController.dispose();
+    super.dispose();
   }
 
   @override
@@ -266,7 +308,256 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(height: 40),
+            _buildResetButton(),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResetButton() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 48, bottom: 40),
+        child: SizedBox(
+          height: 48,
+          child: Listener(
+            onPointerDown: (_) => _resetController.forward(),
+            onPointerUp: (_) {
+              _resetController.reverse();
+              _showResetConfirmDialog(context);
+            },
+            onPointerCancel: (_) => _resetController.reverse(),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => debugPrint('Reset button tapped'),
+              child: ScaleTransition(
+                scale: _resetScale,
+                child: Container(
+                  width: 200,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: _accentRed,
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'Reset',
+                      style: TextStyle(
+                        fontFamily: 'MonumentExtended-Regular',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.white,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showResetConfirmDialog(BuildContext context) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss Reset Confirm',
+      transitionDuration: const Duration(milliseconds: 350),
+      barrierColor: Colors.transparent,
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
+            CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+          ),
+          child: Stack(
+            children: [
+              Container(
+                color: Colors.black.withValues(alpha: 0.3),
+                child: BackdropFilter(
+                  filter: ui.ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                  child: const SizedBox.expand(),
+                ),
+              ),
+              Center(
+                child: ScaleTransition(
+                  scale: Tween<double>(begin: 0.85, end: 1.0).animate(
+                    CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeOutBack,
+                    ),
+                  ),
+                  child: child,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Center(
+          child: Material(
+            type: MaterialType.transparency,
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 48),
+              constraints: const BoxConstraints(maxWidth: 360),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: _accentRed.withValues(alpha: 0.75),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 30,
+                    offset: const Offset(0, 10),
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 60,
+                    offset: const Offset(0, 20),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'CONFIRM DIALOGUE',
+                      style: TextStyle(
+                        fontFamily: 'MonumentExtended-Regular',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF3A3A3C),
+                        letterSpacing: 1.7,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'This action cannot be undone. Are you sure you want to clear all spending history?',
+                      style: TextStyle(
+                        fontFamily: 'MonumentExtended-Regular',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w100,
+                        color: Colors.black87,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: Colors.grey.withValues(alpha: 0.3),
+                                ),
+                              ),
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(
+                                  fontFamily: 'MonumentExtended-Regular',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          _buildHoldConfirmButton(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildHoldConfirmButton() {
+    return Listener(
+      onPointerDown: (_) {
+        setState(() => _isHolding = true);
+        _holdController.forward();
+      },
+      onPointerUp: (_) {
+        setState(() => _isHolding = false);
+        _holdController.reset();
+      },
+      onPointerCancel: (_) {
+        setState(() => _isHolding = false);
+        _holdController.reset();
+      },
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedBuilder(
+          animation: _holdProgress,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _isHolding ? 0.95 : 1.0,
+              child: Container(
+                width: 120,
+                height: 48,
+                clipBehavior: Clip.hardEdge,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: _accentRed.withValues(alpha: 0.25)),
+                ),
+                child: Stack(
+                  children: [
+                    FractionallySizedBox(
+                      widthFactor: _holdProgress.value,
+                      alignment: Alignment.centerLeft,
+                      child: Container(color: _accentRed),
+                    ),
+                    Center(
+                      child: ShaderMask(
+                        shaderCallback: (bounds) => LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [Colors.white, _accentRed],
+                          stops: [_holdProgress.value, _holdProgress.value],
+                        ).createShader(bounds),
+                        blendMode: BlendMode.srcIn,
+                        child: const Text(
+                          'Confirm',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontFamily: 'MonumentExtended-Regular',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
