@@ -8,13 +8,13 @@ class HomeScreen extends StatefulWidget {
   final List<TransactionModel> transactions;
   final void Function(TransactionModel) onAddTransaction;
   final void Function(
-    String id,
+    int id,
     String newIcon,
     String newDescription,
     double newAmount,
   )?
   onUpdateTransaction;
-  final void Function(String id) onDeleteTransaction;
+  final void Function(int id) onDeleteTransaction;
   final double monthlyBudget;
   final double spent;
   final ValueChanged<double> onBudgetChanged;
@@ -167,11 +167,12 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Re-applies the currently active sort mode to the list (RAM only).
   void _applyCurrentSort() {
     if (currentSort == 'Date') {
-      widget.transactions.sort((a, b) => b.id.compareTo(a.id));
+      // Sort newest-first by the ISO8601 date string (lexicographic = chronological)
+      widget.transactions.sort((a, b) => b.date.compareTo(a.date));
     } else if (currentSort == 'Highest') {
       widget.transactions.sort((a, b) => b.amount.compareTo(a.amount));
     } else if (currentSort == 'Category') {
-      widget.transactions.sort((a, b) => a.iconKey.compareTo(b.iconKey));
+      widget.transactions.sort((a, b) => a.category.compareTo(b.category));
     } else if (currentSort == 'Flow') {
       widget.transactions.sort(
         (a, b) => (b.isExpense ? 1 : 0) - (a.isExpense ? 1 : 0),
@@ -205,7 +206,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final Color badgeColor = colors.badge;
 
     // -- Local editing state (isolated per dialog instance) --
-    String localIconKey = model.iconKey;
+    // Use category as the icon key for the edit dialog picker
+    String localIconKey = model.category;
     final TextEditingController descController = TextEditingController(
       text: model.title,
     );
@@ -412,8 +414,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   final double? parsedNewAmount =
                                       double.tryParse(amountController.text);
                                   if (parsedNewAmount == null) return;
+                                  final int? txId = model.id;
+                                  if (txId == null) return;
                                   widget.onUpdateTransaction?.call(
-                                    model.id,
+                                    txId,
                                     localIconKey,
                                     descController.text,
                                     parsedNewAmount,
@@ -840,7 +844,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         Expanded(
                           child: GestureDetector(
                             onTap: () {
-                              widget.onDeleteTransaction(model.id);
+                              final int? txId = model.id;
+                              if (txId == null) return;
+                              widget.onDeleteTransaction(txId);
                               Navigator.pop(context); // confirm dialog
                               Navigator.pop(dialogContext); // morph dialog
                             },
@@ -931,21 +937,19 @@ class _HomeScreenState extends State<HomeScreen> {
                             onSelected: (String selection) {
                               debugPrint('Selected: $selection');
                               final double amount = _pendingIncomeAmount ?? 0.0;
-                              final String id = DateTime.now()
-                                  .millisecondsSinceEpoch
-                                  .toString();
-                              final String allocationTag =
+                              final String incomeStrategy =
                                   selection == 'Add to Budget'
-                                  ? 'budget'
-                                  : 'spent';
+                                  ? 'add_to_budget'
+                                  : 'deduct_from_spent';
                               widget.onAddTransaction(
                                 TransactionModel(
-                                  id: id,
+                                  // id is null — assigned by SQLite on insert
                                   title: _incomeTitleController.text,
                                   amount: amount,
-                                  iconKey: _pendingIncomeIconKey,
-                                  isExpense: false,
-                                  incomeAllocation: allocationTag,
+                                  type: 'income',
+                                  incomeStrategy: incomeStrategy,
+                                  category: _pendingIncomeIconKey,
+                                  date: DateTime.now().toIso8601String(),
                                 ),
                               );
                               // Balances are recomputed from scratch by
@@ -1143,16 +1147,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                       _expenseAmountController.text,
                                     );
                                     if (title.isNotEmpty && amount != null) {
-                                      final String id = DateTime.now()
-                                          .millisecondsSinceEpoch
-                                          .toString();
                                       widget.onAddTransaction(
                                         TransactionModel(
-                                          id: id,
+                                          // id is null — assigned by SQLite on insert
                                           title: title,
                                           amount: amount,
-                                          iconKey: iconKey,
-                                          isExpense: true,
+                                          type: 'expense',
+                                          category: iconKey,
+                                          date: DateTime.now().toIso8601String(),
                                         ),
                                       );
                                       Navigator.pop(context);

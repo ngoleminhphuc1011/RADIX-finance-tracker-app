@@ -1,22 +1,42 @@
 import 'package:flutter/material.dart';
 
+/// Represents a single financial transaction stored in the local SQLite DB.
+///
+/// Field notes:
+/// - [id] is nullable because it is assigned by SQLite (AUTOINCREMENT).
+///   When you build a new object to *insert*, leave id as null.
+///   After insertion, SQLite gives it an integer id.
+/// - [type] is either 'expense' or 'income'.
+/// - [incomeStrategy] is only relevant for income transactions:
+///     'add_to_budget'      → the income increases the available budget.
+///     'deduct_from_spent'  → the income cancels out recorded spending.
+///   It is null for all expense transactions.
+/// - [date] is stored as an ISO8601 string, e.g. "2026-07-09T09:20:00".
 class TransactionModel {
-  final String id;
-  String title;
-  double amount;
-  String iconKey;
-  final bool isExpense;
-  final String?
-  incomeAllocation; // 'budget' | 'spent' for income; null for expense
+  final int? id; // null before first DB insert
+  final String title;
+  final double amount;
+  final String type; // 'expense' | 'income'
+  final String? incomeStrategy; // 'add_to_budget' | 'deduct_from_spent' | null
+  final String category;
+  final String date; // ISO8601 string
 
-  TransactionModel({
-    required this.id,
+  const TransactionModel({
+    this.id,
     required this.title,
     required this.amount,
-    required this.iconKey,
-    required this.isExpense,
-    this.incomeAllocation,
+    required this.type,
+    this.incomeStrategy,
+    required this.category,
+    required this.date,
   });
+
+  // ─── Convenience getter ────────────────────────────────────────────────────
+
+  /// True when this transaction is an expense.
+  bool get isExpense => type == 'expense';
+
+  // ─── Color helper (kept from previous version) ─────────────────────────────
 
   /// Returns the (background, foreground, badge) color triplet for this
   /// transaction type. Used by both the tile and the edit dialog.
@@ -36,25 +56,66 @@ class TransactionModel {
     }
   }
 
+  // ─── Serialisation ─────────────────────────────────────────────────────────
+
+  /// Converts the model to a Map that sqflite can insert/update.
+  /// We intentionally exclude [id] here: if it is null (new record), sqflite
+  /// must not pass it so that AUTOINCREMENT can do its job.
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = <String, dynamic>{
       'title': title,
       'amount': amount,
-      'iconKey': iconKey,
-      'isExpense': isExpense ? 1 : 0,
-      'incomeAllocation': incomeAllocation,
+      'type': type,
+      'income_strategy': incomeStrategy, // null is fine — stored as NULL in DB
+      'category': category,
+      'date': date,
     };
+
+    // Only add id when we already have one (i.e. for updates, not inserts).
+    if (id != null) map['id'] = id;
+
+    return map;
   }
 
+  /// Reconstructs a [TransactionModel] from a sqflite row Map.
   factory TransactionModel.fromMap(Map<String, dynamic> map) {
     return TransactionModel(
-      id: map['id'] as String,
+      id: map['id'] as int?,
       title: map['title'] as String,
-      amount: map['amount'] as double,
-      iconKey: map['iconKey'] as String,
-      isExpense: (map['isExpense'] as int) == 1,
-      incomeAllocation: map['incomeAllocation'] as String?,
+      amount: (map['amount'] as num).toDouble(), // handles int/double from DB
+      type: map['type'] as String,
+      incomeStrategy: map['income_strategy'] as String?,
+      category: map['category'] as String,
+      date: map['date'] as String,
     );
+  }
+
+  /// Returns a copy with selected fields overridden.
+  /// Useful for UI edit flows where you want to change one field at a time.
+  TransactionModel copyWith({
+    int? id,
+    String? title,
+    double? amount,
+    String? type,
+    String? incomeStrategy,
+    String? category,
+    String? date,
+  }) {
+    return TransactionModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      amount: amount ?? this.amount,
+      type: type ?? this.type,
+      incomeStrategy: incomeStrategy ?? this.incomeStrategy,
+      category: category ?? this.category,
+      date: date ?? this.date,
+    );
+  }
+
+  @override
+  String toString() {
+    return 'TransactionModel(id: $id, title: $title, amount: $amount, '
+        'type: $type, incomeStrategy: $incomeStrategy, '
+        'category: $category, date: $date)';
   }
 }

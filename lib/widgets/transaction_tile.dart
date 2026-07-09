@@ -29,7 +29,7 @@ class TransactionTile extends StatelessWidget {
         : const Color(0xFF117A65);
     final String amountText =
         '${isExpense ? '-' : '+'} \$${_amountFormat.format(model.amount)}';
-    final IconData? resolvedIcon = iconOptions[model.iconKey];
+    final IconData? resolvedIcon = iconOptions[model.category];
 
     return GestureDetector(
       onTap: onTap,
