@@ -134,6 +134,8 @@ class GraphScreen extends StatefulWidget {
 }
 
 class _GraphScreenState extends State<GraphScreen> {
+  static const Color _textColor = Color(0xFF1C1C1E);
+
   String? _selectedIconKey;
   ScrollPosition? _scrollPosition;
   double _swipeProgress = 0.0;
@@ -150,23 +152,18 @@ class _GraphScreenState extends State<GraphScreen> {
   /// Throttle guard for scroll events.
   bool _scrollThrottled = false;
 
-  // ── Computed data from real transactions ──────────────────────────────────
+  // ── Pure computation helpers ──────────────────────────────────────────────
 
-  /// Aggregates expense transactions by category, sorted by amount descending.
-  /// Results are memoized and invalidated when transaction count changes.
-  List<_AggregatedCategory> get _categories {
-    final txLen = widget.transactions.length;
-    if (_cachedCategories != null && _cachedTxLength == txLen) {
-      return _cachedCategories!;
-    }
-
-    // Filter to expenses only
+  /// Filters expense transactions, groups by category icon key, sums the
+  /// amounts per group, resolves display info from [_categoryRegistry] (or
+  /// [_otherCategory] fallback for null/unknown keys), and sorts descending
+  /// by total amount.
+  ///
+  /// This is the single location for the Map-Reduce aggregation logic,
+  /// extracted from the widget tree so the build method stays lightweight.
+  List<_AggregatedCategory> _aggregateExpenses() {
     final expenses = widget.transactions.where((tx) => tx.isExpense).toList();
-    if (expenses.isEmpty) {
-      _cachedCategories = [];
-      _cachedTxLength = txLen;
-      return _cachedCategories!;
-    }
+    if (expenses.isEmpty) return [];
 
     // Group by category key and sum amounts
     final Map<String, double> sums = {};
@@ -175,7 +172,7 @@ class _GraphScreenState extends State<GraphScreen> {
       sums[key] = (sums[key] ?? 0.0) + tx.amount;
     }
 
-    // Convert to display categories
+    // Convert to display categories with fallback protection
     final List<_AggregatedCategory> result = [];
     for (final entry in sums.entries) {
       final info = _categoryRegistry[entry.key] ?? _otherCategory;
@@ -195,12 +192,22 @@ class _GraphScreenState extends State<GraphScreen> {
 
     // Sort by amount descending (largest slice first)
     result.sort((a, b) => b.amount.compareTo(a.amount));
+    return result;
+  }
 
-    // Cache and invalidate detail cache since categories may have changed
-    _cachedCategories = result;
+  /// Aggregates expense transactions by category, sorted by amount descending.
+  /// Results are memoized and invalidated when transaction count changes.
+  List<_AggregatedCategory> get _categories {
+    final txLen = widget.transactions.length;
+    if (_cachedCategories != null && _cachedTxLength == txLen) {
+      return _cachedCategories!;
+    }
+
+    // Run the pure aggregation, cache it, and invalidate detail cache
+    _cachedCategories = _aggregateExpenses();
     _cachedTxLength = txLen;
     _detailCache.clear();
-    return result;
+    return _cachedCategories!;
   }
 
   /// Returns the list of expense transactions matching the given category key.
@@ -237,6 +244,8 @@ class _GraphScreenState extends State<GraphScreen> {
   double get _totalSpent =>
       _categories.fold(0.0, (sum, item) => sum + item.amount);
 
+  // ── Lifecycle ─────────────────────────────────────────────────────────────
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -260,6 +269,9 @@ class _GraphScreenState extends State<GraphScreen> {
     _scrollPosition?.removeListener(_onScrollNotification);
     super.dispose();
   }
+
+  // ── Scroll-driven animation ───────────────────────────────────────────────
+  // (Preserved as-is — drives the clockwise slice drawing progress)
 
   void _onScrollNotification() {
     if (!mounted || _scrollPosition == null) return;
@@ -294,6 +306,9 @@ class _GraphScreenState extends State<GraphScreen> {
     }
   }
 
+  // ── Animated slice values ─────────────────────────────────────────────────
+  // (Preserved as-is — simulates clockwise drawing progress)
+
   /// Calculates the animated values of each slice sequentially to simulate
   /// a clockwise drawing progress effect around the circle.
   List<double> _buildAnimatedValues(double progress) {
@@ -326,6 +341,8 @@ class _GraphScreenState extends State<GraphScreen> {
     return animatedValues;
   }
 
+  // ── Chart section data ────────────────────────────────────────────────────
+
   List<PieChartSectionData> _buildSections() {
     final cats = _categories;
     final progress = _swipeProgress;
@@ -356,46 +373,150 @@ class _GraphScreenState extends State<GraphScreen> {
           .withLightness((hsl.lightness * 0.65).clamp(0.0, 1.0))
           .toColor();
 
-      final Widget badge = AnimatedOpacity(
-        duration: const Duration(milliseconds: 250),
-        opacity: progress > 0.85 ? 1.0 : 0.0,
-        child: AnimatedScale(
-          duration: const Duration(milliseconds: 250),
-          scale: progress > 0.85 ? (isTouched ? 1.25 : 1.0) : 0.0,
-          child: Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: const Color.fromARGB(25, 0, 0, 0),
-                width: 1,
-              ),
-            ),
-            child: Center(
-              child: Icon(category.icon, size: 15, color: darkenedIconColor),
-            ),
-          ),
-        ),
-      );
-
       return PieChartSectionData(
         color: category.color,
         value: animatedValues[i],
         radius: radius,
         showTitle: false, // Keep slices clean without text clutter
-        badgeWidget: badge,
+        badgeWidget: _CategoryBadge(
+          icon: category.icon,
+          iconColor: darkenedIconColor,
+          isTouched: isTouched,
+          progress: progress,
+        ),
         badgePositionPercentageOffset: isTouched ? 0.65 : 0.55,
       );
     });
   }
 
+  // ── Donut chart widget ────────────────────────────────────────────────────
+
+  Widget _buildDonutChart() {
+    final cats = _categories;
+    final bool hasData = cats.isNotEmpty;
+
+    return SizedBox(
+      height: 280,
+      child: hasData
+          ? Stack(
+              children: [
+                RepaintBoundary(
+                  child: PieChart(
+                    PieChartData(
+                      startDegreeOffset: -90, // starts drawing from 12 o'clock
+                      pieTouchData: PieTouchData(
+                        touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                          if (event is FlTapUpEvent) {
+                            Future.delayed(Duration.zero, () {
+                              if (!mounted) return;
+                              setState(() {
+                                if (pieTouchResponse == null ||
+                                    pieTouchResponse.touchedSection == null) {
+                                  _selectedIconKey = null;
+                                  return;
+                                }
+                                final index = pieTouchResponse
+                                    .touchedSection!
+                                    .touchedSectionIndex;
+                                if (index >= 0 && index < cats.length) {
+                                  final targetKey = cats[index].iconKey;
+                                  if (_selectedIconKey == targetKey) {
+                                    _selectedIconKey = null;
+                                  } else {
+                                    _selectedIconKey = targetKey;
+                                  }
+                                }
+                              });
+                            });
+                          }
+                        },
+                      ),
+                      borderData: FlBorderData(show: false),
+                      sectionsSpace: 4,
+                      centerSpaceRadius: 95,
+                      sections: _buildSections(),
+                    ),
+                    // Disable swap transition while swiping to avoid lag,
+                    // enable for touch selection when settled
+                    swapAnimationDuration: _swipeProgress == 1.0
+                        ? const Duration(milliseconds: 200)
+                        : Duration.zero,
+                    swapAnimationCurve: Curves.easeOut,
+                  ),
+                ),
+                Center(child: _buildDonutCenterText(cats)),
+              ],
+            )
+          : _buildEmptyChart(),
+    );
+  }
+
+  Widget _buildDonutCenterText(List<_AggregatedCategory> cats) {
+    final touchedIdx = _touchedIndex;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          touchedIdx != -1 && touchedIdx < cats.length
+              ? cats[touchedIdx].name.toUpperCase()
+              : 'TOTAL SPENT',
+          style: TextStyle(
+            fontFamily: 'MonumentExtended-Regular',
+            fontSize: 11,
+            color: Colors.grey[500],
+            letterSpacing: 1.0,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          touchedIdx != -1 && touchedIdx < cats.length
+              ? '\$${cats[touchedIdx].amount.toStringAsFixed(2)}'
+              : '\$${(_totalSpent * _swipeProgress).toStringAsFixed(2)}',
+          style: const TextStyle(
+            fontFamily: 'MonumentExtended-Regular',
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+            color: _textColor,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyChart() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.pie_chart_outline, size: 48, color: Colors.grey[400]),
+          const SizedBox(height: 12),
+          Text(
+            'No expenses yet',
+            style: TextStyle(
+              fontFamily: 'MonumentExtended-Regular',
+              fontSize: 14,
+              color: Colors.grey[500],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Add transactions to see your breakdown',
+            style: TextStyle(
+              fontFamily: 'MonumentExtended-Regular',
+              fontSize: 11,
+              color: Colors.grey[400],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
-    const textColor = Color(0xFF1C1C1E);
     final cats = _categories;
-    final touchedIdx = _touchedIndex;
     final bool hasData = cats.isNotEmpty;
 
     return Scaffold(
@@ -438,7 +559,7 @@ class _GraphScreenState extends State<GraphScreen> {
                             fontFamily: 'MonumentExtended-Regular',
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
-                            color: textColor,
+                            color: _textColor,
                           ),
                         ),
                         const SizedBox(height: 32),
@@ -461,147 +582,7 @@ class _GraphScreenState extends State<GraphScreen> {
                           child: Column(
                             children: [
                               // Hollow Spacious Donut Chart
-                              SizedBox(
-                                height: 280,
-                                child: hasData
-                                    ? Stack(
-                                        children: [
-                                          PieChart(
-                                            PieChartData(
-                                              startDegreeOffset:
-                                                  -90, // starts drawing from 12 o'clock
-                                              pieTouchData: PieTouchData(
-                                                touchCallback:
-                                                    (
-                                                      FlTouchEvent event,
-                                                      pieTouchResponse,
-                                                    ) {
-                                                      if (event
-                                                          is FlTapUpEvent) {
-                                                        Future.delayed(Duration.zero, () {
-                                                          if (!mounted) return;
-                                                          setState(() {
-                                                            if (pieTouchResponse ==
-                                                                    null ||
-                                                                pieTouchResponse
-                                                                        .touchedSection ==
-                                                                    null) {
-                                                              _selectedIconKey =
-                                                                  null;
-                                                              return;
-                                                            }
-                                                            final index =
-                                                                pieTouchResponse
-                                                                    .touchedSection!
-                                                                    .touchedSectionIndex;
-                                                            if (index >= 0 &&
-                                                                index <
-                                                                    cats.length) {
-                                                              final targetKey =
-                                                                  cats[index]
-                                                                      .iconKey;
-                                                              if (_selectedIconKey ==
-                                                                  targetKey) {
-                                                                _selectedIconKey =
-                                                                    null;
-                                                              } else {
-                                                                _selectedIconKey =
-                                                                    targetKey;
-                                                              }
-                                                            }
-                                                          });
-                                                        });
-                                                      }
-                                                    },
-                                              ),
-                                              borderData: FlBorderData(
-                                                show: false,
-                                              ),
-                                              sectionsSpace: 4,
-                                              centerSpaceRadius: 95,
-                                              sections: _buildSections(),
-                                            ),
-                                            // Disable swap transition while swiping to avoid lag, enable for touch selection when settled
-                                            swapAnimationDuration:
-                                                _swipeProgress == 1.0
-                                                ? const Duration(
-                                                    milliseconds: 200,
-                                                  )
-                                                : Duration.zero,
-                                            swapAnimationCurve: Curves.easeOut,
-                                          ),
-                                          Center(
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Text(
-                                                  touchedIdx != -1 &&
-                                                          touchedIdx <
-                                                              cats.length
-                                                      ? cats[touchedIdx].name
-                                                            .toUpperCase()
-                                                      : 'TOTAL SPENT',
-                                                  style: TextStyle(
-                                                    fontFamily:
-                                                        'MonumentExtended-Regular',
-                                                    fontSize: 11,
-                                                    color: Colors.grey[500],
-                                                    letterSpacing: 1.0,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 8),
-                                                Text(
-                                                  touchedIdx != -1 &&
-                                                          touchedIdx <
-                                                              cats.length
-                                                      ? '\$${cats[touchedIdx].amount.toStringAsFixed(2)}'
-                                                      : '\$${(_totalSpent * _swipeProgress).toStringAsFixed(2)}',
-                                                  style: TextStyle(
-                                                    fontFamily:
-                                                        'MonumentExtended-Regular',
-                                                    fontSize: 22,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: textColor,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      )
-                                    : Center(
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.pie_chart_outline,
-                                              size: 48,
-                                              color: Colors.grey[400],
-                                            ),
-                                            const SizedBox(height: 12),
-                                            Text(
-                                              'No expenses yet',
-                                              style: TextStyle(
-                                                fontFamily:
-                                                    'MonumentExtended-Regular',
-                                                fontSize: 14,
-                                                color: Colors.grey[500],
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              'Add transactions to see your breakdown',
-                                              style: TextStyle(
-                                                fontFamily:
-                                                    'MonumentExtended-Regular',
-                                                fontSize: 11,
-                                                color: Colors.grey[400],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                              ),
+                              _buildDonutChart(),
                             ],
                           ),
                         ),
@@ -670,6 +651,8 @@ class _GraphScreenState extends State<GraphScreen> {
       ),
     );
   }
+
+  // ── Category list (breakdown rows) ────────────────────────────────────────
 
   Widget _buildCategoryList(List<_AggregatedCategory> cats) {
     final totalSpent = _totalSpent;
@@ -782,6 +765,8 @@ class _GraphScreenState extends State<GraphScreen> {
       ],
     );
   }
+
+  // ── Detail list (transactions within a selected category) ─────────────────
 
   Widget _buildDetailList(String iconKey, List<_AggregatedCategory> cats) {
     final category = cats.firstWhere(
@@ -956,6 +941,49 @@ class _GraphScreenState extends State<GraphScreen> {
                 }),
               ),
       ],
+    );
+  }
+}
+
+// ─── Reusable Category Badge Widget ──────────────────────────────────────────
+// Extracted from the inline badge builder in _buildSections() for
+// const-constructability and rebuild short-circuiting.
+
+class _CategoryBadge extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final bool isTouched;
+  final double progress;
+
+  const _CategoryBadge({
+    required this.icon,
+    required this.iconColor,
+    required this.isTouched,
+    required this.progress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 250),
+      opacity: progress > 0.85 ? 1.0 : 0.0,
+      child: AnimatedScale(
+        duration: const Duration(milliseconds: 250),
+        scale: progress > 0.85 ? (isTouched ? 1.25 : 1.0) : 0.0,
+        child: Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: const Color.fromARGB(25, 0, 0, 0),
+              width: 1,
+            ),
+          ),
+          child: Center(child: Icon(icon, size: 15, color: iconColor)),
+        ),
+      ),
     );
   }
 }

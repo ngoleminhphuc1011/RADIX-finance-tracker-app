@@ -123,6 +123,28 @@ class _HomeScreenState extends State<HomeScreen> {
   );
 
   // Icon picker state
+  // ── Memoization cache for grouped transactions ──────────────────────────
+
+  /// Caches the grouped/sorted result to avoid recomputation on every build.
+  Map<String, List<TransactionModel>>? _cachedGrouped;
+  int _cachedGroupedTxLen = -1;
+  String _cachedGroupedSort = '';
+
+  /// Returns grouped transactions with memoization.
+  /// Automatically invalidates when transactions or sort mode changes.
+  Map<String, List<TransactionModel>> get _grouped {
+    final txLen = widget.transactions.length;
+    if (_cachedGrouped != null &&
+        _cachedGroupedTxLen == txLen &&
+        _cachedGroupedSort == currentSort) {
+      return _cachedGrouped!;
+    }
+    _cachedGrouped = _groupTransactions(widget.transactions);
+    _cachedGroupedTxLen = txLen;
+    _cachedGroupedSort = currentSort;
+    return _cachedGrouped!;
+  }
+
   String? _selectedIconKey;
   static const Set<String> _validIconKeys = <String>{
     'fastfood',
@@ -559,7 +581,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final bool isOverBudget = widget.spent > widget.monthlyBudget;
-    final grouped = _groupTransactions(widget.transactions);
+    final grouped = _grouped;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -615,7 +637,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           'BUDGET LEFT: \$${_currencyFormat.format(widget.budgetLeft)}',
                           style: _styleBudgetLeft18.copyWith(
-                            color: isOverBudget ? _premiumPastelRed : Colors.black,
+                            color: isOverBudget
+                                ? _premiumPastelRed
+                                : Colors.black,
                           ),
                         ),
                         if (isOverBudget) ...[
@@ -709,36 +733,39 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 );
                               },
-                          child: ScrollConfiguration(
-                            behavior: const ScrollBehavior().copyWith(
-                              scrollbars: false,
-                            ),
-                            child: ListView.builder(
-                              controller: _scrollController,
-                              key: ValueKey<String>(currentSort),
-                              padding: const EdgeInsets.only(bottom: 80),
-                              physics: const BouncingScrollPhysics(),
-                              itemCount: grouped.keys.length,
-                              itemBuilder: (context, index) {
-                                final String dateStr = grouped.keys.elementAt(
-                                  index,
-                                );
-                                final List<TransactionModel> groupTxs =
-                                    grouped[dateStr]!;
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _buildDateHeader(dateStr),
-                                    ...groupTxs.map(
-                                      (tx) => TransactionTile(
-                                        model: tx,
-                                        onTap: () =>
-                                            _showMorphDialog(context, tx),
+                          child: RepaintBoundary(
+                            child: ScrollConfiguration(
+                              behavior: const ScrollBehavior().copyWith(
+                                scrollbars: false,
+                              ),
+                              child: ListView.builder(
+                                controller: _scrollController,
+                                key: ValueKey<String>(currentSort),
+                                padding: const EdgeInsets.only(bottom: 80),
+                                physics: const BouncingScrollPhysics(),
+                                itemCount: grouped.keys.length,
+                                itemBuilder: (context, index) {
+                                  final String dateStr = grouped.keys.elementAt(
+                                    index,
+                                  );
+                                  final List<TransactionModel> groupTxs =
+                                      grouped[dateStr]!;
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      _buildDateHeader(dateStr),
+                                      ...groupTxs.map(
+                                        (tx) => TransactionTile(
+                                          model: tx,
+                                          onTap: () =>
+                                              _showMorphDialog(context, tx),
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                );
-                              },
+                                    ],
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),
@@ -1547,7 +1574,9 @@ class _HomeScreenState extends State<HomeScreen> {
         list.sort((a, b) {
           final idA = a.id ?? 0;
           final idB = b.id ?? 0;
-          return idB.compareTo(idA); // Keep items sorted by input time/ID (newest ID first)
+          return idB.compareTo(
+            idA,
+          ); // Keep items sorted by input time/ID (newest ID first)
         });
       } else if (currentSort == 'Highest') {
         list.sort((a, b) => b.amount.compareTo(a.amount));
