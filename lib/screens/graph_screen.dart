@@ -1,208 +1,241 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
+import '../models/transaction_model.dart';
 
-class MockCategory {
+// ─── Category visual registry ────────────────────────────────────────────────
+// Maps each icon key string (stored in DB) to its display properties.
+// This is the single source of truth for category visuals across the app.
+
+class _CategoryInfo {
   final String name;
-  final double amount;
-  final String iconKey;
   final IconData icon;
   final Color color;
 
-  const MockCategory({
+  const _CategoryInfo({
     required this.name,
-    required this.amount,
-    required this.iconKey,
     required this.icon,
     required this.color,
   });
 }
 
-class MockDetailTransaction {
-  final String title;
-  final double amount;
-  final String date;
+const Map<String, _CategoryInfo> _categoryRegistry = {
+  'fastfood': _CategoryInfo(
+    name: 'Food',
+    icon: Icons.fastfood_outlined,
+    color: Color(0xFFFF8B94), // Pastel pink-red
+  ),
+  'shopping_bag': _CategoryInfo(
+    name: 'Shopping',
+    icon: Icons.shopping_bag_outlined,
+    color: Color(0xFFFFD3B6), // Pastel peach
+  ),
+  'directions_car': _CategoryInfo(
+    name: 'Transport',
+    icon: Icons.directions_car_filled_outlined,
+    color: Color(0xFFD4A5A5), // Pastel dusty rose
+  ),
+  'home': _CategoryInfo(
+    name: 'Utilities',
+    icon: Icons.home_outlined,
+    color: Color(0xFF9FFFCB), // Pastel mint green
+  ),
+  'celebration': _CategoryInfo(
+    name: 'Entertainment',
+    icon: Icons.celebration_outlined,
+    color: Color(0xFFC7CEEA), // Pastel lavender-blue
+  ),
+  'payments': _CategoryInfo(
+    name: 'Payments',
+    icon: Icons.payments_outlined,
+    color: Color(0xFFFFF3B0), // Pastel yellow
+  ),
+  'work': _CategoryInfo(
+    name: 'Work',
+    icon: Icons.work_outline,
+    color: Color(0xFFB3D9FF), // Pastel sky blue
+  ),
+  'school': _CategoryInfo(
+    name: 'Education',
+    icon: Icons.school_outlined,
+    color: Color(0xFFB8B3E6), // Pastel indigo
+  ),
+  'flight': _CategoryInfo(
+    name: 'Travel',
+    icon: Icons.flight_outlined,
+    color: Color(0xFFFFB3A7), // Pastel coral
+  ),
+  'fitness_center': _CategoryInfo(
+    name: 'Fitness',
+    icon: Icons.fitness_center_outlined,
+    color: Color(0xFFB2DFDB), // Pastel teal
+  ),
+  'health_and_safety': _CategoryInfo(
+    name: 'Health',
+    icon: Icons.health_and_safety_outlined,
+    color: Color(0xFFD5E8D4), // Pastel sage
+  ),
+  'pets': _CategoryInfo(
+    name: 'Pets',
+    icon: Icons.pets_outlined,
+    color: Color(0xFFFFCCAA), // Pastel orange
+  ),
+  'local_gas_station': _CategoryInfo(
+    name: 'Gas',
+    icon: Icons.local_gas_station_outlined,
+    color: Color(0xFFD6D6D6), // Pastel warm gray
+  ),
+  'train': _CategoryInfo(
+    name: 'Transit',
+    icon: Icons.train_outlined,
+    color: Color(0xFFAEC6CF), // Pastel steel blue
+  ),
+};
 
-  const MockDetailTransaction({
-    required this.title,
+// Fallback for empty or unknown category keys
+const _CategoryInfo _otherCategory = _CategoryInfo(
+  name: 'Other',
+  icon: Icons.widgets_outlined,
+  color: Color(0xFFE2E8F0), // Pastel slate
+);
+
+// ─── Aggregated category for chart display ───────────────────────────────────
+
+class _AggregatedCategory {
+  final String iconKey;
+  final String name;
+  final IconData icon;
+  final Color color;
+  final double amount;
+
+  const _AggregatedCategory({
+    required this.iconKey,
+    required this.name,
+    required this.icon,
+    required this.color,
     required this.amount,
-    required this.date,
   });
 }
 
+// ─── GraphScreen ─────────────────────────────────────────────────────────────
+
 class GraphScreen extends StatefulWidget {
   final bool isActive;
-  const GraphScreen({super.key, this.isActive = false});
+  final List<TransactionModel> transactions;
+
+  const GraphScreen({
+    super.key,
+    this.isActive = false,
+    required this.transactions,
+  });
 
   @override
   State<GraphScreen> createState() => _GraphScreenState();
 }
 
 class _GraphScreenState extends State<GraphScreen> {
-  // Pre-defined mock data matching transaction categories
-  static const List<MockCategory> _mockCategories = [
-    MockCategory(
-      name: 'Food',
-      amount: 320.50,
-      iconKey: 'fastfood',
-      icon: Icons.fastfood_outlined,
-      color: Color(0xFFFF8B94), // Pastel pink-red
-    ),
-    MockCategory(
-      name: 'Shopping',
-      amount: 450.00,
-      iconKey: 'shopping_bag',
-      icon: Icons.shopping_bag_outlined,
-      color: Color(0xFFFFD3B6), // Pastel peach
-    ),
-    MockCategory(
-      name: 'Transport',
-      amount: 180.20,
-      iconKey: 'directions_car',
-      icon: Icons.directions_car_filled_outlined,
-      color: Color(0xFFD4A5A5), // Pastel dusty rose
-    ),
-    MockCategory(
-      name: 'Utilities',
-      amount: 290.00,
-      iconKey: 'home',
-      icon: Icons.home_outlined,
-      color: Color(0xFF9FFFCB), // Pastel mint green
-    ),
-    MockCategory(
-      name: 'Entertainment',
-      amount: 150.00,
-      iconKey: 'celebration',
-      icon: Icons.celebration_outlined,
-      color: Color(0xFFC7CEEA), // Pastel lavender-blue
-    ),
-    MockCategory(
-      name: 'Other', // "None" / Unmapped category
-      amount: 95.00,
-      iconKey: 'widgets',
-      icon: Icons.widgets_outlined,
-      color: Color(0xFFE2E8F0), // Pastel slate for unmapped/none
-    ),
-  ];
-
-  static const Map<String, List<MockDetailTransaction>> _mockDetails = {
-    'fastfood': [
-      MockDetailTransaction(
-        title: 'Salted Coffee',
-        amount: 4.50,
-        date: 'Jul 10',
-      ),
-      MockDetailTransaction(
-        title: 'Coconut Coffee',
-        amount: 4.50,
-        date: 'Jul 09',
-      ),
-      MockDetailTransaction(
-        title: 'Spicy Beef Burger',
-        amount: 8.50,
-        date: 'Jul 08',
-      ),
-      MockDetailTransaction(
-        title: 'Special Pho',
-        amount: 10.00,
-        date: 'Jul 06',
-      ),
-    ],
-    'shopping_bag': [
-      MockDetailTransaction(
-        title: 'Leather Wallet',
-        amount: 85.00,
-        date: 'Jul 09',
-      ),
-      MockDetailTransaction(
-        title: 'Cotton T-Shirt',
-        amount: 35.00,
-        date: 'Jul 07',
-      ),
-      MockDetailTransaction(
-        title: 'Designer Sneakers',
-        amount: 220.00,
-        date: 'Jul 05',
-      ),
-    ],
-    'directions_car': [
-      MockDetailTransaction(
-        title: 'Uber Ride (Work)',
-        amount: 15.50,
-        date: 'Jul 10',
-      ),
-      MockDetailTransaction(
-        title: 'Taxi (Airport)',
-        amount: 45.00,
-        date: 'Jul 08',
-      ),
-      MockDetailTransaction(
-        title: 'Gas Station',
-        amount: 65.00,
-        date: 'Jul 04',
-      ),
-    ],
-    'home': [
-      MockDetailTransaction(
-        title: 'Electricity Bill',
-        amount: 120.00,
-        date: 'Jul 05',
-      ),
-      MockDetailTransaction(
-        title: 'High-speed Internet',
-        amount: 65.00,
-        date: 'Jul 01',
-      ),
-      MockDetailTransaction(
-        title: 'Water Supply Bill',
-        amount: 35.00,
-        date: 'Jul 01',
-      ),
-    ],
-    'celebration': [
-      MockDetailTransaction(
-        title: 'Movie Tickets',
-        amount: 28.00,
-        date: 'Jul 09',
-      ),
-      MockDetailTransaction(
-        title: 'Concert Entry',
-        amount: 95.00,
-        date: 'Jul 04',
-      ),
-      MockDetailTransaction(
-        title: 'Board Game Cafe',
-        amount: 15.00,
-        date: 'Jul 02',
-      ),
-    ],
-    'widgets': [
-      MockDetailTransaction(
-        title: 'Monthly Magazine',
-        amount: 12.00,
-        date: 'Jul 08',
-      ),
-      MockDetailTransaction(
-        title: 'Gym Day Pass',
-        amount: 15.00,
-        date: 'Jul 06',
-      ),
-      MockDetailTransaction(title: 'Gift Card', amount: 50.00, date: 'Jul 05'),
-    ],
-  };
-
   String? _selectedIconKey;
   ScrollPosition? _scrollPosition;
   double _swipeProgress = 0.0;
 
+  // ── Memoization caches ────────────────────────────────────────────────────
+
+  /// Cached aggregated categories — invalidated when transaction count changes.
+  List<_AggregatedCategory>? _cachedCategories;
+  int _cachedTxLength = -1;
+
+  /// Cached detail lists per category key.
+  final Map<String, List<TransactionModel>> _detailCache = {};
+
+  /// Throttle guard for scroll events.
+  bool _scrollThrottled = false;
+
+  // ── Computed data from real transactions ──────────────────────────────────
+
+  /// Aggregates expense transactions by category, sorted by amount descending.
+  /// Results are memoized and invalidated when transaction count changes.
+  List<_AggregatedCategory> get _categories {
+    final txLen = widget.transactions.length;
+    if (_cachedCategories != null && _cachedTxLength == txLen) {
+      return _cachedCategories!;
+    }
+
+    // Filter to expenses only
+    final expenses = widget.transactions.where((tx) => tx.isExpense).toList();
+    if (expenses.isEmpty) {
+      _cachedCategories = [];
+      _cachedTxLength = txLen;
+      return _cachedCategories!;
+    }
+
+    // Group by category key and sum amounts
+    final Map<String, double> sums = {};
+    for (final tx in expenses) {
+      final key = tx.category.isEmpty ? '' : tx.category;
+      sums[key] = (sums[key] ?? 0.0) + tx.amount;
+    }
+
+    // Convert to display categories
+    final List<_AggregatedCategory> result = [];
+    for (final entry in sums.entries) {
+      final info = _categoryRegistry[entry.key] ?? _otherCategory;
+      final iconKey = _categoryRegistry.containsKey(entry.key)
+          ? entry.key
+          : '_other';
+      result.add(
+        _AggregatedCategory(
+          iconKey: iconKey,
+          name: info.name,
+          icon: info.icon,
+          color: info.color,
+          amount: entry.value,
+        ),
+      );
+    }
+
+    // Sort by amount descending (largest slice first)
+    result.sort((a, b) => b.amount.compareTo(a.amount));
+
+    // Cache and invalidate detail cache since categories may have changed
+    _cachedCategories = result;
+    _cachedTxLength = txLen;
+    _detailCache.clear();
+    return result;
+  }
+
+  /// Returns the list of expense transactions matching the given category key.
+  /// Results are cached per key for the lifetime of the current category set.
+  List<TransactionModel> _detailsForCategory(String iconKey) {
+    if (_detailCache.containsKey(iconKey)) {
+      return _detailCache[iconKey]!;
+    }
+
+    final expenses = widget.transactions.where((tx) => tx.isExpense).toList();
+    final matching = iconKey == '_other'
+        ? expenses.where(
+            (tx) =>
+                tx.category.isEmpty ||
+                !_categoryRegistry.containsKey(tx.category),
+          )
+        : expenses.where((tx) => tx.category == iconKey);
+
+    final sorted = matching.toList()
+      ..sort((a, b) => b.date.compareTo(a.date)); // newest first
+
+    _detailCache[iconKey] = sorted;
+    return sorted;
+  }
+
   // Derive touched index from selection key
   int get _touchedIndex {
     if (_selectedIconKey == null) return -1;
-    return _mockCategories.indexWhere((c) => c.iconKey == _selectedIconKey);
+    final cats = _categories;
+    return cats.indexWhere((c) => c.iconKey == _selectedIconKey);
   }
 
-  // Calculate sum of all values
+  // Calculate sum of all expense values
   double get _totalSpent =>
-      _mockCategories.fold(0.0, (sum, item) => sum + item.amount);
+      _categories.fold(0.0, (sum, item) => sum + item.amount);
 
   @override
   void didChangeDependencies() {
@@ -230,6 +263,7 @@ class _GraphScreenState extends State<GraphScreen> {
 
   void _onScrollNotification() {
     if (!mounted || _scrollPosition == null) return;
+    if (_scrollThrottled) return;
 
     final pos = _scrollPosition!;
     if (!pos.hasContentDimensions || pos.viewportDimension == 0) return;
@@ -241,6 +275,12 @@ class _GraphScreenState extends State<GraphScreen> {
     final double progress = (1.0 - page).clamp(0.0, 1.0);
 
     if (progress != _swipeProgress) {
+      _scrollThrottled = true;
+      // Schedule un-throttle after a short frame to coalesce rapid scroll events
+      Future.delayed(const Duration(milliseconds: 16), () {
+        if (!mounted) return;
+        _scrollThrottled = false;
+      });
       Future.delayed(Duration.zero, () {
         if (!mounted) return;
         setState(() {
@@ -257,16 +297,17 @@ class _GraphScreenState extends State<GraphScreen> {
   /// Calculates the animated values of each slice sequentially to simulate
   /// a clockwise drawing progress effect around the circle.
   List<double> _buildAnimatedValues(double progress) {
+    final cats = _categories;
     final double total = _totalSpent;
     if (total == 0) {
-      return List.filled(_mockCategories.length, 0.0);
+      return List.filled(cats.length, 0.0);
     }
 
     final List<double> animatedValues = [];
     double accumulatedProgress = 0.0;
 
-    for (int i = 0; i < _mockCategories.length; i++) {
-      final targetVal = _mockCategories[i].amount;
+    for (int i = 0; i < cats.length; i++) {
+      final targetVal = cats[i].amount;
       final targetPct = targetVal / total;
 
       final sliceStart = accumulatedProgress;
@@ -286,8 +327,10 @@ class _GraphScreenState extends State<GraphScreen> {
   }
 
   List<PieChartSectionData> _buildSections() {
+    final cats = _categories;
     final progress = _swipeProgress;
-    if (progress == 0.0) {
+
+    if (progress == 0.0 || cats.isEmpty) {
       // Return a single transparent segment to prevent fl_chart from
       // rendering its 360-degree first-slice fallback circle.
       return [
@@ -303,8 +346,8 @@ class _GraphScreenState extends State<GraphScreen> {
     final animatedValues = _buildAnimatedValues(progress);
     final touchedIdx = _touchedIndex;
 
-    return List.generate(_mockCategories.length, (i) {
-      final category = _mockCategories[i];
+    return List.generate(cats.length, (i) {
+      final category = cats[i];
       final isTouched = i == touchedIdx;
       final radius = isTouched ? 54.0 : 42.0;
 
@@ -351,7 +394,9 @@ class _GraphScreenState extends State<GraphScreen> {
   @override
   Widget build(BuildContext context) {
     const textColor = Color(0xFF1C1C1E);
+    final cats = _categories;
     final touchedIdx = _touchedIndex;
+    final bool hasData = cats.isNotEmpty;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F0EB),
@@ -362,9 +407,7 @@ class _GraphScreenState extends State<GraphScreen> {
             return SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight,
-                ),
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
@@ -420,93 +463,144 @@ class _GraphScreenState extends State<GraphScreen> {
                               // Hollow Spacious Donut Chart
                               SizedBox(
                                 height: 280,
-                                child: Stack(
-                                  children: [
-                                    PieChart(
-                                      PieChartData(
-                                        startDegreeOffset:
-                                            -90, // starts drawing from 12 o'clock
-                                        pieTouchData: PieTouchData(
-                                          touchCallback:
-                                              (FlTouchEvent event, pieTouchResponse) {
-                                                if (event is FlTapUpEvent) {
-                                                  Future.delayed(Duration.zero, () {
-                                                    if (!mounted) return;
-                                                    setState(() {
-                                                      if (pieTouchResponse == null ||
-                                                          pieTouchResponse
-                                                                  .touchedSection ==
-                                                              null) {
-                                                        _selectedIconKey = null;
-                                                        return;
-                                                      }
-                                                      final index = pieTouchResponse
-                                                          .touchedSection!
-                                                          .touchedSectionIndex;
-                                                      if (index >= 0 &&
-                                                          index <
-                                                              _mockCategories.length) {
-                                                        final targetKey =
-                                                            _mockCategories[index]
-                                                                .iconKey;
-                                                        if (_selectedIconKey ==
-                                                            targetKey) {
-                                                          _selectedIconKey = null;
-                                                        } else {
-                                                          _selectedIconKey = targetKey;
-                                                        }
-                                                      }
-                                                    });
-                                                  });
-                                                }
-                                              },
-                                        ),
-                                        borderData: FlBorderData(show: false),
-                                        sectionsSpace: 4,
-                                        centerSpaceRadius: 95,
-                                        sections: _buildSections(),
-                                      ),
-                                      // Disable swap transition while swiping to avoid lag, enable for touch selection when settled
-                                      swapAnimationDuration: _swipeProgress == 1.0
-                                          ? const Duration(milliseconds: 200)
-                                          : Duration.zero,
-                                      swapAnimationCurve: Curves.easeOut,
-                                    ),
-                                    Center(
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
+                                child: hasData
+                                    ? Stack(
                                         children: [
-                                          Text(
-                                            touchedIdx != -1 &&
-                                                    touchedIdx < _mockCategories.length
-                                                ? _mockCategories[touchedIdx].name
-                                                      .toUpperCase()
-                                                : 'TOTAL SPENT',
-                                            style: TextStyle(
-                                              fontFamily: 'MonumentExtended-Regular',
-                                              fontSize: 11,
-                                              color: Colors.grey[500],
-                                              letterSpacing: 1.0,
+                                          PieChart(
+                                            PieChartData(
+                                              startDegreeOffset:
+                                                  -90, // starts drawing from 12 o'clock
+                                              pieTouchData: PieTouchData(
+                                                touchCallback:
+                                                    (
+                                                      FlTouchEvent event,
+                                                      pieTouchResponse,
+                                                    ) {
+                                                      if (event
+                                                          is FlTapUpEvent) {
+                                                        Future.delayed(Duration.zero, () {
+                                                          if (!mounted) return;
+                                                          setState(() {
+                                                            if (pieTouchResponse ==
+                                                                    null ||
+                                                                pieTouchResponse
+                                                                        .touchedSection ==
+                                                                    null) {
+                                                              _selectedIconKey =
+                                                                  null;
+                                                              return;
+                                                            }
+                                                            final index =
+                                                                pieTouchResponse
+                                                                    .touchedSection!
+                                                                    .touchedSectionIndex;
+                                                            if (index >= 0 &&
+                                                                index <
+                                                                    cats.length) {
+                                                              final targetKey =
+                                                                  cats[index]
+                                                                      .iconKey;
+                                                              if (_selectedIconKey ==
+                                                                  targetKey) {
+                                                                _selectedIconKey =
+                                                                    null;
+                                                              } else {
+                                                                _selectedIconKey =
+                                                                    targetKey;
+                                                              }
+                                                            }
+                                                          });
+                                                        });
+                                                      }
+                                                    },
+                                              ),
+                                              borderData: FlBorderData(
+                                                show: false,
+                                              ),
+                                              sectionsSpace: 4,
+                                              centerSpaceRadius: 95,
+                                              sections: _buildSections(),
                                             ),
+                                            // Disable swap transition while swiping to avoid lag, enable for touch selection when settled
+                                            swapAnimationDuration:
+                                                _swipeProgress == 1.0
+                                                ? const Duration(
+                                                    milliseconds: 200,
+                                                  )
+                                                : Duration.zero,
+                                            swapAnimationCurve: Curves.easeOut,
                                           ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            touchedIdx != -1 &&
-                                                    touchedIdx < _mockCategories.length
-                                                ? '\$${_mockCategories[touchedIdx].amount.toStringAsFixed(2)}'
-                                                : '\$${(_totalSpent * _swipeProgress).toStringAsFixed(2)}',
-                                            style: TextStyle(
-                                              fontFamily: 'MonumentExtended-Regular',
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.w600,
-                                              color: textColor,
+                                          Center(
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  touchedIdx != -1 &&
+                                                          touchedIdx <
+                                                              cats.length
+                                                      ? cats[touchedIdx].name
+                                                            .toUpperCase()
+                                                      : 'TOTAL SPENT',
+                                                  style: TextStyle(
+                                                    fontFamily:
+                                                        'MonumentExtended-Regular',
+                                                    fontSize: 11,
+                                                    color: Colors.grey[500],
+                                                    letterSpacing: 1.0,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 8),
+                                                Text(
+                                                  touchedIdx != -1 &&
+                                                          touchedIdx <
+                                                              cats.length
+                                                      ? '\$${cats[touchedIdx].amount.toStringAsFixed(2)}'
+                                                      : '\$${(_totalSpent * _swipeProgress).toStringAsFixed(2)}',
+                                                  style: TextStyle(
+                                                    fontFamily:
+                                                        'MonumentExtended-Regular',
+                                                    fontSize: 22,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: textColor,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ],
+                                      )
+                                    : Center(
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.pie_chart_outline,
+                                              size: 48,
+                                              color: Colors.grey[400],
+                                            ),
+                                            const SizedBox(height: 12),
+                                            Text(
+                                              'No expenses yet',
+                                              style: TextStyle(
+                                                fontFamily:
+                                                    'MonumentExtended-Regular',
+                                                fontSize: 14,
+                                                color: Colors.grey[500],
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Add transactions to see your breakdown',
+                                              style: TextStyle(
+                                                fontFamily:
+                                                    'MonumentExtended-Regular',
+                                                fontSize: 11,
+                                                color: Colors.grey[400],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
                               ),
                             ],
                           ),
@@ -514,57 +608,71 @@ class _GraphScreenState extends State<GraphScreen> {
                         const SizedBox(height: 32),
 
                         // --- Drill-Down Bottom Section ---
-                        AnimatedSize(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOutCubic,
-                          alignment: Alignment.topCenter,
-                          child: AnimatedSwitcher(
+                        if (hasData)
+                          AnimatedSize(
                             duration: const Duration(milliseconds: 300),
-                            switchInCurve: Curves.easeOutCubic,
-                            switchOutCurve: Curves.easeInCubic,
-                            layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
-                              final children = List<Widget>.from(previousChildren);
-                              if (currentChild != null) {
-                                children.add(currentChild);
-                              }
-                              return Stack(
-                                alignment: Alignment.topCenter,
-                                children: children,
-                              );
-                            },
-                            transitionBuilder: (Widget child, Animation<double> animation) {
-                              final isDetail = child.key != const ValueKey('CategoryList');
-                              return ClipRect(
-                                child: SlideTransition(
-                                  position: Tween<Offset>(
-                                    begin: Offset(isDetail ? 1.0 : -1.0, 0.0),
-                                    end: Offset.zero,
-                                  ).animate(animation),
-                                  child: FadeTransition(
-                                    opacity: animation,
-                                    child: child,
-                                  ),
-                                ),
-                              );
-                            },
-                            child: _selectedIconKey == null
-                                ? _buildCategoryList()
-                                : _buildDetailList(_selectedIconKey!),
+                            curve: Curves.easeInOutCubic,
+                            alignment: Alignment.topCenter,
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              switchInCurve: Curves.easeOutCubic,
+                              switchOutCurve: Curves.easeInCubic,
+                              layoutBuilder:
+                                  (
+                                    Widget? currentChild,
+                                    List<Widget> previousChildren,
+                                  ) {
+                                    final children = List<Widget>.from(
+                                      previousChildren,
+                                    );
+                                    if (currentChild != null) {
+                                      children.add(currentChild);
+                                    }
+                                    return Stack(
+                                      alignment: Alignment.topCenter,
+                                      children: children,
+                                    );
+                                  },
+                              transitionBuilder:
+                                  (Widget child, Animation<double> animation) {
+                                    final isDetail =
+                                        child.key !=
+                                        const ValueKey('CategoryList');
+                                    return ClipRect(
+                                      child: SlideTransition(
+                                        position: Tween<Offset>(
+                                          begin: Offset(
+                                            isDetail ? 1.0 : -1.0,
+                                            0.0,
+                                          ),
+                                          end: Offset.zero,
+                                        ).animate(animation),
+                                        child: FadeTransition(
+                                          opacity: animation,
+                                          child: child,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                              child: _selectedIconKey == null
+                                  ? _buildCategoryList(cats)
+                                  : _buildDetailList(_selectedIconKey!, cats),
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),
                 ),
               ),
             );
-          }
+          },
         ),
       ),
     );
   }
 
-  Widget _buildCategoryList() {
+  Widget _buildCategoryList(List<_AggregatedCategory> cats) {
+    final totalSpent = _totalSpent;
     return Column(
       key: const ValueKey('CategoryList'),
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -581,10 +689,10 @@ class _GraphScreenState extends State<GraphScreen> {
         ),
         const SizedBox(height: 16),
         Column(
-          children: List.generate(_mockCategories.length, (index) {
-            final category = _mockCategories[index];
-            final percent = _totalSpent > 0
-                ? (category.amount / _totalSpent * 100).toStringAsFixed(1)
+          children: List.generate(cats.length, (index) {
+            final category = cats[index];
+            final percent = totalSpent > 0
+                ? (category.amount / totalSpent * 100).toStringAsFixed(1)
                 : '0.0';
 
             return GestureDetector(
@@ -675,9 +783,21 @@ class _GraphScreenState extends State<GraphScreen> {
     );
   }
 
-  Widget _buildDetailList(String iconKey) {
-    final category = _mockCategories.firstWhere((c) => c.iconKey == iconKey);
-    final details = _mockDetails[iconKey] ?? [];
+  Widget _buildDetailList(String iconKey, List<_AggregatedCategory> cats) {
+    final category = cats.firstWhere(
+      (c) => c.iconKey == iconKey,
+      orElse: () => _AggregatedCategory(
+        iconKey: iconKey,
+        name: (_categoryRegistry[iconKey] ?? _otherCategory).name,
+        icon: (_categoryRegistry[iconKey] ?? _otherCategory).icon,
+        color: (_categoryRegistry[iconKey] ?? _otherCategory).color,
+        amount: 0,
+      ),
+    );
+    final details = _detailsForCategory(iconKey);
+
+    // Date formatter for detail rows
+    final DateFormat displayFormat = DateFormat('MMM dd');
 
     return Column(
       key: ValueKey('DetailList_$iconKey'),
@@ -751,6 +871,15 @@ class _GraphScreenState extends State<GraphScreen> {
                 children: List.generate(details.length, (index) {
                   final tx = details[index];
 
+                  // Format date for display
+                  String dateStr;
+                  try {
+                    final parsed = DateTime.parse(tx.date);
+                    dateStr = displayFormat.format(parsed);
+                  } catch (_) {
+                    dateStr = tx.date;
+                  }
+
                   return Container(
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.symmetric(
@@ -785,30 +914,32 @@ class _GraphScreenState extends State<GraphScreen> {
                         ),
                         const SizedBox(width: 12),
                         // Title & Date
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              tx.title,
-                              style: const TextStyle(
-                                fontFamily: 'MonumentExtended-Regular',
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF1C1C1E),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                tx.title,
+                                style: const TextStyle(
+                                  fontFamily: 'MonumentExtended-Regular',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF1C1C1E),
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              tx.date,
-                              style: TextStyle(
-                                fontFamily: 'MonumentExtended-Regular',
-                                fontSize: 10,
-                                color: Colors.grey[500],
+                              const SizedBox(height: 4),
+                              Text(
+                                dateStr,
+                                style: TextStyle(
+                                  fontFamily: 'MonumentExtended-Regular',
+                                  fontSize: 10,
+                                  color: Colors.grey[500],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                        const Spacer(),
                         // Amount
                         Text(
                           '-\$${tx.amount.toStringAsFixed(2)}',

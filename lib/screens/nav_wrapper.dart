@@ -246,7 +246,7 @@ class _NavWrapperState extends State<NavWrapper> {
         controller: _pageController,
         onPageChanged: _onPageChanged,
         children: [
-          GraphScreen(isActive: _currentIndex == 0),
+          GraphScreen(isActive: _currentIndex == 0, transactions: _transactions),
           HomeScreen(
             transactions: _transactions,
             onAddTransaction: _addTransaction,
