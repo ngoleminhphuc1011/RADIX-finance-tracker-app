@@ -353,166 +353,212 @@ class _GraphScreenState extends State<GraphScreen> {
     const textColor = Color(0xFF1C1C1E);
     final touchedIdx = _touchedIndex;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () {
-        if (_selectedIconKey != null) {
-          Future.delayed(Duration.zero, () {
-            if (mounted) {
-              setState(() {
-                _selectedIconKey = null;
-              });
-            }
-          });
-        }
-      },
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF5F0EB),
-        body: SafeArea(
-          bottom: false,
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.only(
-              top: 40,
-              left: 24,
-              right: 24,
-              bottom: 40,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // --- Header ---
-                const Text(
-                  'ANALYTICS',
-                  style: TextStyle(
-                    fontFamily: 'MonumentExtended-Regular',
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F0EB),
+      body: SafeArea(
+        bottom: false,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
                 ),
-                const SizedBox(height: 32),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    if (_selectedIconKey != null) {
+                      Future.delayed(Duration.zero, () {
+                        if (mounted) {
+                          setState(() {
+                            _selectedIconKey = null;
+                          });
+                        }
+                      });
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      top: 40,
+                      left: 24,
+                      right: 24,
+                      bottom: 40,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // --- Header ---
+                        const Text(
+                          'ANALYTICS',
+                          style: TextStyle(
+                            fontFamily: 'MonumentExtended-Regular',
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 32),
 
-                // --- Premium Floating Donut Chart Card ---
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 40,
-                    horizontal: 24,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(32),
-                    border: Border.all(
-                      color: const Color.fromARGB(10, 0, 0, 0),
-                      width: 1,
+                        // --- Premium Floating Donut Chart Card ---
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 40,
+                            horizontal: 24,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(32),
+                            border: Border.all(
+                              color: const Color.fromARGB(10, 0, 0, 0),
+                              width: 1,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              // Hollow Spacious Donut Chart
+                              SizedBox(
+                                height: 280,
+                                child: Stack(
+                                  children: [
+                                    PieChart(
+                                      PieChartData(
+                                        startDegreeOffset:
+                                            -90, // starts drawing from 12 o'clock
+                                        pieTouchData: PieTouchData(
+                                          touchCallback:
+                                              (FlTouchEvent event, pieTouchResponse) {
+                                                if (event is FlTapUpEvent) {
+                                                  Future.delayed(Duration.zero, () {
+                                                    if (!mounted) return;
+                                                    setState(() {
+                                                      if (pieTouchResponse == null ||
+                                                          pieTouchResponse
+                                                                  .touchedSection ==
+                                                              null) {
+                                                        _selectedIconKey = null;
+                                                        return;
+                                                      }
+                                                      final index = pieTouchResponse
+                                                          .touchedSection!
+                                                          .touchedSectionIndex;
+                                                      if (index >= 0 &&
+                                                          index <
+                                                              _mockCategories.length) {
+                                                        final targetKey =
+                                                            _mockCategories[index]
+                                                                .iconKey;
+                                                        if (_selectedIconKey ==
+                                                            targetKey) {
+                                                          _selectedIconKey = null;
+                                                        } else {
+                                                          _selectedIconKey = targetKey;
+                                                        }
+                                                      }
+                                                    });
+                                                  });
+                                                }
+                                              },
+                                        ),
+                                        borderData: FlBorderData(show: false),
+                                        sectionsSpace: 4,
+                                        centerSpaceRadius: 95,
+                                        sections: _buildSections(),
+                                      ),
+                                      // Disable swap transition while swiping to avoid lag, enable for touch selection when settled
+                                      swapAnimationDuration: _swipeProgress == 1.0
+                                          ? const Duration(milliseconds: 200)
+                                          : Duration.zero,
+                                      swapAnimationCurve: Curves.easeOut,
+                                    ),
+                                    Center(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            touchedIdx != -1 &&
+                                                    touchedIdx < _mockCategories.length
+                                                ? _mockCategories[touchedIdx].name
+                                                      .toUpperCase()
+                                                : 'TOTAL SPENT',
+                                            style: TextStyle(
+                                              fontFamily: 'MonumentExtended-Regular',
+                                              fontSize: 11,
+                                              color: Colors.grey[500],
+                                              letterSpacing: 1.0,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            touchedIdx != -1 &&
+                                                    touchedIdx < _mockCategories.length
+                                                ? '\$${_mockCategories[touchedIdx].amount.toStringAsFixed(2)}'
+                                                : '\$${(_totalSpent * _swipeProgress).toStringAsFixed(2)}',
+                                            style: TextStyle(
+                                              fontFamily: 'MonumentExtended-Regular',
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.w600,
+                                              color: textColor,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // --- Drill-Down Bottom Section ---
+                        AnimatedSize(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOutCubic,
+                          alignment: Alignment.topCenter,
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            switchInCurve: Curves.easeOutCubic,
+                            switchOutCurve: Curves.easeInCubic,
+                            layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
+                              final children = List<Widget>.from(previousChildren);
+                              if (currentChild != null) {
+                                children.add(currentChild);
+                              }
+                              return Stack(
+                                alignment: Alignment.topCenter,
+                                children: children,
+                              );
+                            },
+                            transitionBuilder: (Widget child, Animation<double> animation) {
+                              final isDetail = child.key != const ValueKey('CategoryList');
+                              return ClipRect(
+                                child: SlideTransition(
+                                  position: Tween<Offset>(
+                                    begin: Offset(isDetail ? 1.0 : -1.0, 0.0),
+                                    end: Offset.zero,
+                                  ).animate(animation),
+                                  child: FadeTransition(
+                                    opacity: animation,
+                                    child: child,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: _selectedIconKey == null
+                                ? _buildCategoryList()
+                                : _buildDetailList(_selectedIconKey!),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Column(
-                    children: [
-                      // Hollow Spacious Donut Chart
-                      SizedBox(
-                        height: 280,
-                        child: Stack(
-                          children: [
-                            PieChart(
-                              PieChartData(
-                                startDegreeOffset:
-                                    -90, // starts drawing from 12 o'clock
-                                pieTouchData: PieTouchData(
-                                  touchCallback:
-                                      (FlTouchEvent event, pieTouchResponse) {
-                                        if (event is FlTapUpEvent) {
-                                          Future.delayed(Duration.zero, () {
-                                            if (!mounted) return;
-                                            setState(() {
-                                              if (pieTouchResponse == null ||
-                                                  pieTouchResponse
-                                                          .touchedSection ==
-                                                      null) {
-                                                _selectedIconKey = null;
-                                                return;
-                                              }
-                                              final index = pieTouchResponse
-                                                  .touchedSection!
-                                                  .touchedSectionIndex;
-                                              if (index >= 0 &&
-                                                  index <
-                                                      _mockCategories.length) {
-                                                final targetKey =
-                                                    _mockCategories[index]
-                                                        .iconKey;
-                                                if (_selectedIconKey ==
-                                                    targetKey) {
-                                                  _selectedIconKey = null;
-                                                } else {
-                                                  _selectedIconKey = targetKey;
-                                                }
-                                              }
-                                            });
-                                          });
-                                        }
-                                      },
-                                ),
-                                borderData: FlBorderData(show: false),
-                                sectionsSpace: 4,
-                                centerSpaceRadius: 95,
-                                sections: _buildSections(),
-                              ),
-                              // Disable swap transition while swiping to avoid lag, enable for touch selection when settled
-                              swapAnimationDuration: _swipeProgress == 1.0
-                                  ? const Duration(milliseconds: 200)
-                                  : Duration.zero,
-                              swapAnimationCurve: Curves.easeOut,
-                            ),
-                            Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    touchedIdx != -1 &&
-                                            touchedIdx < _mockCategories.length
-                                        ? _mockCategories[touchedIdx].name
-                                              .toUpperCase()
-                                        : 'TOTAL SPENT',
-                                    style: TextStyle(
-                                      fontFamily: 'MonumentExtended-Regular',
-                                      fontSize: 11,
-                                      color: Colors.grey[500],
-                                      letterSpacing: 1.0,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    touchedIdx != -1 &&
-                                            touchedIdx < _mockCategories.length
-                                        ? '\$${_mockCategories[touchedIdx].amount.toStringAsFixed(2)}'
-                                        : '\$${(_totalSpent * _swipeProgress).toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                      fontFamily: 'MonumentExtended-Regular',
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w600,
-                                      color: textColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
-                const SizedBox(height: 32),
-
-                // --- Drill-Down Bottom Section ---
-                _selectedIconKey == null
-                    ? _buildCategoryList()
-                    : _buildDetailList(_selectedIconKey!),
-              ],
-            ),
-          ),
+              ),
+            );
+          }
         ),
       ),
     );
@@ -520,6 +566,7 @@ class _GraphScreenState extends State<GraphScreen> {
 
   Widget _buildCategoryList() {
     return Column(
+      key: const ValueKey('CategoryList'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
@@ -533,11 +580,8 @@ class _GraphScreenState extends State<GraphScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: _mockCategories.length,
-          itemBuilder: (context, index) {
+        Column(
+          children: List.generate(_mockCategories.length, (index) {
             final category = _mockCategories[index];
             final percent = _totalSpent > 0
                 ? (category.amount / _totalSpent * 100).toStringAsFixed(1)
@@ -625,7 +669,7 @@ class _GraphScreenState extends State<GraphScreen> {
                 ),
               ),
             );
-          },
+          }),
         ),
       ],
     );
@@ -636,6 +680,7 @@ class _GraphScreenState extends State<GraphScreen> {
     final details = _mockDetails[iconKey] ?? [];
 
     return Column(
+      key: ValueKey('DetailList_$iconKey'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Back Button
@@ -689,6 +734,7 @@ class _GraphScreenState extends State<GraphScreen> {
         const SizedBox(height: 16),
         details.isEmpty
             ? Center(
+                key: const ValueKey('NoDetailsPlaceholder'),
                 child: Padding(
                   padding: const EdgeInsets.all(32.0),
                   child: Text(
@@ -701,11 +747,8 @@ class _GraphScreenState extends State<GraphScreen> {
                   ),
                 ),
               )
-            : ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: details.length,
-                itemBuilder: (context, index) {
+            : Column(
+                children: List.generate(details.length, (index) {
                   final tx = details[index];
 
                   return Container(
@@ -779,7 +822,7 @@ class _GraphScreenState extends State<GraphScreen> {
                       ],
                     ),
                   );
-                },
+                }),
               ),
       ],
     );
