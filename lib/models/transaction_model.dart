@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 ///     'add_to_budget'      → the income increases the available budget.
 ///     'deduct_from_spent'  → the income cancels out recorded spending.
 ///   It is null for all expense transactions.
-/// - [date] is stored as an ISO8601 string, e.g. "2026-07-09T09:20:00".
+/// - [date] is stored as a formatted string: "yyyy-MM-dd".
 class TransactionModel {
   final int? id; // null before first DB insert
   final String title;
@@ -21,15 +21,15 @@ class TransactionModel {
   final String category;
   final String date; // ISO8601 string
 
-  const TransactionModel({
+  TransactionModel({
     this.id,
     required this.title,
     required this.amount,
     required this.type,
     this.incomeStrategy,
     required this.category,
-    required this.date,
-  });
+    String? date,
+  }) : date = _parseAndFormat(date ?? '');
 
   // ─── Convenience getter ────────────────────────────────────────────────────
 
@@ -118,4 +118,23 @@ class TransactionModel {
         'type: $type, incomeStrategy: $incomeStrategy, '
         'category: $category, date: $date)';
   }
+}
+
+String _formatDate(DateTime dt) {
+  final y = dt.year.toString().padLeft(4, '0');
+  final m = dt.month.toString().padLeft(2, '0');
+  final d = dt.day.toString().padLeft(2, '0');
+  return '$y-$m-$d';
+}
+
+String _parseAndFormat(String rawDate) {
+  if (rawDate.isEmpty) return _formatDate(DateTime.now());
+  if (rawDate.length >= 10 && rawDate[4] == '-' && rawDate[7] == '-') {
+    return rawDate.substring(0, 10);
+  }
+  final parsed = DateTime.tryParse(rawDate);
+  if (parsed != null) {
+    return _formatDate(parsed);
+  }
+  return rawDate;
 }

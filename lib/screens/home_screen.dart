@@ -169,18 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Re-applies the currently active sort mode to the list (RAM only).
   void _applyCurrentSort() {
-    if (currentSort == 'Date') {
-      // Sort newest-first by the ISO8601 date string (lexicographic = chronological)
-      widget.transactions.sort((a, b) => b.date.compareTo(a.date));
-    } else if (currentSort == 'Highest') {
-      widget.transactions.sort((a, b) => b.amount.compareTo(a.amount));
-    } else if (currentSort == 'Category') {
-      widget.transactions.sort((a, b) => a.category.compareTo(b.category));
-    } else if (currentSort == 'Flow') {
-      widget.transactions.sort(
-        (a, b) => (b.isExpense ? 1 : 0) - (a.isExpense ? 1 : 0),
-      );
-    }
+    // Sorting is handled dynamically inside _groupTransactions in build().
   }
 
   void _cycleSort() {
@@ -269,9 +258,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
-                                'date (chưa có)',
-                                style: TextStyle(
+                              Text(
+                                model.date,
+                                style: const TextStyle(
+                                  fontFamily: 'MonumentExtended-Regular',
                                   fontSize: 12,
                                   color: Colors.black38,
                                   fontWeight: FontWeight.w500,
@@ -569,6 +559,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final bool isOverBudget = widget.spent > widget.monthlyBudget;
+    final grouped = _groupTransactions(widget.transactions);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -727,14 +718,25 @@ class _HomeScreenState extends State<HomeScreen> {
                               key: ValueKey<String>(currentSort),
                               padding: const EdgeInsets.only(bottom: 80),
                               physics: const BouncingScrollPhysics(),
-                              itemCount: widget.transactions.length,
+                              itemCount: grouped.keys.length,
                               itemBuilder: (context, index) {
-                                return TransactionTile(
-                                  model: widget.transactions[index],
-                                  onTap: () => _showMorphDialog(
-                                    context,
-                                    widget.transactions[index],
-                                  ),
+                                final String dateStr = grouped.keys.elementAt(
+                                  index,
+                                );
+                                final List<TransactionModel> groupTxs =
+                                    grouped[dateStr]!;
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildDateHeader(dateStr),
+                                    ...groupTxs.map(
+                                      (tx) => TransactionTile(
+                                        model: tx,
+                                        onTap: () =>
+                                            _showMorphDialog(context, tx),
+                                      ),
+                                    ),
+                                  ],
                                 );
                               },
                             ),
@@ -966,7 +968,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   type: 'income',
                                   incomeStrategy: incomeStrategy,
                                   category: _pendingIncomeIconKey,
-                                  date: DateTime.now().toIso8601String(),
                                 ),
                               );
                               // Balances are recomputed from scratch by
@@ -1171,7 +1172,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                           amount: amount,
                                           type: 'expense',
                                           category: iconKey,
-                                          date: DateTime.now().toIso8601String(),
                                         ),
                                       );
                                       Navigator.pop(context);
@@ -1524,6 +1524,73 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Map<String, List<TransactionModel>> _groupTransactions(
+    List<TransactionModel> txs,
+  ) {
+    final Map<String, List<TransactionModel>> groups = {};
+    for (final tx in txs) {
+      final String key = tx.date.length >= 10
+          ? tx.date.substring(0, 10)
+          : tx.date;
+      groups.putIfAbsent(key, () => []).add(tx);
+    }
+
+    // Sort sub-list for each date independently based on currentSort state
+    for (final dateKey in groups.keys) {
+      final list = groups[dateKey]!;
+      if (currentSort == 'Date') {
+        list.sort((a, b) {
+          final idA = a.id ?? 0;
+          final idB = b.id ?? 0;
+          return idB.compareTo(idA); // Keep items sorted by input time/ID (newest ID first)
+        });
+      } else if (currentSort == 'Highest') {
+        list.sort((a, b) => b.amount.compareTo(a.amount));
+      } else if (currentSort == 'Category') {
+        list.sort((a, b) => a.category.compareTo(b.category));
+      } else if (currentSort == 'Flow') {
+        list.sort((a, b) {
+          final flowA = a.isExpense ? 1 : 0;
+          final flowB = b.isExpense ? 1 : 0;
+          return flowB.compareTo(flowA); // Group expenses first, then incomes
+        });
+      }
+    }
+
+    // Keep the main skeletal timeline strictly ordered by date keys (newest first)
+    final sortedKeys = groups.keys.toList()..sort((a, b) => b.compareTo(a));
+    final Map<String, List<TransactionModel>> sortedGroups = {};
+    for (final key in sortedKeys) {
+      sortedGroups[key] = groups[key]!;
+    }
+
+    return sortedGroups;
+  }
+
+  Widget _buildDateHeader(String dateStr) {
+    String displayDate;
+    try {
+      final parsed = DateTime.parse(dateStr);
+      displayDate = DateFormat('MMMM d, yyyy').format(parsed).toUpperCase();
+    } catch (_) {
+      displayDate = dateStr.toUpperCase();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+      child: Text(
+        displayDate,
+        style: TextStyle(
+          fontFamily: 'MonumentExtended-Regular',
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: Colors.grey[500],
+          letterSpacing: 1.2,
         ),
       ),
     );
