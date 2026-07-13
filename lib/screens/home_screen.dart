@@ -17,6 +17,7 @@ class HomeScreen extends StatefulWidget {
   final void Function(int id) onDeleteTransaction;
   final double monthlyBudget;
   final double spent;
+  final double budgetLeft;
   final ValueChanged<double> onBudgetChanged;
   final ValueChanged<double> onSpentChanged;
 
@@ -28,6 +29,7 @@ class HomeScreen extends StatefulWidget {
     required this.onDeleteTransaction,
     required this.monthlyBudget,
     required this.spent,
+    required this.budgetLeft,
     required this.onBudgetChanged,
     required this.onSpentChanged,
   });
@@ -47,6 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
   static const EdgeInsets _ltrb24_16_24_0 = EdgeInsets.fromLTRB(24, 16, 24, 0);
   static const EdgeInsets _ltrb24_0_24_24 = EdgeInsets.fromLTRB(24, 0, 24, 24);
   static const EdgeInsets _all24 = EdgeInsets.all(24);
+  static const Color _premiumPastelRed = Color(0xFFE57373);
 
   // -- Static const TextStyles (cache re-rendering) --
   static const TextStyle _styleLabelBlack18 = TextStyle(
@@ -619,9 +622,23 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'BUDGET LEFT: \$${_currencyFormat.format(widget.monthlyBudget - widget.spent)}',
-                          style: _styleBudgetLeft18,
+                          'BUDGET LEFT: \$${_currencyFormat.format(widget.budgetLeft)}',
+                          style: _styleBudgetLeft18.copyWith(
+                            color: isOverBudget ? _premiumPastelRed : Colors.black,
+                          ),
                         ),
+                        if (isOverBudget) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            'Overspent by \$${_currencyFormat.format(widget.spent - widget.monthlyBudget)}',
+                            style: const TextStyle(
+                              fontFamily: 'MonumentExtended-Regular',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w300,
+                              color: _premiumPastelRed,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

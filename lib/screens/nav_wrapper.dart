@@ -27,6 +27,7 @@ class _NavWrapperState extends State<NavWrapper> {
   double _userSetBudget = 0.0; // loaded from DB; 0.0 = "not set yet"
   double monthlyBudget = 0.0;
   double spent = 0.0;
+  double budgetLeft = 0.0;
 
   // ── Lifecycle ───────────────────────────────────────────────────────────────
 
@@ -130,6 +131,7 @@ class _NavWrapperState extends State<NavWrapper> {
     setState(() {
       monthlyBudget = max(0.0, _userSetBudget + totalIncomeToBudget);
       spent = max(0.0, totalExpenses - totalDeductions);
+      budgetLeft = max(0.0, monthlyBudget - spent);
     });
   }
 
@@ -252,6 +254,7 @@ class _NavWrapperState extends State<NavWrapper> {
             onDeleteTransaction: deleteTransaction,
             monthlyBudget: monthlyBudget,
             spent: spent,
+            budgetLeft: budgetLeft,
             onBudgetChanged: _setBudget,
             onSpentChanged: _setSpent,
           ),

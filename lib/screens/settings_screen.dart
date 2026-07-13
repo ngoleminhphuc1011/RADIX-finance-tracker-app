@@ -113,203 +113,213 @@ class _SettingsScreenState extends State<SettingsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF0F0F0),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.only(top: 60, left: 24, right: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // --- Settings heading ---
-            const Text(
-              'Settings',
-              style: TextStyle(
-                fontFamily: 'MonumentExtended-Regular',
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1C1C1E),
+      body: SafeArea(
+        bottom: false,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.only(
+            top: 40,
+            left: 24,
+            right: 24,
+            bottom: 40,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // --- Settings heading ---
+              const Text(
+                'SETTINGS',
+                style: TextStyle(
+                  fontFamily: 'MonumentExtended-Regular',
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1C1C1E),
+                ),
               ),
-            ),
-            const SizedBox(height: 40),
-            // --- Appearance label (aligned with bar) ---
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 380),
-                child: const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Appearance',
-                    style: TextStyle(
-                      fontFamily: 'MonumentExtended-Regular',
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF636366),
+              const SizedBox(height: 40),
+              // --- Appearance label (aligned with bar) ---
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 380),
+                  child: const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Appearance',
+                      style: TextStyle(
+                        fontFamily: 'MonumentExtended-Regular',
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF636366),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            // --- Capsule toggle bar ---
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 380),
-                child: Container(
-                  height: 54,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE2E2E2),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final double tabWidth = constraints.maxWidth / 3;
+              const SizedBox(height: 16),
+              // --- Capsule toggle bar ---
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 380),
+                  child: Container(
+                    height: 54,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2E2E2),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final double tabWidth = constraints.maxWidth / 3;
 
-                      return Stack(
-                        children: [
-                          // --- Sliding indicator (medicine capsule) ---
-                          AnimatedPositioned(
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.easeInOutCubic,
-                            left: _selectedIndex * tabWidth,
-                            top: 0,
-                            bottom: 0,
-                            width: tabWidth,
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 400),
+                        return Stack(
+                          children: [
+                            // --- Sliding indicator (medicine capsule) ---
+                            AnimatedPositioned(
+                              duration: const Duration(milliseconds: 500),
                               curve: Curves.easeInOutCubic,
-                              decoration: BoxDecoration(
-                                color: _capsuleColor,
-                                borderRadius: BorderRadius.circular(30),
+                              left: _selectedIndex * tabWidth,
+                              top: 0,
+                              bottom: 0,
+                              width: tabWidth,
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 400),
+                                curve: Curves.easeInOutCubic,
+                                decoration: BoxDecoration(
+                                  color: _capsuleColor,
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
                               ),
                             ),
-                          ),
 
-                          // --- Tab labels ---
-                          Row(
-                            children: [
-                              _buildTab(
-                                index: 0,
-                                label: 'LIGHT',
-                                icon: Icons.sunny,
-                              ),
-                              _buildTab(
-                                index: 1,
-                                label: 'SYSTEM',
-                                icon: Icons.phone_android,
-                              ),
-                              _buildTab(
-                                index: 2,
-                                label: 'DARK',
-                                icon: Icons.dark_mode,
-                              ),
-                            ],
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 40),
-            // --- Currency label (aligned with bar) ---
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 380),
-                child: const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Currency',
-                    style: TextStyle(
-                      fontFamily: 'MonumentExtended-Regular',
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF636366),
+                            // --- Tab labels ---
+                            Row(
+                              children: [
+                                _buildTab(
+                                  index: 0,
+                                  label: 'LIGHT',
+                                  icon: Icons.sunny,
+                                ),
+                                _buildTab(
+                                  index: 1,
+                                  label: 'SYSTEM',
+                                  icon: Icons.phone_android,
+                                ),
+                                _buildTab(
+                                  index: 2,
+                                  label: 'DARK',
+                                  icon: Icons.dark_mode,
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            // --- Info text ---
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 380),
-                child: const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'You are using USD (\$)',
-                    style: TextStyle(
-                      fontFamily: 'MonumentExtended-Regular',
-                      fontSize: 12,
-                      color: Color(0xFF8E8E93),
+              const SizedBox(height: 40),
+              // --- Currency label (aligned with bar) ---
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 380),
+                  child: const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Currency',
+                      style: TextStyle(
+                        fontFamily: 'MonumentExtended-Regular',
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF636366),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            // --- Search bar ---
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 380),
-                child: Container(
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE2E2E2),
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: TextField(
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value;
-                      });
-                    },
-                    style: const TextStyle(
-                      fontFamily: 'MonumentExtended-Regular',
-                      fontSize: 13,
-                      color: Color(0xFF1C1C1E),
+              const SizedBox(height: 8),
+              // --- Info text ---
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 380),
+                  child: const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'You are using USD (\$)',
+                      style: TextStyle(
+                        fontFamily: 'MonumentExtended-Regular',
+                        fontSize: 12,
+                        color: Color(0xFF8E8E93),
+                      ),
                     ),
-                    decoration: InputDecoration(
-                      hintText: 'Search currency...',
-                      hintStyle: TextStyle(
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // --- Search bar ---
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 380),
+                  child: Container(
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2E2E2),
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: TextField(
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value;
+                        });
+                      },
+                      style: const TextStyle(
                         fontFamily: 'MonumentExtended-Regular',
                         fontSize: 13,
-                        color: Colors.grey.shade400,
+                        color: Color(0xFF1C1C1E),
                       ),
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: Colors.grey.shade400,
-                        size: 20,
+                      decoration: InputDecoration(
+                        hintText: 'Search currency...',
+                        hintStyle: TextStyle(
+                          fontFamily: 'MonumentExtended-Regular',
+                          fontSize: 13,
+                          color: Colors.grey.shade400,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: Colors.grey.shade400,
+                          size: 20,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                        ),
                       ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            // --- Currency list (compact scroll window) ---
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 380),
-                child: Container(
-                  height: 250,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: ListView(
-                    physics: const BouncingScrollPhysics(),
-                    children: _filteredCurrencies.map((currency) {
-                      return _buildCurrencyRow(currency);
-                    }).toList(),
+              const SizedBox(height: 16),
+              // --- Currency list (compact scroll window) ---
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 380),
+                  child: Container(
+                    height: 250,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: ListView(
+                      physics: const BouncingScrollPhysics(),
+                      children: _filteredCurrencies.map((currency) {
+                        return _buildCurrencyRow(currency);
+                      }).toList(),
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 40),
-            _buildResetButton(),
-          ],
+              const SizedBox(height: 40),
+              _buildResetButton(),
+            ],
+          ),
         ),
       ),
     );
