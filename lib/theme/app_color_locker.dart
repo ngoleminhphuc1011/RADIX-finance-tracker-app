@@ -62,6 +62,16 @@ abstract class AppColorLocker {
   Color get settingsCurrencySymbol;
   Color get graphBackground;
 
+  // Currency tile specific colors
+  Color get settingsCurrencySelectedStart;
+  Color get settingsCurrencySelectedEnd;
+  Color get settingsCurrencySelectedBorder;
+  Color get settingsCurrencySelectedText;
+  Color get settingsCurrencyUnselectedBg;
+  Color get settingsCurrencyUnselectedBorder;
+  Color get settingsCurrencyUnselectedText;
+  Color get settingsCurrencyUnselectedSymbol;
+
   // Dialog and delete button colors
   Color get deleteButtonBg;
   Color get expenseDialogAccent;
@@ -265,6 +275,30 @@ class LightColorLocker extends AppColorLocker {
   Color get settingsCurrencySymbol => const Color(0xFF3A3A3C);
 
   @override
+  Color get settingsCurrencySelectedStart => const Color(0xFFFFF6D6);
+
+  @override
+  Color get settingsCurrencySelectedEnd => const Color(0xFFFFF6D6);
+
+  @override
+  Color get settingsCurrencySelectedBorder => const Color(0xFFE5C158);
+
+  @override
+  Color get settingsCurrencySelectedText => const Color(0xFF5C4314);
+
+  @override
+  Color get settingsCurrencyUnselectedBg => Colors.white;
+
+  @override
+  Color get settingsCurrencyUnselectedBorder => const Color(0xFFE5E5EA);
+
+  @override
+  Color get settingsCurrencyUnselectedText => const Color(0xFF1C1C1E);
+
+  @override
+  Color get settingsCurrencyUnselectedSymbol => const Color(0xFF3A3A3C);
+
+  @override
   Color get graphBackground => const Color(0xFFF5F0EB);
 
   @override
@@ -460,6 +494,30 @@ class DarkColorLocker extends AppColorLocker {
 
   @override
   Color get settingsCurrencySymbol => const Color(0xFF90A4AE);
+
+  @override
+  Color get settingsCurrencySelectedStart => const Color(0xFFE5C158);
+
+  @override
+  Color get settingsCurrencySelectedEnd => const Color(0xFFC59F3F);
+
+  @override
+  Color get settingsCurrencySelectedBorder => const Color(0xFFF3D078);
+
+  @override
+  Color get settingsCurrencySelectedText => const Color(0xFF090A0C);
+
+  @override
+  Color get settingsCurrencyUnselectedBg => const Color(0xFF131518);
+
+  @override
+  Color get settingsCurrencyUnselectedBorder => const Color(0xFF1C1E22);
+
+  @override
+  Color get settingsCurrencyUnselectedText => const Color(0xFFECEFF1);
+
+  @override
+  Color get settingsCurrencyUnselectedSymbol => const Color(0xFF90A4AE);
 
   @override
   Color get graphBackground => const Color(0xFF090A0C);

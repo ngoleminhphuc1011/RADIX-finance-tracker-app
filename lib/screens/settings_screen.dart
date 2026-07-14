@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../theme/app_color_locker.dart';
 import '../theme/theme_provider.dart';
+import '../theme/currency_provider.dart';
 import '../database/database_helper.dart';
 
 enum ThemeOption { light, dark, system }
@@ -42,6 +43,51 @@ class _SettingsScreenState extends State<SettingsScreen>
   late Animation<double> _holdProgress;
   bool _isHolding = false;
   Color get _accentRed => AppColorLocker.of(context).accentRed;
+
+  String get _selectedCurrencyCode {
+    try {
+      return CurrencyProvider.read(context).code;
+    } catch (_) {
+      return 'USD';
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final mode = ThemeProvider.of(context).value;
+    ThemeOption targetOption;
+    if (mode == ThemeMode.light) {
+      targetOption = ThemeOption.light;
+    } else if (mode == ThemeMode.dark) {
+      targetOption = ThemeOption.dark;
+    } else {
+      targetOption = ThemeOption.system;
+    }
+    if (_selectedTheme != targetOption) {
+      _selectedTheme = targetOption;
+    }
+  }
+
+  Future<void> _selectCurrency(String code) async {
+    try {
+      final oldCode = _selectedCurrencyCode;
+      if (oldCode.toUpperCase() == code.toUpperCase()) return;
+
+      // 1. Convert all transaction amounts and budget in database
+      await DatabaseHelper().convertAllTransactionsAndBudget(oldCode, code);
+
+      // 2. Save new currency setting to settings table
+      await DatabaseHelper().setSetting('active_currency', code);
+
+      // 3. Update active currency in context
+      if (mounted) {
+        CurrencyProvider.of(context).value = CurrencyInfo.find(code);
+      }
+    } catch (e) {
+      debugPrint('[Settings] Error saving currency: $e');
+    }
+  }
 
   List<_Currency> get _filteredCurrencies {
     if (_searchQuery.isEmpty) return _allCurrencies;
@@ -252,7 +298,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'You are using USD (\$)',
+                      'You are using $_selectedCurrencyCode (${_allCurrencies.firstWhere((c) => c.code == _selectedCurrencyCode, orElse: () => _allCurrencies.first).symbol})',
                       style: TextStyle(
                         fontFamily: 'MonumentExtended-Regular',
                         fontSize: 12,
@@ -583,33 +629,10 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Widget _buildCurrencyRow(_Currency currency) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 32,
-            child: Text(
-              currency.symbol,
-              style: TextStyle(
-                fontFamily: null,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: AppColorLocker.of(context).settingsCurrencySymbol,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            '${currency.code} - ${currency.name}',
-            style: TextStyle(
-              fontFamily: 'MonumentExtended-Regular',
-              fontSize: 13,
-              color: AppColorLocker.of(context).settingsSectionLabel,
-            ),
-          ),
-        ],
-      ),
+    return _CurrencyTile(
+      currency: currency,
+      isSelected: currency.code == _selectedCurrencyCode,
+      onTap: () => _selectCurrency(currency.code),
     );
   }
 
@@ -682,6 +705,152 @@ class _SettingsScreenState extends State<SettingsScreen>
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CurrencyTile extends StatefulWidget {
+  final _Currency currency;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _CurrencyTile({
+    required this.currency,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  State<_CurrencyTile> createState() => _CurrencyTileState();
+}
+
+class _CurrencyTileState extends State<_CurrencyTile> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final locker = AppColorLocker.of(context);
+
+    final Gradient gradient = widget.isSelected
+        ? LinearGradient(
+            colors: [
+              locker.settingsCurrencySelectedStart,
+              locker.settingsCurrencySelectedEnd,
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          )
+        : LinearGradient(
+            colors: [
+              locker.settingsCurrencyUnselectedBg,
+              locker.settingsCurrencyUnselectedBg,
+            ],
+          );
+
+    final Border border = widget.isSelected
+        ? Border.all(
+            color: locker.settingsCurrencySelectedBorder,
+            width: 1.5,
+          )
+        : Border.all(
+            color: locker.settingsCurrencyUnselectedBorder,
+            width: 1.0,
+          );
+
+    final Color textColor = widget.isSelected
+        ? locker.settingsCurrencySelectedText
+        : locker.settingsCurrencyUnselectedText;
+
+    final Color symbolColor = widget.isSelected
+        ? locker.settingsCurrencySelectedText
+        : locker.settingsCurrencyUnselectedSymbol;
+
+    final List<BoxShadow> boxShadow = widget.isSelected
+        ? [
+            BoxShadow(
+              color: locker.settingsCurrencySelectedBorder.withValues(alpha: 0.18),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            )
+          ]
+        : [];
+
+    return GestureDetector(
+      onTapDown: (_) => _controller.forward(),
+      onTapUp: (_) {
+        _controller.reverse();
+        widget.onTap();
+      },
+      onTapCancel: () => _controller.reverse(),
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            gradient: gradient,
+            border: border,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: boxShadow,
+          ),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 32,
+                child: AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 300),
+                  style: TextStyle(
+                    fontFamily: null,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: symbolColor,
+                  ),
+                  child: Text(widget.currency.symbol),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 300),
+                  style: TextStyle(
+                    fontFamily: 'MonumentExtended-Regular',
+                    fontSize: 13,
+                    fontWeight: widget.isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: textColor,
+                  ),
+                  child: Text('${widget.currency.code} - ${widget.currency.name}'),
+                ),
+              ),
+              if (widget.isSelected)
+                Icon(
+                  Icons.check_circle_rounded,
+                  color: locker.settingsCurrencySelectedText,
+                  size: 18,
+                ),
+            ],
+          ),
         ),
       ),
     );

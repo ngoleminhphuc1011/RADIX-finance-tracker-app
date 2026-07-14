@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../models/transaction_model.dart';
 import '../theme/app_color_locker.dart';
+import '../theme/currency_provider.dart';
 
 // ─── Category visual registry ────────────────────────────────────────────────
 // Maps each icon key string (stored in DB) to its display properties.
@@ -179,17 +180,31 @@ class _GraphScreenState extends State<GraphScreen> {
     return result;
   }
 
+  int _calculateHash() {
+    int hash = 17;
+    try {
+      hash = hash * 31 + CurrencyProvider.read(context).code.hashCode;
+    } catch (_) {}
+    for (final tx in widget.transactions) {
+      hash = hash * 31 + (tx.id ?? 0);
+      hash = hash * 31 + tx.amount.hashCode;
+      hash = hash * 31 + tx.title.hashCode;
+      hash = hash * 31 + tx.category.hashCode;
+    }
+    return hash;
+  }
+
   /// Aggregates expense transactions by category, sorted by amount descending.
-  /// Results are memoized and invalidated when transaction count changes.
+  /// Results are memoized and invalidated when transaction content or currency changes.
   List<_AggregatedCategory> get _categories {
-    final txLen = widget.transactions.length;
-    if (_cachedCategories != null && _cachedTxLength == txLen) {
+    final currentHash = _calculateHash();
+    if (_cachedCategories != null && _cachedTxLength == currentHash) {
       return _cachedCategories!;
     }
 
     // Run the pure aggregation, cache it, and invalidate detail cache
     _cachedCategories = _aggregateExpenses(context);
-    _cachedTxLength = txLen;
+    _cachedTxLength = currentHash;
     _detailCache.clear();
     return _cachedCategories!;
   }
@@ -452,15 +467,18 @@ class _GraphScreenState extends State<GraphScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        Text(
-          touchedIdx != -1 && touchedIdx < cats.length
-              ? '\$${cats[touchedIdx].amount.toStringAsFixed(2)}'
-              : '\$${(_totalSpent * _swipeProgress).toStringAsFixed(2)}',
-          style: TextStyle(
-            fontFamily: 'MonumentExtended-Regular',
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-            color: _textColor,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            touchedIdx != -1 && touchedIdx < cats.length
+                ? CurrencyProvider.read(context).format(cats[touchedIdx].amount)
+                : CurrencyProvider.read(context).format(_totalSpent * _swipeProgress),
+            style: TextStyle(
+              fontFamily: 'MonumentExtended-Regular',
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+              color: _textColor,
+            ),
           ),
         ),
       ],
@@ -738,13 +756,20 @@ class _GraphScreenState extends State<GraphScreen> {
                     ),
                     const Spacer(),
                     // Amount
-                    Text(
-                      '\$${category.amount.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontFamily: 'MonumentExtended-Regular',
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: AppColorLocker.of(context).textPrimary,
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 120),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          CurrencyProvider.read(context).format(category.amount),
+                          style: TextStyle(
+                            fontFamily: 'MonumentExtended-Regular',
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: AppColorLocker.of(context).textPrimary,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -917,13 +942,20 @@ class _GraphScreenState extends State<GraphScreen> {
                           ),
                         ),
                         // Amount
-                        Text(
-                          '-\$${tx.amount.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            fontFamily: 'MonumentExtended-Regular',
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColorLocker.of(context).expenseModelFg,
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 120),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              '-${CurrencyProvider.read(context).format(tx.amount)}',
+                              style: TextStyle(
+                                fontFamily: 'MonumentExtended-Regular',
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColorLocker.of(context).expenseModelFg,
+                              ),
+                            ),
                           ),
                         ),
                       ],

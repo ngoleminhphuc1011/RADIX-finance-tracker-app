@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../models/transaction_model.dart';
 import '../theme/app_color_locker.dart';
+import '../theme/currency_provider.dart';
 
 class TransactionTile extends StatelessWidget {
   final TransactionModel model;
   final VoidCallback? onTap;
-  static final NumberFormat _amountFormat = NumberFormat('#,##0.00');
 
   static const TextStyle _titleStyle = TextStyle(
     fontFamily: 'MonumentExtended-Regular',
@@ -29,8 +28,9 @@ class TransactionTile extends StatelessWidget {
     final Color fgColor = isExpense
         ? locker.expenseFg
         : locker.incomeFg;
+    final currencyInfo = CurrencyProvider.read(context);
     final String amountText =
-        '${isExpense ? '-' : '+'} \$${_amountFormat.format(model.amount)}';
+        '${isExpense ? '-' : '+'} ${currencyInfo.format(model.amount)}';
     final IconData? resolvedIcon = iconOptions[model.category];
 
     return GestureDetector(
@@ -67,7 +67,14 @@ class TransactionTile extends StatelessWidget {
               ),
             ),
             // Amount
-            Text(amountText, style: _amountStyle.copyWith(color: fgColor)),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 120),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Text(amountText, style: _amountStyle.copyWith(color: fgColor)),
+              ),
+            ),
           ],
         ),
       ),

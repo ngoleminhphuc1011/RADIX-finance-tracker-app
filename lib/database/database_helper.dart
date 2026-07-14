@@ -3,6 +3,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 import '../models/transaction_model.dart';
+import '../theme/currency_provider.dart';
 
 /// A Singleton helper that owns the single SQLite connection for the app.
 ///
@@ -221,6 +222,61 @@ class DatabaseHelper {
       debugPrint('[DB] setSetting("$key", "$value") ✓');
     } catch (e, stackTrace) {
       debugPrint('[DB] ERROR — setSetting("$key"): $e');
+      debugPrint('[DB] StackTrace: $stackTrace');
+      rethrow;
+    }
+  }
+
+  /// Converts all transactions and the monthly budget from one currency to another.
+  /// Runs inside a database transaction to ensure safety and atomicity.
+  Future<void> convertAllTransactionsAndBudget(String fromCode, String toCode) async {
+    if (fromCode.toUpperCase() == toCode.toUpperCase()) return;
+
+    try {
+      final db = await database;
+      final double fromRate = CurrencyInfo.exchangeRates[fromCode] ?? 1.0;
+      final double toRate = CurrencyInfo.exchangeRates[toCode] ?? 1.0;
+      final double factor = toRate / fromRate;
+
+      debugPrint('[DB] convertAllTransactionsAndBudget: $fromCode -> $toCode (factor: $factor)');
+
+      await db.transaction((txn) async {
+        // 1. Convert all transaction amounts
+        final List<Map<String, dynamic>> rows = await txn.query('transactions');
+        for (final row in rows) {
+          final int id = row['id'] as int;
+          final double originalAmount = row['amount'] as double;
+          double convertedAmount = (originalAmount * factor).roundToDouble();
+          if (convertedAmount < 0) convertedAmount = 0.0;
+          await txn.update(
+            'transactions',
+            {'amount': convertedAmount},
+            where: 'id = ?',
+            whereArgs: [id],
+          );
+        }
+
+        // 2. Convert monthly_budget
+        final List<Map<String, dynamic>> budgetRows = await txn.query(
+          'settings',
+          where: 'key = ?',
+          whereArgs: ['monthly_budget'],
+        );
+        if (budgetRows.isNotEmpty) {
+          final double originalBudget = double.tryParse(budgetRows.first['value'] as String) ?? 0.0;
+          double convertedBudget = (originalBudget * factor).roundToDouble();
+          if (convertedBudget < 0) convertedBudget = 0.0;
+          await txn.update(
+            'settings',
+            {'value': convertedBudget.toString()},
+            where: 'key = ?',
+            whereArgs: ['monthly_budget'],
+          );
+        }
+      });
+      debugPrint('[DB] Bulk currency conversion completed successfully.');
+    } catch (e, stackTrace) {
+      debugPrint('[DB] ERROR — convertAllTransactionsAndBudget: $e');
       debugPrint('[DB] StackTrace: $stackTrace');
       rethrow;
     }

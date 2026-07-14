@@ -6,6 +6,7 @@ import 'settings_screen.dart';
 import '../models/transaction_model.dart';
 import '../database/database_helper.dart';
 import '../theme/app_color_locker.dart';
+import '../theme/currency_provider.dart';
 
 class NavWrapper extends StatefulWidget {
   const NavWrapper({super.key});
@@ -31,6 +32,19 @@ class _NavWrapperState extends State<NavWrapper> {
   double budgetLeft = 0.0;
 
   // ── Lifecycle ───────────────────────────────────────────────────────────────
+
+  CurrencyInfo? _prevCurrency;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final currentCurrency = CurrencyProvider.read(context);
+    if (_prevCurrency != null && _prevCurrency!.code != currentCurrency.code) {
+      debugPrint('[NavWrapper] Currency change detected from ${_prevCurrency!.code} to ${currentCurrency.code}. Reloading DB...');
+      _loadAllFromDB();
+    }
+    _prevCurrency = currentCurrency;
+  }
 
   @override
   void initState() {
@@ -142,11 +156,15 @@ class _NavWrapperState extends State<NavWrapper> {
   /// the model to RAM. DB write is AWAITED before state update.
   Future<void> _addTransaction(TransactionModel tx) async {
     try {
+      double roundedAmount = tx.amount.roundToDouble();
+      if (roundedAmount < 0) roundedAmount = 0.0;
+      final sanitizedTx = tx.copyWith(amount: roundedAmount);
+
       // 1. Persist to DB first — await ensures the row is written.
-      final int newId = await _db.insertTransaction(tx);
+      final int newId = await _db.insertTransaction(sanitizedTx);
 
       // 2. Stamp the real id onto the model before adding to RAM.
-      final TransactionModel txWithId = tx.copyWith(id: newId);
+      final TransactionModel txWithId = sanitizedTx.copyWith(id: newId);
 
       setState(() {
         _transactions.insert(0, txWithId);
@@ -167,11 +185,14 @@ class _NavWrapperState extends State<NavWrapper> {
     double newAmount,
   ) async {
     try {
+      double roundedAmount = newAmount.roundToDouble();
+      if (roundedAmount < 0) roundedAmount = 0.0;
+
       // 1. Persist to DB first.
       await _db.updateTransaction(
         id: id,
         title: newTitle,
-        amount: newAmount,
+        amount: roundedAmount,
         category: newCategory,
       );
 
@@ -183,7 +204,7 @@ class _NavWrapperState extends State<NavWrapper> {
         _transactions[index] = _transactions[index].copyWith(
           category: newCategory,
           title: newTitle,
-          amount: newAmount,
+          amount: roundedAmount,
         );
       });
 
@@ -218,12 +239,15 @@ class _NavWrapperState extends State<NavWrapper> {
   /// DB write is AWAITED so the value is on disk before we continue.
   Future<void> _setBudget(double val) async {
     try {
+      double roundedBudget = val.roundToDouble();
+      if (roundedBudget < 0) roundedBudget = 0.0;
+
       // 1. Persist to DB.
-      await _db.setSetting('monthly_budget', val.toString());
+      await _db.setSetting('monthly_budget', roundedBudget.toString());
 
       // 2. Update RAM.
       setState(() {
-        _userSetBudget = val;
+        _userSetBudget = roundedBudget;
       });
       recalculateGlobalBalances();
 

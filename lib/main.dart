@@ -5,6 +5,7 @@ import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'screens/splash_screen.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_provider.dart';
+import 'theme/currency_provider.dart';
 import 'database/database_helper.dart';
 
 void main() async {
@@ -19,6 +20,7 @@ void main() async {
   }
 
   ThemeMode initialTheme = ThemeMode.light;
+  String initialCurrencyCode = 'USD';
   try {
     final themeString = await DatabaseHelper().getSetting('theme_mode');
     if (themeString == 'dark') {
@@ -26,14 +28,22 @@ void main() async {
     } else if (themeString == 'system') {
       initialTheme = ThemeMode.system;
     }
+
+    final currencyString = await DatabaseHelper().getSetting('active_currency');
+    if (currencyString != null) {
+      initialCurrencyCode = currencyString;
+    }
   } catch (e) {
-    debugPrint('[main] Error loading initial theme: $e');
+    debugPrint('[main] Error loading initial settings: $e');
   }
 
   runApp(
     ThemeProvider(
       notifier: ValueNotifier<ThemeMode>(initialTheme),
-      child: const MyApp(),
+      child: CurrencyProvider(
+        notifier: ValueNotifier<CurrencyInfo>(CurrencyInfo.find(initialCurrencyCode)),
+        child: const MyApp(),
+      ),
     ),
   );
 }

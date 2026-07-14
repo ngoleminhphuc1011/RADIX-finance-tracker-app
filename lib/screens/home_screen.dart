@@ -4,6 +4,7 @@ import 'instruction_screen.dart';
 import '../models/transaction_model.dart';
 import '../widgets/transaction_tile.dart';
 import '../theme/app_color_locker.dart';
+import '../theme/currency_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   final List<TransactionModel> transactions;
@@ -42,8 +43,6 @@ class HomeScreen extends StatefulWidget {
 enum _TransactionMode { expense, income }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static final NumberFormat _currencyFormat = NumberFormat('#,###');
-
   // -- Shared constants (DRY) --
   Color get _barrierColor => AppColorLocker.of(context).barrierColor;
   Color get _barrierColorLight => AppColorLocker.of(context).barrierColorLight;
@@ -128,20 +127,34 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Caches the grouped/sorted result to avoid recomputation on every build.
   Map<String, List<TransactionModel>>? _cachedGrouped;
-  int _cachedGroupedTxLen = -1;
+  int _cachedGroupedHash = -1;
   String _cachedGroupedSort = '';
+
+  int _calculateHash() {
+    int hash = 17;
+    try {
+      hash = hash * 31 + CurrencyProvider.read(context).code.hashCode;
+    } catch (_) {}
+    for (final tx in widget.transactions) {
+      hash = hash * 31 + (tx.id ?? 0);
+      hash = hash * 31 + tx.amount.hashCode;
+      hash = hash * 31 + tx.title.hashCode;
+      hash = hash * 31 + tx.category.hashCode;
+    }
+    return hash;
+  }
 
   /// Returns grouped transactions with memoization.
   /// Automatically invalidates when transactions or sort mode changes.
   Map<String, List<TransactionModel>> get _grouped {
-    final txLen = widget.transactions.length;
+    final currentHash = _calculateHash();
     if (_cachedGrouped != null &&
-        _cachedGroupedTxLen == txLen &&
+        _cachedGroupedHash == currentHash &&
         _cachedGroupedSort == currentSort) {
       return _cachedGrouped!;
     }
     _cachedGrouped = _groupTransactions(widget.transactions);
-    _cachedGroupedTxLen = txLen;
+    _cachedGroupedHash = currentHash;
     _cachedGroupedSort = currentSort;
     return _cachedGrouped!;
   }
@@ -528,7 +541,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   autofocus: true,
                   decoration: InputDecoration(
                     hintText: 'e.g. 500',
-                    prefixText: '\$',
+                    prefixText: CurrencyProvider.read(context).symbol,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -630,28 +643,37 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Text('SPENT', style: _styleLabelBlack18),
                         const SizedBox(height: 4),
-                        Text(
-                          '\$${_currencyFormat.format(widget.spent)}',
-                          style: _styleBalance55,
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            CurrencyProvider.read(context).format(widget.spent),
+                            style: _styleBalance55,
+                          ),
                         ),
                         const SizedBox(height: 6),
-                        Text(
-                          'BUDGET LEFT: \$${_currencyFormat.format(widget.budgetLeft)}',
-                          style: _styleBudgetLeft18.copyWith(
-                            color: isOverBudget
-                                ? _premiumPastelRed
-                                : AppColorLocker.of(context).textPrimary,
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            'BUDGET LEFT: ${CurrencyProvider.read(context).format(widget.budgetLeft)}',
+                            style: _styleBudgetLeft18.copyWith(
+                              color: isOverBudget
+                                  ? _premiumPastelRed
+                                  : AppColorLocker.of(context).textPrimary,
+                            ),
                           ),
                         ),
                         if (isOverBudget) ...[
                           const SizedBox(height: 6),
-                          Text(
-                            'Overspent by \$${_currencyFormat.format(widget.spent - widget.monthlyBudget)}',
-                            style: TextStyle(
-                              fontFamily: 'MonumentExtended-Regular',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w300,
-                              color: _premiumPastelRed,
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Overspent by ${CurrencyProvider.read(context).format(widget.spent - widget.monthlyBudget)}',
+                              style: TextStyle(
+                                fontFamily: 'MonumentExtended-Regular',
+                                fontSize: 12,
+                                fontWeight: FontWeight.w300,
+                                color: _premiumPastelRed,
+                              ),
                             ),
                           ),
                         ],
@@ -1314,9 +1336,9 @@ class _HomeScreenState extends State<HomeScreen> {
             keyboardType: TextInputType.number,
             autofocus: true,
             decoration: InputDecoration(
-              hintText: '\$0.00',
+              hintText: '0',
               hintStyle: TextStyle(color: AppColorLocker.of(context).textTertiary),
-              prefixText: '',
+              prefixText: CurrencyProvider.read(context).symbol,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
