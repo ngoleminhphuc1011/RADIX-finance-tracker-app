@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'nav_wrapper.dart';
+import '../theme/app_color_locker.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -69,8 +70,9 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final locker = AppColorLocker.of(context);
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: locker.scaffoldBackground,
       body: Stack(
         children: [
           // Central content
@@ -78,14 +80,14 @@ class _SplashScreenState extends State<SplashScreen>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   'RADIX',
                   style: TextStyle(
                     fontFamily: 'MonumentExtended',
                     fontSize: 64,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 4,
-                    color: Colors.black,
+                    color: locker.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -102,22 +104,22 @@ class _SplashScreenState extends State<SplashScreen>
                           // Top - moves UP
                           Transform.translate(
                             offset: Offset(0, -_topAnim.value),
-                            child: _buildDot(),
+                            child: _buildDot(context),
                           ),
                           // Right - moves RIGHT
                           Transform.translate(
                             offset: Offset(_rightAnim.value, 0),
-                            child: _buildDot(),
+                            child: _buildDot(context),
                           ),
                           // Bottom - moves DOWN
                           Transform.translate(
                             offset: Offset(0, _bottomAnim.value),
-                            child: _buildDot(),
+                            child: _buildDot(context),
                           ),
                           // Left - moves LEFT
                           Transform.translate(
                             offset: Offset(-_leftAnim.value, 0),
-                            child: _buildDot(),
+                            child: _buildDot(context),
                           ),
                           Text(
                             '\$',
@@ -125,7 +127,7 @@ class _SplashScreenState extends State<SplashScreen>
                               fontFamily: 'MonumentExtended',
                               fontSize: 19,
                               fontWeight: FontWeight.w400,
-                              color: Colors.white,
+                              color: locker.textOnDark,
                             ),
                           ),
                         ],
@@ -137,7 +139,7 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ),
           // Branding footer
-          const Positioned(
+          Positioned(
             bottom: 24,
             right: 24,
             child: Text(
@@ -146,7 +148,7 @@ class _SplashScreenState extends State<SplashScreen>
                 fontFamily: 'FontUltra',
                 fontSize: 10,
                 fontWeight: FontWeight.w400,
-                color: Colors.black,
+                color: locker.textPrimary,
               ),
             ),
           ),
@@ -155,12 +157,12 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  Widget _buildDot() {
+  Widget _buildDot(BuildContext context) {
     return Container(
       width: 28,
       height: 28,
       decoration: BoxDecoration(
-        color: const Color(0xFF00E676),
+        color: AppColorLocker.of(context).focusBorder,
         borderRadius: BorderRadius.circular(4),
       ),
     );

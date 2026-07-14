@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'instruction_screen.dart';
 import '../models/transaction_model.dart';
 import '../widgets/transaction_tile.dart';
+import '../theme/app_color_locker.dart';
 
 class HomeScreen extends StatefulWidget {
   final List<TransactionModel> transactions;
@@ -44,55 +45,55 @@ class _HomeScreenState extends State<HomeScreen> {
   static final NumberFormat _currencyFormat = NumberFormat('#,###');
 
   // -- Shared constants (DRY) --
-  static const Color _barrierColor = Color(0x66000000);
-  static const Color _barrierColorLight = Color(0x4D000000);
+  Color get _barrierColor => AppColorLocker.of(context).barrierColor;
+  Color get _barrierColorLight => AppColorLocker.of(context).barrierColorLight;
   static const EdgeInsets _ltrb24_16_24_0 = EdgeInsets.fromLTRB(24, 16, 24, 0);
   static const EdgeInsets _ltrb24_0_24_24 = EdgeInsets.fromLTRB(24, 0, 24, 24);
   static const EdgeInsets _all24 = EdgeInsets.all(24);
-  static const Color _premiumPastelRed = Color(0xFFE57373);
+  Color get _premiumPastelRed => AppColorLocker.of(context).accentRed;
 
-  // -- Static const TextStyles (cache re-rendering) --
-  static const TextStyle _styleLabelBlack18 = TextStyle(
+  // -- TextStyles --
+  TextStyle get _styleLabelBlack18 => TextStyle(
     fontFamily: 'MonumentExtended-Regular',
     fontSize: 18,
-    color: Colors.black,
+    color: AppColorLocker.of(context).textPrimary,
   );
-  static const TextStyle _styleBalance55 = TextStyle(
+  TextStyle get _styleBalance55 => TextStyle(
     fontFamily: 'MonumentExtended-Bold',
     fontSize: 55,
     fontWeight: FontWeight.w900,
-    color: Colors.black,
+    color: AppColorLocker.of(context).textPrimary,
   );
-  static const TextStyle _styleBudgetLeft18 = TextStyle(
+  TextStyle get _styleBudgetLeft18 => TextStyle(
     fontFamily: 'MonumentExtended-Regular',
     fontSize: 18,
-    color: Colors.black,
+    color: AppColorLocker.of(context).textPrimary,
   );
-  static const TextStyle _styleEmptyState = TextStyle(
+  TextStyle get _styleEmptyState => TextStyle(
     fontFamily: 'MonumentExtended-Regular',
     fontSize: 14,
-    color: Color(0xFF9E9E9E),
+    color: AppColorLocker.of(context).textTertiary,
   );
   static const TextStyle _styleDeleteTitle = TextStyle(
     fontFamily: 'MonumentExtended-Regular',
     fontSize: 16,
     fontWeight: FontWeight.w600,
   );
-  static const TextStyle _styleDeleteDesc = TextStyle(
+  TextStyle get _styleDeleteDesc => TextStyle(
     fontFamily: 'MonumentExtended-Regular',
     fontSize: 14,
-    color: Colors.black54,
+    color: AppColorLocker.of(context).textSecondary,
     height: 1.4,
   );
-  static const TextStyle _styleDialogBtn = TextStyle(
+  TextStyle get _styleDialogBtn => TextStyle(
     fontFamily: 'MonumentExtended-Regular',
     fontSize: 13,
-    color: Colors.black54,
+    color: AppColorLocker.of(context).textSecondary,
   );
-  static const TextStyle _styleDialogBtnWhite = TextStyle(
+  TextStyle get _styleDialogBtnWhite => TextStyle(
     fontFamily: 'MonumentExtended-Regular',
     fontSize: 13,
-    color: Colors.white,
+    color: AppColorLocker.of(context).textOnDark,
   );
   static const TextStyle _styleAddTransTitle = TextStyle(
     fontFamily: 'MonumentExtended-Regular',
@@ -110,11 +111,11 @@ class _HomeScreenState extends State<HomeScreen> {
     fontWeight: FontWeight.w400,
     height: 1.3,
   );
-  static const TextStyle _styleAllocCardLabel = TextStyle(
+  TextStyle get _styleAllocCardLabel => TextStyle(
     fontFamily: 'MonumentExtended-Regular',
     fontSize: 14,
     fontWeight: FontWeight.w400,
-    color: Colors.black,
+    color: AppColorLocker.of(context).textPrimary,
   );
   static const TextStyle _styleSelectIcon = TextStyle(
     fontFamily: 'MonumentExtended-Regular',
@@ -215,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showMorphDialog(BuildContext context, TransactionModel model) {
-    final colors = model.getColors();
+    final colors = model.getColors(context);
     final Color amountColor = colors.fg;
     final Color badgeColor = colors.badge;
 
@@ -266,7 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: colors.bg,
                     borderRadius: BorderRadius.circular(28),
                     border: Border.all(
-                      color: Colors.black.withValues(alpha: 0.06),
+                      color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.06),
                       width: 1.5,
                     ),
                   ),
@@ -282,10 +283,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               Text(
                                 model.date,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'MonumentExtended-Regular',
                                   fontSize: 12,
-                                  color: Colors.black38,
+                                  color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.38),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -334,7 +335,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               width: 86,
                               height: 86,
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.7),
+                                color: AppColorLocker.of(context).scaffoldBackground.withValues(alpha: 0.7),
                                 borderRadius: BorderRadius.circular(22),
                               ),
                               child: Icon(
@@ -348,11 +349,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           // Description — editable TextField
                           TextField(
                             controller: descController,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'MonumentExtended-Regular',
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
-                              color: Colors.black87,
+                              color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.87),
                               letterSpacing: 0.5,
                             ),
                             textAlign: TextAlign.center,
@@ -362,14 +363,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                 fontFamily: 'MonumentExtended-Regular',
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.black38,
+                                color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.38),
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
                               ),
                               filled: true,
-                              fillColor: Colors.white.withValues(alpha: 0.5),
+                              fillColor: AppColorLocker.of(context).scaffoldBackground.withValues(alpha: 0.5),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 12,
@@ -396,7 +397,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 borderSide: BorderSide.none,
                               ),
                               filled: true,
-                              fillColor: Colors.white.withValues(alpha: 0.5),
+                              fillColor: AppColorLocker.of(context).scaffoldBackground.withValues(alpha: 0.5),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 12,
@@ -413,9 +414,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               IconButton(
                                 icon: Icon(
                                   Icons.delete_outline_rounded,
-                                  color: const Color(
-                                    0xFFE57373,
-                                  ).withValues(alpha: 0.6),
+                                  color: AppColorLocker.of(context).accentRed.withValues(alpha: 0.6),
                                   size: 28,
                                 ),
                                 splashRadius: 20,
@@ -426,39 +425,37 @@ class _HomeScreenState extends State<HomeScreen> {
                               // SAVE button — prominent primary action
                               GestureDetector(
                                 onTap: () {
-                                  final double? parsedNewAmount =
-                                      double.tryParse(amountController.text);
-                                  if (parsedNewAmount == null) return;
-                                  final int? txId = model.id;
-                                  if (txId == null) return;
-                                  widget.onUpdateTransaction?.call(
-                                    txId,
-                                    localIconKey,
-                                    descController.text,
-                                    parsedNewAmount,
+                                  final double? amount = double.tryParse(
+                                    amountController.text,
                                   );
-                                  // Re-apply current sort so the tile jumps
-                                  // to its correct position instantly.
-                                  _applyCurrentSort();
-                                  setState(() {});
-                                  Navigator.pop(context);
+                                  if (descController.text.isNotEmpty &&
+                                      amount != null &&
+                                      widget.onUpdateTransaction != null) {
+                                    widget.onUpdateTransaction!(
+                                      model.id!,
+                                      localIconKey,
+                                      descController.text,
+                                      amount,
+                                    );
+                                    Navigator.pop(context);
+                                  }
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 28,
+                                    horizontal: 32,
                                     vertical: 14,
                                   ),
                                   decoration: BoxDecoration(
                                     color: badgeColor,
                                     borderRadius: BorderRadius.circular(14),
                                   ),
-                                  child: const Text(
+                                  child: Text(
                                     'SAVE',
                                     style: TextStyle(
                                       fontFamily: 'MonumentExtended-Bold',
                                       fontSize: 19,
                                       fontWeight: FontWeight.w900,
-                                      color: Colors.white,
+                                      color: AppColorLocker.of(context).textOnDark,
                                       letterSpacing: 1.5,
                                     ),
                                   ),
@@ -502,11 +499,11 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Container(
             padding: _all24,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColorLocker.of(context).dialogBackground,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
+                  color: AppColorLocker.of(context).dialogShadow30,
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -537,7 +534,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFF00E676)),
+                      borderSide: BorderSide(color: AppColorLocker.of(context).focusBorder),
                     ),
                   ),
                 ),
@@ -546,7 +543,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
+                      backgroundColor: AppColorLocker.of(context).textPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -560,10 +557,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         Navigator.pop(context);
                       }
                     },
-                    child: const Text(
+                    child: Text(
                       'SAVE BUDGET',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColorLocker.of(context).textOnDark,
                         fontFamily: 'MonumentExtended-Regular',
                         fontWeight: FontWeight.w100,
                       ),
@@ -582,22 +579,26 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final bool isOverBudget = widget.spent > widget.monthlyBudget;
     final grouped = _grouped;
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: const Text(
-          'RADIX',
-          style: TextStyle(
-            color: Colors.black,
-            fontFamily: 'MonumentExtended',
-            fontSize: 20,
-            fontWeight: FontWeight.w900,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+      color: AppColorLocker.of(context).scaffoldBackground,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: Text(
+            'RADIX',
+            style: TextStyle(
+              color: AppColorLocker.of(context).textPrimary,
+              fontFamily: 'MonumentExtended',
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+            ),
           ),
         ),
-      ),
       body: Center(
         child: RepaintBoundary(
           child: Container(
@@ -616,11 +617,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     ).add(const EdgeInsets.only(top: 8, bottom: 16)),
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColorLocker.of(context).cardBackground,
                       border: Border.all(
                         color: isOverBudget
-                            ? Colors.redAccent.withValues(alpha: 0.7)
-                            : const Color(0xFFA3E4D7),
+                            ? AppColorLocker.of(context).accentRed.withValues(alpha: 0.7)
+                            : AppColorLocker.of(context).budgetCardBorderNormal,
                         width: 3,
                       ),
                       borderRadius: BorderRadius.circular(24),
@@ -639,14 +640,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: _styleBudgetLeft18.copyWith(
                             color: isOverBudget
                                 ? _premiumPastelRed
-                                : Colors.black,
+                                : AppColorLocker.of(context).textPrimary,
                           ),
                         ),
                         if (isOverBudget) ...[
                           const SizedBox(height: 6),
                           Text(
                             'Overspent by \$${_currencyFormat.format(widget.spent - widget.monthlyBudget)}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'MonumentExtended-Regular',
                               fontSize: 12,
                               fontWeight: FontWeight.w300,
@@ -675,7 +676,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 fontFamily: 'MonumentExtended-Regular',
                                 fontSize: 14,
                                 fontWeight: FontWeight.w300,
-                                color: Colors.grey[700],
+                                color: AppColorLocker.of(context).textSecondary,
                               ),
                             ),
                             const SizedBox(width: 4),
@@ -683,7 +684,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               turns: sortTurns,
                               duration: const Duration(milliseconds: 350),
                               curve: Curves.easeOutBack,
-                              child: const Icon(Icons.arrow_upward, size: 16),
+                              child: Icon(Icons.arrow_upward, size: 16, color: AppColorLocker.of(context).textSecondary),
                             ),
                           ],
                         ),
@@ -698,7 +699,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: Icon(
                           Icons.info_outline,
-                          color: Colors.grey[700],
+                          color: AppColorLocker.of(context).textSecondary,
                         ),
                       ),
                     ],
@@ -786,7 +787,7 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
         child: FloatingActionButton(
-          backgroundColor: Colors.black,
+          backgroundColor: AppColorLocker.of(context).textPrimary,
           onPressed: null,
           elevation: 0,
           highlightElevation: 0,
@@ -794,8 +795,9 @@ class _HomeScreenState extends State<HomeScreen> {
             turns: _isPlusRotated ? 0.5 : 0.0,
             duration: const Duration(milliseconds: 350),
             curve: Curves.easeOutCubic,
-            child: const Icon(Icons.add, color: Colors.white, size: 28),
+            child: Icon(Icons.add, color: AppColorLocker.of(context).textOnDark, size: 28),
           ),
+        ),
         ),
       ),
     );
@@ -846,10 +848,10 @@ class _HomeScreenState extends State<HomeScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 48),
               constraints: const BoxConstraints(maxWidth: 360),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColorLocker.of(context).dialogBackground,
                 borderRadius: BorderRadius.circular(28),
                 border: Border.all(
-                  color: Colors.black.withValues(alpha: 0.06),
+                  color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.06),
                   width: 1,
                 ),
               ),
@@ -859,9 +861,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Delete Transaction?', style: _styleDeleteTitle),
+                    Text('Delete Transaction?', style: _styleDeleteTitle.copyWith(color: AppColorLocker.of(context).textPrimary)),
                     const SizedBox(height: 12),
-                    const Text(
+                    Text(
                       'Are you sure you want to delete this?'
                       ' This action cannot be undone.',
                       style: _styleDeleteDesc,
@@ -877,10 +879,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
-                                  color: Colors.black.withValues(alpha: 0.15),
+                                  color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.15),
                                 ),
                               ),
-                              child: const Center(
+                              child: Center(
                                 child: Text('Cancel', style: _styleDialogBtn),
                               ),
                             ),
@@ -899,10 +901,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFC62828),
+                                color: AppColorLocker.of(context).deleteButtonBg,
                                 borderRadius: BorderRadius.circular(14),
                               ),
-                              child: const Center(
+                              child: Center(
                                 child: Text(
                                   'Delete',
                                   style: _styleDialogBtnWhite,
@@ -937,11 +939,11 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context, setDialogState) {
             final bool isExpense = _transactionMode == _TransactionMode.expense;
             final Color accentColor = isExpense
-                ? const Color(0xFFE57373)
-                : const Color(0xFF81C784);
+                ? AppColorLocker.of(context).expenseDialogAccent
+                : AppColorLocker.of(context).incomeDialogAccent;
             final Color accentTextColor = isExpense
-                ? const Color(0xFF78281F)
-                : const Color(0xFF117A65);
+                ? AppColorLocker.of(context).expenseDialogText
+                : AppColorLocker.of(context).incomeDialogText;
 
             return Padding(
               padding: EdgeInsets.only(
@@ -953,7 +955,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Container(
                 clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColorLocker.of(context).dialogBackground,
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(color: accentColor, width: 1.5),
                   boxShadow: [
@@ -1033,7 +1035,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 const SizedBox(height: 16),
                                 Container(
                                   decoration: BoxDecoration(
-                                    color: Colors.grey[100],
+                                    color: AppColorLocker.of(context).gridItemBackground,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   padding: const EdgeInsets.all(3),
@@ -1080,7 +1082,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               style: _styleTabLabel.copyWith(
                                                 color: isExpense
                                                     ? accentTextColor
-                                                    : Colors.grey[600],
+                                                    : AppColorLocker.of(context).textSecondary,
                                               ),
                                             ),
                                           ),
@@ -1127,7 +1129,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               style: _styleTabLabel.copyWith(
                                                 color: !isExpense
                                                     ? accentTextColor
-                                                    : Colors.grey[600],
+                                                    : AppColorLocker.of(context).textSecondary,
                                               ),
                                             ),
                                           ),
@@ -1289,7 +1291,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: 54,
                   height: 54,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColorLocker.of(context).cardBackground,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: accentColor, width: 1.5),
                   ),
@@ -1299,7 +1301,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         : Icons.widgets_outlined,
                     color: _selectedIconKey != null
                         ? accentColor
-                        : Colors.grey[400],
+                        : AppColorLocker.of(context).textTertiary,
                     size: 26,
                   ),
                 ),
@@ -1313,7 +1315,7 @@ class _HomeScreenState extends State<HomeScreen> {
             autofocus: true,
             decoration: InputDecoration(
               hintText: '\$0.00',
-              hintStyle: TextStyle(color: Colors.grey[400]),
+              hintStyle: TextStyle(color: AppColorLocker.of(context).textTertiary),
               prefixText: '',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -1355,7 +1357,7 @@ class _HomeScreenState extends State<HomeScreen> {
               maxHeight: MediaQuery.of(ctx).size.height * 0.35,
             ),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColorLocker.of(context).dialogBackground,
               borderRadius: BorderRadius.circular(24),
             ),
             child: Column(
@@ -1368,7 +1370,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         'SELECT ICON',
                         style: _styleSelectIcon.copyWith(
-                          color: Colors.grey[600],
+                          color: AppColorLocker.of(context).textSecondary,
                         ),
                       ),
                       const Spacer(),
@@ -1384,7 +1386,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           'None',
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.grey[400],
+                            color: AppColorLocker.of(context).textTertiary,
                             decoration: TextDecoration.underline,
                           ),
                         ),
@@ -1460,8 +1462,8 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Add to Budget',
             description: 'Increase your monthly limit',
             icon: Icons.trending_up,
-            bgColor: const Color(0xFFE8F5E9),
-            iconColor: const Color(0xFF2E7D32),
+            bgColor: AppColorLocker.of(context).incomeBg,
+            iconColor: AppColorLocker.of(context).incomeBadge,
             onTap: () => onSelected('Add to Budget'),
           ),
           const SizedBox(height: 14),
@@ -1469,8 +1471,8 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Deduct from Spent',
             description: 'Offset what you spent',
             icon: Icons.remove_circle_outline,
-            bgColor: const Color.fromARGB(255, 216, 224, 247),
-            iconColor: const Color.fromARGB(255, 76, 140, 180),
+            bgColor: AppColorLocker.of(context).incomeStrategyDeductBg,
+            iconColor: AppColorLocker.of(context).incomeStrategyDeductFg,
             onTap: () => onSelected('Deduct from Spent'),
           ),
           const SizedBox(height: 8),
@@ -1485,7 +1487,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(
                     fontFamily: 'MonumentExtended-Regular',
                     fontSize: 12,
-                    color: Colors.grey[500],
+                    color: AppColorLocker.of(context).textTertiary,
                     decoration: TextDecoration.underline,
                   ),
                 ),
@@ -1526,7 +1528,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColorLocker.of(context).cardBackground,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(icon, color: iconColor, size: 26),
@@ -1542,7 +1544,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       description,
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey[600],
+                        color: AppColorLocker.of(context).textSecondary,
                         height: 1.2,
                       ),
                     ),
@@ -1618,7 +1620,7 @@ class _HomeScreenState extends State<HomeScreen> {
           fontFamily: 'MonumentExtended-Regular',
           fontSize: 12,
           fontWeight: FontWeight.bold,
-          color: Colors.grey[500],
+          color: AppColorLocker.of(context).textTertiary,
           letterSpacing: 1.2,
         ),
       ),
@@ -1685,7 +1687,7 @@ class _IconTileState extends State<_IconTile>
           decoration: BoxDecoration(
             color: widget.isSelected
                 ? widget.selectedBgColor
-                : const Color(0xFFF5F5F5),
+                : AppColorLocker.of(context).gridItemBackground,
             borderRadius: BorderRadius.circular(12),
             border: widget.isSelected
                 ? Border.all(color: widget.selectedBorderColor, width: 1.5)
@@ -1695,7 +1697,7 @@ class _IconTileState extends State<_IconTile>
             widget.icon,
             color: widget.isSelected
                 ? widget.selectedBorderColor
-                : Colors.grey[600],
+                : AppColorLocker.of(context).textSecondary,
             size: 26,
           ),
         ),

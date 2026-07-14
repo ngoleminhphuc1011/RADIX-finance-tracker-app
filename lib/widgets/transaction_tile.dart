@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/transaction_model.dart';
+import '../theme/app_color_locker.dart';
 
 class TransactionTile extends StatelessWidget {
   final TransactionModel model;
@@ -23,10 +24,11 @@ class TransactionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isExpense = model.isExpense;
-    final colors = model.getColors();
+    final locker = AppColorLocker.of(context);
+    final colors = model.getColors(context);
     final Color fgColor = isExpense
-        ? const Color(0xFF78281F)
-        : const Color(0xFF117A65);
+        ? locker.expenseFg
+        : locker.incomeFg;
     final String amountText =
         '${isExpense ? '-' : '+'} \$${_amountFormat.format(model.amount)}';
     final IconData? resolvedIcon = iconOptions[model.category];
@@ -58,7 +60,12 @@ class TransactionTile extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             // Title
-            Expanded(child: Text(model.title, style: _titleStyle)),
+            Expanded(
+              child: Text(
+                model.title,
+                style: _titleStyle.copyWith(color: locker.textPrimary),
+              ),
+            ),
             // Amount
             Text(amountText, style: _amountStyle.copyWith(color: fgColor)),
           ],

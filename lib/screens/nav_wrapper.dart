@@ -5,6 +5,7 @@ import 'home_screen.dart';
 import 'settings_screen.dart';
 import '../models/transaction_model.dart';
 import '../database/database_helper.dart';
+import '../theme/app_color_locker.dart';
 
 class NavWrapper extends StatefulWidget {
   const NavWrapper({super.key});
@@ -239,9 +240,28 @@ class _NavWrapperState extends State<NavWrapper> {
 
   // ── Build ────────────────────────────────────────────────────────────────────
 
+  Color get _currentTabBackgroundColor {
+    final locker = AppColorLocker.of(context);
+    switch (_currentIndex) {
+      case 0:
+        return locker.graphBackground;
+      case 1:
+        return locker.scaffoldBackground;
+      case 2:
+        return locker.settingsBackground;
+      default:
+        return locker.scaffoldBackground;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+      color: _currentTabBackgroundColor,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
       body: PageView(
         controller: _pageController,
         onPageChanged: _onPageChanged,
@@ -265,15 +285,17 @@ class _NavWrapperState extends State<NavWrapper> {
         padding: const EdgeInsets.only(bottom: 24, left: 20, right: 20),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(32),
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeInOut,
             height: 68,
             decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: const [
+              color: AppColorLocker.of(context).navBarBackground,
+              boxShadow: [
                 BoxShadow(
-                  color: Color(0x14000000),
+                  color: AppColorLocker.of(context).shadowLight,
                   blurRadius: 20,
-                  offset: Offset(0, 4),
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
@@ -297,9 +319,11 @@ class _NavWrapperState extends State<NavWrapper> {
                       top: 6,
                       bottom: 6,
                       width: indicatorWidth,
-                      child: Container(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 400),
+                        curve: Curves.easeInOut,
                         decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 207, 227, 251),
+                          color: AppColorLocker.of(context).navIndicatorBackground,
                           borderRadius: BorderRadius.circular(30),
                         ),
                       ),
@@ -333,8 +357,9 @@ class _NavWrapperState extends State<NavWrapper> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildNavItem(
     int index,
@@ -343,16 +368,26 @@ class _NavWrapperState extends State<NavWrapper> {
     double itemWidth,
   ) {
     final bool isActive = _currentIndex == index;
+    final Color targetColor = isActive
+        ? AppColorLocker.of(context).textPrimary
+        : AppColorLocker.of(context).textTertiary;
+
     return SizedBox(
       width: itemWidth,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => _onNavTap(index),
         child: Center(
-          child: Icon(
-            isActive ? filledIcon : outlinedIcon,
-            color: isActive ? Colors.black : Colors.grey,
-            size: 24,
+          child: TweenAnimationBuilder<Color?>(
+            tween: ColorTween(end: targetColor),
+            duration: const Duration(milliseconds: 400),
+            builder: (context, color, child) {
+              return Icon(
+                isActive ? filledIcon : outlinedIcon,
+                color: color,
+                size: 24,
+              );
+            },
           ),
         ),
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../models/transaction_model.dart';
+import '../theme/app_color_locker.dart';
 
 // ─── Category visual registry ────────────────────────────────────────────────
 // Maps each icon key string (stored in DB) to its display properties.
@@ -10,12 +11,10 @@ import '../models/transaction_model.dart';
 class _CategoryInfo {
   final String name;
   final IconData icon;
-  final Color color;
 
   const _CategoryInfo({
     required this.name,
     required this.icon,
-    required this.color,
   });
 }
 
@@ -23,72 +22,58 @@ const Map<String, _CategoryInfo> _categoryRegistry = {
   'fastfood': _CategoryInfo(
     name: 'Food',
     icon: Icons.fastfood_outlined,
-    color: Color(0xFFFF8B94), // Pastel pink-red
   ),
   'shopping_bag': _CategoryInfo(
     name: 'Shopping',
     icon: Icons.shopping_bag_outlined,
-    color: Color(0xFFFFD3B6), // Pastel peach
   ),
   'directions_car': _CategoryInfo(
     name: 'Transport',
     icon: Icons.directions_car_filled_outlined,
-    color: Color(0xFFD4A5A5), // Pastel dusty rose
   ),
   'home': _CategoryInfo(
     name: 'Utilities',
     icon: Icons.home_outlined,
-    color: Color(0xFF9FFFCB), // Pastel mint green
   ),
   'celebration': _CategoryInfo(
     name: 'Entertainment',
     icon: Icons.celebration_outlined,
-    color: Color(0xFFC7CEEA), // Pastel lavender-blue
   ),
   'payments': _CategoryInfo(
     name: 'Payments',
     icon: Icons.payments_outlined,
-    color: Color(0xFFFFF3B0), // Pastel yellow
   ),
   'work': _CategoryInfo(
     name: 'Work',
     icon: Icons.work_outline,
-    color: Color(0xFFB3D9FF), // Pastel sky blue
   ),
   'school': _CategoryInfo(
     name: 'Education',
     icon: Icons.school_outlined,
-    color: Color(0xFFB8B3E6), // Pastel indigo
   ),
   'flight': _CategoryInfo(
     name: 'Travel',
     icon: Icons.flight_outlined,
-    color: Color(0xFFFFB3A7), // Pastel coral
   ),
   'fitness_center': _CategoryInfo(
     name: 'Fitness',
     icon: Icons.fitness_center_outlined,
-    color: Color(0xFFB2DFDB), // Pastel teal
   ),
   'health_and_safety': _CategoryInfo(
     name: 'Health',
     icon: Icons.health_and_safety_outlined,
-    color: Color(0xFFD5E8D4), // Pastel sage
   ),
   'pets': _CategoryInfo(
     name: 'Pets',
     icon: Icons.pets_outlined,
-    color: Color(0xFFFFCCAA), // Pastel orange
   ),
   'local_gas_station': _CategoryInfo(
     name: 'Gas',
     icon: Icons.local_gas_station_outlined,
-    color: Color(0xFFD6D6D6), // Pastel warm gray
   ),
   'train': _CategoryInfo(
     name: 'Transit',
     icon: Icons.train_outlined,
-    color: Color(0xFFAEC6CF), // Pastel steel blue
   ),
 };
 
@@ -96,7 +81,6 @@ const Map<String, _CategoryInfo> _categoryRegistry = {
 const _CategoryInfo _otherCategory = _CategoryInfo(
   name: 'Other',
   icon: Icons.widgets_outlined,
-  color: Color(0xFFE2E8F0), // Pastel slate
 );
 
 // ─── Aggregated category for chart display ───────────────────────────────────
@@ -134,7 +118,7 @@ class GraphScreen extends StatefulWidget {
 }
 
 class _GraphScreenState extends State<GraphScreen> {
-  static const Color _textColor = Color(0xFF1C1C1E);
+  Color get _textColor => AppColorLocker.of(context).textPrimary;
 
   String? _selectedIconKey;
   ScrollPosition? _scrollPosition;
@@ -161,7 +145,7 @@ class _GraphScreenState extends State<GraphScreen> {
   ///
   /// This is the single location for the Map-Reduce aggregation logic,
   /// extracted from the widget tree so the build method stays lightweight.
-  List<_AggregatedCategory> _aggregateExpenses() {
+  List<_AggregatedCategory> _aggregateExpenses(BuildContext context) {
     final expenses = widget.transactions.where((tx) => tx.isExpense).toList();
     if (expenses.isEmpty) return [];
 
@@ -184,7 +168,7 @@ class _GraphScreenState extends State<GraphScreen> {
           iconKey: iconKey,
           name: info.name,
           icon: info.icon,
-          color: info.color,
+          color: AppColorLocker.of(context).getCategoryColor(iconKey),
           amount: entry.value,
         ),
       );
@@ -204,7 +188,7 @@ class _GraphScreenState extends State<GraphScreen> {
     }
 
     // Run the pure aggregation, cache it, and invalidate detail cache
-    _cachedCategories = _aggregateExpenses();
+    _cachedCategories = _aggregateExpenses(context);
     _cachedTxLength = txLen;
     _detailCache.clear();
     return _cachedCategories!;
@@ -472,7 +456,7 @@ class _GraphScreenState extends State<GraphScreen> {
           touchedIdx != -1 && touchedIdx < cats.length
               ? '\$${cats[touchedIdx].amount.toStringAsFixed(2)}'
               : '\$${(_totalSpent * _swipeProgress).toStringAsFixed(2)}',
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'MonumentExtended-Regular',
             fontSize: 22,
             fontWeight: FontWeight.w600,
@@ -519,9 +503,13 @@ class _GraphScreenState extends State<GraphScreen> {
     final cats = _categories;
     final bool hasData = cats.isNotEmpty;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F0EB),
-      body: SafeArea(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+      color: AppColorLocker.of(context).graphBackground,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
         bottom: false,
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -553,7 +541,7 @@ class _GraphScreenState extends State<GraphScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // --- Header ---
-                        const Text(
+                        Text(
                           'ANALYTICS',
                           style: TextStyle(
                             fontFamily: 'MonumentExtended-Regular',
@@ -565,17 +553,19 @@ class _GraphScreenState extends State<GraphScreen> {
                         const SizedBox(height: 32),
 
                         // --- Premium Floating Donut Chart Card ---
-                        Container(
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeInOut,
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
                             vertical: 40,
                             horizontal: 24,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppColorLocker.of(context).cardBackground,
                             borderRadius: BorderRadius.circular(32),
                             border: Border.all(
-                              color: const Color.fromARGB(10, 0, 0, 0),
+                              color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.04),
                               width: 1,
                             ),
                           ),
@@ -648,6 +638,7 @@ class _GraphScreenState extends State<GraphScreen> {
             );
           },
         ),
+        ),
       ),
     );
   }
@@ -660,13 +651,13 @@ class _GraphScreenState extends State<GraphScreen> {
       key: const ValueKey('CategoryList'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'BREAKDOWN',
           style: TextStyle(
             fontFamily: 'MonumentExtended-Regular',
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF636366),
+            color: AppColorLocker.of(context).textSecondary,
             letterSpacing: 1.0,
           ),
         ),
@@ -695,10 +686,10 @@ class _GraphScreenState extends State<GraphScreen> {
                   horizontal: 16,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColorLocker.of(context).cardBackground,
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
-                    color: const Color.fromARGB(10, 0, 0, 0),
+                    color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.04),
                     width: 1,
                   ),
                 ),
@@ -716,7 +707,7 @@ class _GraphScreenState extends State<GraphScreen> {
                         child: Icon(
                           category.icon,
                           size: 16,
-                          color: const Color(0xFF1C1C1E),
+                          color: AppColorLocker.of(context).textPrimary,
                         ),
                       ),
                     ),
@@ -727,11 +718,11 @@ class _GraphScreenState extends State<GraphScreen> {
                       children: [
                         Text(
                           category.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'MonumentExtended-Regular',
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: Color(0xFF1C1C1E),
+                            color: AppColorLocker.of(context).textPrimary,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -740,7 +731,7 @@ class _GraphScreenState extends State<GraphScreen> {
                           style: TextStyle(
                             fontFamily: 'MonumentExtended-Regular',
                             fontSize: 10,
-                            color: Colors.grey[500],
+                            color: AppColorLocker.of(context).textTertiary,
                           ),
                         ),
                       ],
@@ -749,11 +740,11 @@ class _GraphScreenState extends State<GraphScreen> {
                     // Amount
                     Text(
                       '\$${category.amount.toStringAsFixed(2)}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'MonumentExtended-Regular',
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: Color(0xFF1C1C1E),
+                        color: AppColorLocker.of(context).textPrimary,
                       ),
                     ),
                   ],
@@ -775,7 +766,7 @@ class _GraphScreenState extends State<GraphScreen> {
         iconKey: iconKey,
         name: (_categoryRegistry[iconKey] ?? _otherCategory).name,
         icon: (_categoryRegistry[iconKey] ?? _otherCategory).icon,
-        color: (_categoryRegistry[iconKey] ?? _otherCategory).color,
+        color: AppColorLocker.of(context).getCategoryColor(iconKey),
         amount: 0,
       ),
     );
@@ -805,10 +796,10 @@ class _GraphScreenState extends State<GraphScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
+                Icon(
                   Icons.arrow_back,
                   size: 14,
-                  color: Color(0xFF1C1C1E),
+                  color: AppColorLocker.of(context).textPrimary,
                 ),
                 const SizedBox(width: 6),
                 Text(
@@ -817,7 +808,7 @@ class _GraphScreenState extends State<GraphScreen> {
                     fontFamily: 'MonumentExtended-Regular',
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF1C1C1E),
+                    color: AppColorLocker.of(context).textPrimary,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -828,11 +819,11 @@ class _GraphScreenState extends State<GraphScreen> {
         const SizedBox(height: 20),
         Text(
           '${category.name.toUpperCase()} TRANSACTIONS',
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'MonumentExtended-Regular',
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: Color(0xFF636366),
+            color: AppColorLocker.of(context).textSecondary,
             letterSpacing: 1.0,
           ),
         ),
@@ -847,7 +838,7 @@ class _GraphScreenState extends State<GraphScreen> {
                     style: TextStyle(
                       fontFamily: 'MonumentExtended-Regular',
                       fontSize: 12,
-                      color: Colors.grey[500],
+                      color: AppColorLocker.of(context).textTertiary,
                     ),
                   ),
                 ),
@@ -872,10 +863,10 @@ class _GraphScreenState extends State<GraphScreen> {
                       horizontal: 16,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColorLocker.of(context).cardBackground,
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(
-                        color: const Color.fromARGB(10, 0, 0, 0),
+                        color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.04),
                         width: 1,
                       ),
                     ),
@@ -893,7 +884,7 @@ class _GraphScreenState extends State<GraphScreen> {
                             child: Icon(
                               category.icon,
                               size: 16,
-                              color: const Color(0xFF1C1C1E),
+                              color: AppColorLocker.of(context).textPrimary,
                             ),
                           ),
                         ),
@@ -905,11 +896,11 @@ class _GraphScreenState extends State<GraphScreen> {
                             children: [
                               Text(
                                 tx.title,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'MonumentExtended-Regular',
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
-                                  color: Color(0xFF1C1C1E),
+                                  color: AppColorLocker.of(context).textPrimary,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -919,7 +910,7 @@ class _GraphScreenState extends State<GraphScreen> {
                                 style: TextStyle(
                                   fontFamily: 'MonumentExtended-Regular',
                                   fontSize: 10,
-                                  color: Colors.grey[500],
+                                  color: AppColorLocker.of(context).textTertiary,
                                 ),
                               ),
                             ],
@@ -928,11 +919,11 @@ class _GraphScreenState extends State<GraphScreen> {
                         // Amount
                         Text(
                           '-\$${tx.amount.toStringAsFixed(2)}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'MonumentExtended-Regular',
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFFB71C1C), // Red for expense details
+                            color: AppColorLocker.of(context).expenseModelFg,
                           ),
                         ),
                       ],
@@ -974,10 +965,10 @@ class _CategoryBadge extends StatelessWidget {
           width: 30,
           height: 30,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColorLocker.of(context).cardBackground,
             shape: BoxShape.circle,
             border: Border.all(
-              color: const Color.fromARGB(25, 0, 0, 0),
+              color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.10),
               width: 1,
             ),
           ),

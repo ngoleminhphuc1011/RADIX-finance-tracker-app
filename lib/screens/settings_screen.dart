@@ -1,5 +1,8 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import '../theme/app_color_locker.dart';
+import '../theme/theme_provider.dart';
+import '../database/database_helper.dart';
 
 enum ThemeOption { light, dark, system }
 
@@ -38,7 +41,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   late AnimationController _holdController;
   late Animation<double> _holdProgress;
   bool _isHolding = false;
-  static const Color _accentRed = Color(0xFFE57373);
+  Color get _accentRed => AppColorLocker.of(context).accentRed;
 
   List<_Currency> get _filteredCurrencies {
     if (_searchQuery.isEmpty) return _allCurrencies;
@@ -63,15 +66,16 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   Color get _capsuleColor {
     final brightness = MediaQuery.of(context).platformBrightness;
+    final locker = AppColorLocker.of(context);
     switch (_selectedTheme) {
       case ThemeOption.light:
-        return Colors.white;
+        return locker.settingsActiveCapsuleLight;
       case ThemeOption.system:
         return brightness == Brightness.light
-            ? const Color(0xFFB0B0B5)
-            : const Color(0xFF18181B);
+            ? locker.settingsActiveCapsuleSystemLight
+            : locker.settingsActiveCapsuleSystemDark;
       case ThemeOption.dark:
-        return const Color(0xFF1C1C1E);
+        return locker.settingsActiveCapsuleDark;
     }
   }
 
@@ -111,12 +115,16 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0F0F0),
-      body: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+      color: AppColorLocker.of(context).settingsBackground,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          bottom: false,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.only(
             top: 40,
             left: 24,
@@ -127,13 +135,13 @@ class _SettingsScreenState extends State<SettingsScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // --- Settings heading ---
-              const Text(
+              Text(
                 'SETTINGS',
                 style: TextStyle(
                   fontFamily: 'MonumentExtended-Regular',
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1C1C1E),
+                  color: AppColorLocker.of(context).textPrimary,
                 ),
               ),
               const SizedBox(height: 40),
@@ -141,7 +149,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 380),
-                  child: const Align(
+                  child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Appearance',
@@ -149,7 +157,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         fontFamily: 'MonumentExtended-Regular',
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF636366),
+                        color: AppColorLocker.of(context).settingsSectionLabel,
                       ),
                     ),
                   ),
@@ -163,7 +171,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   child: Container(
                     height: 54,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE2E2E2),
+                      color: AppColorLocker.of(context).settingsCapsuleBarBackground,
                       borderRadius: BorderRadius.circular(30),
                     ),
                     child: LayoutBuilder(
@@ -222,7 +230,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 380),
-                  child: const Align(
+                  child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Currency',
@@ -230,7 +238,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         fontFamily: 'MonumentExtended-Regular',
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF636366),
+                        color: AppColorLocker.of(context).settingsSectionLabel,
                       ),
                     ),
                   ),
@@ -241,14 +249,14 @@ class _SettingsScreenState extends State<SettingsScreen>
               Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 380),
-                  child: const Align(
+                  child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'You are using USD (\$)',
                       style: TextStyle(
                         fontFamily: 'MonumentExtended-Regular',
                         fontSize: 12,
-                        color: Color(0xFF8E8E93),
+                        color: AppColorLocker.of(context).settingsInfoText,
                       ),
                     ),
                   ),
@@ -262,7 +270,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   child: Container(
                     height: 44,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE2E2E2),
+                      color: AppColorLocker.of(context).searchBarBackground,
                       borderRadius: BorderRadius.circular(22),
                     ),
                     child: TextField(
@@ -271,21 +279,21 @@ class _SettingsScreenState extends State<SettingsScreen>
                           _searchQuery = value;
                         });
                       },
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'MonumentExtended-Regular',
                         fontSize: 13,
-                        color: Color(0xFF1C1C1E),
+                        color: AppColorLocker.of(context).textPrimary,
                       ),
                       decoration: InputDecoration(
                         hintText: 'Search currency...',
                         hintStyle: TextStyle(
                           fontFamily: 'MonumentExtended-Regular',
                           fontSize: 13,
-                          color: Colors.grey.shade400,
+                          color: AppColorLocker.of(context).textTertiary,
                         ),
                         prefixIcon: Icon(
                           Icons.search,
-                          color: Colors.grey.shade400,
+                          color: AppColorLocker.of(context).textTertiary,
                           size: 20,
                         ),
                         border: InputBorder.none,
@@ -321,6 +329,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             ],
           ),
         ),
+        ),
       ),
     );
   }
@@ -350,7 +359,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                     color: _accentRed,
                     borderRadius: BorderRadius.circular(25),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Text(
                       'Reset',
                       style: TextStyle(
@@ -377,7 +386,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       barrierDismissible: true,
       barrierLabel: 'Dismiss Reset Confirm',
       transitionDuration: const Duration(milliseconds: 350),
-      barrierColor: Colors.transparent,
+      barrierColor: AppColorLocker.of(context).barrierColorLight,
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(
           opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -386,7 +395,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           child: Stack(
             children: [
               Container(
-                color: Colors.black.withValues(alpha: 0.3),
+                color: Colors.black.withValues(alpha: 0.15),
                 child: BackdropFilter(
                   filter: ui.ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                   child: const SizedBox.expand(),
@@ -423,12 +432,12 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
+                    color: AppColorLocker.of(context).dialogShadow30,
                     blurRadius: 30,
                     offset: const Offset(0, 10),
                   ),
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
+                    color: AppColorLocker.of(context).dialogShadow60,
                     blurRadius: 60,
                     offset: const Offset(0, 20),
                   ),
@@ -440,24 +449,24 @@ class _SettingsScreenState extends State<SettingsScreen>
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'CONFIRM DIALOGUE',
                       style: TextStyle(
                         fontFamily: 'MonumentExtended-Regular',
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF3A3A3C),
+                        color: AppColorLocker.of(context).textDialogTitle,
                         letterSpacing: 1.7,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'This action cannot be undone. Are you sure you want to clear all spending history?',
                       style: TextStyle(
                         fontFamily: 'MonumentExtended-Regular',
                         fontSize: 13,
                         fontWeight: FontWeight.w100,
-                        color: Colors.black87,
+                        color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.87),
                         height: 1.5,
                       ),
                     ),
@@ -477,16 +486,16 @@ class _SettingsScreenState extends State<SettingsScreen>
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
-                                  color: Colors.grey.withValues(alpha: 0.3),
+                                  color: AppColorLocker.of(context).textTertiary.withValues(alpha: 0.3),
                                 ),
                               ),
-                              child: const Text(
+                              child: Text(
                                 'Cancel',
                                 style: TextStyle(
                                   fontFamily: 'MonumentExtended-Regular',
                                   fontSize: 14,
                                   fontWeight: FontWeight.w400,
-                                  color: Colors.grey,
+                                  color: AppColorLocker.of(context).textTertiary,
                                 ),
                               ),
                             ),
@@ -547,18 +556,18 @@ class _SettingsScreenState extends State<SettingsScreen>
                         shaderCallback: (bounds) => LinearGradient(
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
-                          colors: [Colors.white, _accentRed],
+                          colors: [AppColorLocker.of(context).textOnDark, _accentRed],
                           stops: [_holdProgress.value, _holdProgress.value],
                         ).createShader(bounds),
                         blendMode: BlendMode.srcIn,
-                        child: const Text(
+                        child: Text(
                           'Confirm',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontFamily: 'MonumentExtended-Regular',
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
-                            color: Colors.white,
+                            color: AppColorLocker.of(context).textOnLight,
                           ),
                         ),
                       ),
@@ -582,21 +591,21 @@ class _SettingsScreenState extends State<SettingsScreen>
             width: 32,
             child: Text(
               currency.symbol,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: null,
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
-                color: Color(0xFF3A3A3C),
+                color: AppColorLocker.of(context).settingsCurrencySymbol,
               ),
             ),
           ),
           const SizedBox(width: 12),
           Text(
             '${currency.code} - ${currency.name}',
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'MonumentExtended-Regular',
               fontSize: 13,
-              color: Color(0xFF636366),
+              color: AppColorLocker.of(context).settingsSectionLabel,
             ),
           ),
         ],
@@ -607,11 +616,11 @@ class _SettingsScreenState extends State<SettingsScreen>
   Color get _activeTextColor {
     switch (_selectedTheme) {
       case ThemeOption.light:
-        return Colors.black;
+        return AppColorLocker.of(context).textPrimary;
       case ThemeOption.system:
-        return Colors.white;
+        return AppColorLocker.of(context).textOnDark;
       case ThemeOption.dark:
-        return Colors.white;
+        return AppColorLocker.of(context).textOnDark;
     }
   }
 
@@ -629,12 +638,18 @@ class _SettingsScreenState extends State<SettingsScreen>
             switch (index) {
               case 0:
                 _selectedTheme = ThemeOption.light;
+                ThemeProvider.of(context).value = ThemeMode.light;
+                DatabaseHelper().setSetting('theme_mode', 'light');
                 break;
               case 1:
                 _selectedTheme = ThemeOption.system;
+                ThemeProvider.of(context).value = ThemeMode.system;
+                DatabaseHelper().setSetting('theme_mode', 'system');
                 break;
               case 2:
                 _selectedTheme = ThemeOption.dark;
+                ThemeProvider.of(context).value = ThemeMode.dark;
+                DatabaseHelper().setSetting('theme_mode', 'dark');
                 break;
             }
           });
@@ -651,7 +666,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 fontSize: 12,
                 letterSpacing: 3.0,
                 fontWeight: FontWeight.bold,
-                color: isActive ? _activeTextColor : Colors.grey.shade500,
+                color: isActive ? _activeTextColor : AppColorLocker.of(context).textTertiary,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -659,7 +674,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   Icon(
                     icon,
                     size: 14,
-                    color: isActive ? _activeTextColor : Colors.grey.shade500,
+                    color: isActive ? _activeTextColor : AppColorLocker.of(context).textTertiary,
                   ),
                   const SizedBox(width: 6),
                   Text(label),

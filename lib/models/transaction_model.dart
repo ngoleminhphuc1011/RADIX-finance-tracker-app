@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_color_locker.dart';
 
 /// Represents a single financial transaction stored in the local SQLite DB.
 ///
@@ -40,18 +41,19 @@ class TransactionModel {
 
   /// Returns the (background, foreground, badge) color triplet for this
   /// transaction type. Used by both the tile and the edit dialog.
-  ({Color bg, Color fg, Color badge}) getColors() {
+  ({Color bg, Color fg, Color badge}) getColors(BuildContext context) {
+    final locker = AppColorLocker.of(context);
     if (isExpense) {
       return (
-        bg: const Color(0xFFFFEBEE),
-        fg: const Color(0xFFB71C1C),
-        badge: const Color(0xFFC62828),
+        bg: locker.expenseModelBg,
+        fg: locker.expenseModelFg,
+        badge: locker.expenseModelBadge,
       );
     } else {
       return (
-        bg: const Color(0xFFE8F5E9),
-        fg: const Color(0xFF1B5E20),
-        badge: const Color(0xFF2E7D32),
+        bg: locker.incomeModelBg,
+        fg: locker.incomeModelFg,
+        badge: locker.incomeModelBadge,
       );
     }
   }

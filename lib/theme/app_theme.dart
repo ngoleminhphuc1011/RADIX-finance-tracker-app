@@ -1,68 +1,70 @@
 import 'package:flutter/material.dart';
+import 'app_color_locker.dart';
 
 class AppTheme {
   // ── Light Mode (Crisp Apple Minimalist White) ──
   static ThemeData get lightTheme {
+    const locker = LightColorLocker();
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      scaffoldBackgroundColor: Colors.white,
-      cardColor: Colors.white,
-      colorScheme: const ColorScheme.light(
-        primary: Colors.black,
-        secondary: Color(0xFFE57373),
-        surface: Colors.white,
-        onPrimary: Colors.white,
-        onSecondary: Colors.white,
-        onSurface: Colors.black,
+      scaffoldBackgroundColor: locker.scaffoldBackground,
+      cardColor: locker.cardBackground,
+      colorScheme: ColorScheme.light(
+        primary: locker.textPrimary,
+        secondary: locker.accentRed,
+        surface: locker.cardBackground,
+        onPrimary: locker.textOnDark,
+        onSecondary: locker.textOnDark,
+        onSurface: locker.textPrimary,
       ),
-      textTheme: const TextTheme(
+      textTheme: TextTheme(
         bodyLarge: TextStyle(
           fontFamily: 'MonumentExtended-Regular',
           fontSize: 16,
           fontWeight: FontWeight.w400,
-          color: Colors.black,
+          color: locker.textPrimary,
         ),
         bodyMedium: TextStyle(
           fontFamily: 'MonumentExtended-Regular',
           fontSize: 14,
-          color: Colors.black87,
+          color: locker.textSecondary,
         ),
         bodySmall: TextStyle(
           fontFamily: 'MonumentExtended-Regular',
           fontSize: 14,
-          color: Color(0xFF9E9E9E),
+          color: locker.textTertiary,
         ),
         labelLarge: TextStyle(
           fontFamily: 'MonumentExtended-Regular',
           fontSize: 18,
-          color: Colors.black,
+          color: locker.textPrimary,
         ),
         headlineLarge: TextStyle(
           fontFamily: 'MonumentExtended-Bold',
           fontSize: 55,
           fontWeight: FontWeight.w900,
-          color: Colors.black,
+          color: locker.textPrimary,
         ),
         headlineMedium: TextStyle(
           fontFamily: 'MonumentExtended-Regular',
           fontSize: 18,
-          color: Colors.black,
+          color: locker.textPrimary,
         ),
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.white,
+      appBarTheme: AppBarTheme(
+        backgroundColor: locker.scaffoldBackground,
         elevation: 0,
         scrolledUnderElevation: 0,
         titleTextStyle: TextStyle(
-          color: Colors.black,
+          color: locker.textPrimary,
           fontFamily: 'MonumentExtended',
           fontSize: 20,
           fontWeight: FontWeight.w900,
         ),
       ),
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: Colors.black,
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: locker.textPrimary,
         elevation: 0,
         highlightElevation: 0,
       ),
@@ -71,66 +73,67 @@ class AppTheme {
 
   // ── Luxury Dark Mode ──
   static ThemeData get darkTheme {
+    const locker = DarkColorLocker();
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: const Color(0xFF121214),
-      cardColor: const Color(0xFF1E1E24),
+      scaffoldBackgroundColor: locker.scaffoldBackground,
+      cardColor: locker.cardBackground,
       colorScheme: ColorScheme.dark(
-        primary: const Color(0xFFE4E4E7),
-        secondary: const Color(0xFFE57373),
-        surface: const Color(0xFF1E1E24),
-        onPrimary: const Color(0xFF121214),
-        onSecondary: const Color(0xFFE4E4E7),
-        onSurface: const Color(0xFFE4E4E7),
+        primary: locker.textPrimary,
+        secondary: locker.accentRed,
+        surface: locker.cardBackground,
+        onPrimary: locker.textOnDark,
+        onSecondary: locker.textOnLight,
+        onSurface: locker.textPrimary,
       ),
-      textTheme: const TextTheme(
+      textTheme: TextTheme(
         bodyLarge: TextStyle(
           fontFamily: 'MonumentExtended-Regular',
           fontSize: 16,
           fontWeight: FontWeight.w400,
-          color: Color(0xFFE4E4E7),
+          color: locker.textPrimary,
         ),
         bodyMedium: TextStyle(
           fontFamily: 'MonumentExtended-Regular',
           fontSize: 14,
-          color: Color(0xFFE4E4E7),
+          color: locker.textSecondary,
         ),
         bodySmall: TextStyle(
           fontFamily: 'MonumentExtended-Regular',
           fontSize: 14,
-          color: Color(0xFFA1A1AA),
+          color: locker.textTertiary,
         ),
         labelLarge: TextStyle(
           fontFamily: 'MonumentExtended-Regular',
           fontSize: 18,
-          color: Color(0xFFE4E4E7),
+          color: locker.textPrimary,
         ),
         headlineLarge: TextStyle(
           fontFamily: 'MonumentExtended-Bold',
           fontSize: 55,
           fontWeight: FontWeight.w900,
-          color: Color(0xFFE4E4E7),
+          color: locker.textPrimary,
         ),
         headlineMedium: TextStyle(
           fontFamily: 'MonumentExtended-Regular',
           fontSize: 18,
-          color: Color(0xFFE4E4E7),
+          color: locker.textPrimary,
         ),
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF121214),
+      appBarTheme: AppBarTheme(
+        backgroundColor: locker.scaffoldBackground,
         elevation: 0,
         scrolledUnderElevation: 0,
         titleTextStyle: TextStyle(
-          color: Color(0xFFE4E4E7),
+          color: locker.textPrimary,
           fontFamily: 'MonumentExtended',
           fontSize: 20,
           fontWeight: FontWeight.w900,
         ),
       ),
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: Color(0xFFE4E4E7),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: locker.textPrimary,
         elevation: 0,
         highlightElevation: 0,
       ),
