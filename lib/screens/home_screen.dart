@@ -203,10 +203,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  /// Re-applies the currently active sort mode to the list (RAM only).
-  void _applyCurrentSort() {
-    // Sorting is handled dynamically inside _groupTransactions in build().
-  }
 
   void _cycleSort() {
     setState(() {
@@ -223,12 +219,12 @@ class _HomeScreenState extends State<HomeScreen> {
         currentSort = 'Date';
         sortTurns = 0.0;
       }
-      _applyCurrentSort();
     });
     debugPrint('Sort changed to: $currentSort');
   }
 
   void _showMorphDialog(BuildContext context, TransactionModel model) {
+    final locker = AppColorLocker.of(context);
     final colors = model.getColors(context);
     final Color amountColor = colors.fg;
     final Color badgeColor = colors.badge;
@@ -280,7 +276,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: colors.bg,
                     borderRadius: BorderRadius.circular(28),
                     border: Border.all(
-                      color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.06),
+                      color: locker.textPrimary.withValues(alpha: 0.06),
                       width: 1.5,
                     ),
                   ),
@@ -299,7 +295,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 style: TextStyle(
                                   fontFamily: 'MonumentExtended-Regular',
                                   fontSize: 12,
-                                  color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.38),
+                                  color: locker.textPrimary.withValues(alpha: 0.38),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -348,7 +344,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               width: 86,
                               height: 86,
                               decoration: BoxDecoration(
-                                color: AppColorLocker.of(context).scaffoldBackground.withValues(alpha: 0.7),
+                                color: locker.scaffoldBackground.withValues(alpha: 0.7),
                                 borderRadius: BorderRadius.circular(22),
                               ),
                               child: Icon(
@@ -366,7 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               fontFamily: 'MonumentExtended-Regular',
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
-                              color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.87),
+                              color: locker.textPrimary.withValues(alpha: 0.87),
                               letterSpacing: 0.5,
                             ),
                             textAlign: TextAlign.center,
@@ -376,14 +372,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                 fontFamily: 'MonumentExtended-Regular',
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
-                                color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.38),
+                                color: locker.textPrimary.withValues(alpha: 0.38),
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
                               ),
                               filled: true,
-                              fillColor: AppColorLocker.of(context).scaffoldBackground.withValues(alpha: 0.5),
+                              fillColor: locker.scaffoldBackground.withValues(alpha: 0.5),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 12,
@@ -410,7 +406,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 borderSide: BorderSide.none,
                               ),
                               filled: true,
-                              fillColor: AppColorLocker.of(context).scaffoldBackground.withValues(alpha: 0.5),
+                              fillColor: locker.scaffoldBackground.withValues(alpha: 0.5),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 12,
@@ -427,7 +423,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               IconButton(
                                 icon: Icon(
                                   Icons.delete_outline_rounded,
-                                  color: AppColorLocker.of(context).accentRed.withValues(alpha: 0.6),
+                                  color: locker.accentRed.withValues(alpha: 0.6),
                                   size: 28,
                                 ),
                                 splashRadius: 20,
@@ -468,7 +464,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       fontFamily: 'MonumentExtended-Bold',
                                       fontSize: 19,
                                       fontWeight: FontWeight.w900,
-                                      color: AppColorLocker.of(context).textOnDark,
+                                      color: locker.textOnDark,
                                       letterSpacing: 1.5,
                                     ),
                                   ),
@@ -490,6 +486,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showBudgetInputDialog(BuildContext context) {
+    final locker = AppColorLocker.of(context);
     final TextEditingController budgetController = TextEditingController(
       text: widget.monthlyBudget == 0
           ? ''
@@ -516,7 +513,7 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: AppColorLocker.of(context).dialogShadow30,
+                  color: locker.dialogShadow30,
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -547,7 +544,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: AppColorLocker.of(context).focusBorder),
+                      borderSide: BorderSide(color: locker.focusBorder),
                     ),
                   ),
                 ),
@@ -556,7 +553,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColorLocker.of(context).textPrimary,
+                      backgroundColor: locker.textPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -573,7 +570,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text(
                       'SAVE BUDGET',
                       style: TextStyle(
-                        color: AppColorLocker.of(context).textOnDark,
+                        color: locker.textOnDark,
                         fontFamily: 'MonumentExtended-Regular',
                         fontWeight: FontWeight.w100,
                       ),
@@ -592,10 +589,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final bool isOverBudget = widget.spent > widget.monthlyBudget;
     final grouped = _grouped;
+    final groupedKeys = grouped.keys.toList(growable: false);
+    final locker = AppColorLocker.of(context);
+    final currencyInfo = CurrencyProvider.read(context);
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
-      color: AppColorLocker.of(context).scaffoldBackground,
+      color: locker.scaffoldBackground,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         floatingActionButtonLocation: const _CustomFloatingActionButtonLocation(
@@ -609,7 +609,7 @@ class _HomeScreenState extends State<HomeScreen> {
           title: Text(
             'RADIX',
             style: TextStyle(
-              color: AppColorLocker.of(context).textPrimary,
+              color: locker.textPrimary,
               fontFamily: 'MonumentExtended',
               fontSize: 20,
               fontWeight: FontWeight.w900,
@@ -634,11 +634,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     ).add(const EdgeInsets.only(top: 8, bottom: 16)),
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: AppColorLocker.of(context).cardBackground,
+                      color: locker.cardBackground,
                       border: Border.all(
                         color: isOverBudget
-                            ? AppColorLocker.of(context).accentRed.withValues(alpha: 0.7)
-                            : AppColorLocker.of(context).budgetCardBorderNormal,
+                            ? locker.accentRed.withValues(alpha: 0.7)
+                            : locker.budgetCardBorderNormal,
                         width: 3,
                       ),
                       borderRadius: BorderRadius.circular(24),
@@ -650,7 +650,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
-                            CurrencyProvider.read(context).format(widget.spent),
+                            currencyInfo.format(widget.spent),
                             style: _styleBalance55,
                           ),
                         ),
@@ -658,11 +658,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
-                            'BUDGET LEFT: ${CurrencyProvider.read(context).format(widget.budgetLeft)}',
+                            'BUDGET LEFT: ${currencyInfo.format(widget.budgetLeft)}',
                             style: _styleBudgetLeft18.copyWith(
                               color: isOverBudget
                                   ? _premiumPastelRed
-                                  : AppColorLocker.of(context).textPrimary,
+                                  : locker.textPrimary,
                             ),
                           ),
                         ),
@@ -671,7 +671,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
-                              'Overspent by ${CurrencyProvider.read(context).format(widget.spent - widget.monthlyBudget)}',
+                              'Overspent by ${currencyInfo.format(widget.spent - widget.monthlyBudget)}',
                               style: TextStyle(
                                 fontFamily: 'MonumentExtended-Regular',
                                 fontSize: 12,
@@ -702,7 +702,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 fontFamily: 'MonumentExtended-Regular',
                                 fontSize: 14,
                                 fontWeight: FontWeight.w300,
-                                color: AppColorLocker.of(context).textSecondary,
+                                color: locker.textSecondary,
                               ),
                             ),
                             const SizedBox(width: 4),
@@ -710,7 +710,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               turns: sortTurns,
                               duration: const Duration(milliseconds: 350),
                               curve: Curves.easeOutBack,
-                              child: Icon(Icons.arrow_upward, size: 16, color: AppColorLocker.of(context).textSecondary),
+                              child: Icon(Icons.arrow_upward, size: 16, color: locker.textSecondary),
                             ),
                           ],
                         ),
@@ -725,7 +725,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: Icon(
                           Icons.info_outline,
-                          color: AppColorLocker.of(context).textSecondary,
+                          color: locker.textSecondary,
                         ),
                       ),
                     ],
@@ -770,11 +770,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 key: ValueKey<String>(currentSort),
                                 padding: const EdgeInsets.only(bottom: 110),
                                 physics: const BouncingScrollPhysics(),
-                                itemCount: grouped.keys.length,
+                                itemCount: groupedKeys.length,
                                 itemBuilder: (context, index) {
-                                  final String dateStr = grouped.keys.elementAt(
-                                    index,
-                                  );
+                                  final String dateStr = groupedKeys[index];
                                   final List<TransactionModel> groupTxs =
                                       grouped[dateStr]!;
                                   return Column(
@@ -821,7 +819,7 @@ class _HomeScreenState extends State<HomeScreen> {
             turns: _isPlusRotated ? 0.5 : 0.0,
             duration: const Duration(milliseconds: 350),
             curve: Curves.easeOutCubic,
-            child: Icon(Icons.add, color: AppColorLocker.of(context).textOnDark, size: 28),
+            child: Icon(Icons.add, color: locker.textOnDark, size: 28),
           ),
         ),
         ),
@@ -1296,6 +1294,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   controller: titleController,
                   decoration: InputDecoration(
                     hintText: hintText,
+                    hintStyle: TextStyle(
+                      fontFamily: 'MonumentExtended-Regular',
+                      fontSize: 12,
+                      color: AppColorLocker.of(context).textTertiary,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),

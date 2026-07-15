@@ -121,6 +121,8 @@ class GraphScreen extends StatefulWidget {
 class _GraphScreenState extends State<GraphScreen> {
   Color get _textColor => AppColorLocker.of(context).textPrimary;
 
+  static final DateFormat _displayFormat = DateFormat('MMM dd');
+
   Color _getContrastIconColor(Color categoryColor) {
     final hsl = HSLColor.fromColor(categoryColor);
     return hsl.withLightness((hsl.lightness * 0.35).clamp(0.0, 1.0)).toColor();
@@ -279,7 +281,6 @@ class _GraphScreenState extends State<GraphScreen> {
 
   void _onScrollNotification() {
     if (!mounted || _scrollPosition == null) return;
-    if (_scrollThrottled) return;
 
     final pos = _scrollPosition!;
     if (!pos.hasContentDimensions || pos.viewportDimension == 0) return;
@@ -288,24 +289,33 @@ class _GraphScreenState extends State<GraphScreen> {
     final double page = pos.pixels / pos.viewportDimension;
 
     // progress: 0.0 when on HomeScreen, 1.0 when fully on GraphScreen
-    final double progress = (1.0 - page).clamp(0.0, 1.0);
+    double progress = (1.0 - page).clamp(0.0, 1.0);
+    
+    // Snap progress to terminal values to avoid floating point issues
+    if (progress > 0.99) progress = 1.0;
+    if (progress < 0.01) progress = 0.0;
+    
+    // Always process terminal values immediately so they aren't dropped by the throttle
+    final bool isTerminal = progress == 0.0 || progress == 1.0;
+
+    if (!isTerminal && _scrollThrottled) return;
 
     if (progress != _swipeProgress) {
-      _scrollThrottled = true;
-      // Schedule un-throttle after a short frame to coalesce rapid scroll events
-      Future.delayed(const Duration(milliseconds: 16), () {
-        if (!mounted) return;
-        _scrollThrottled = false;
-      });
-      Future.delayed(Duration.zero, () {
-        if (!mounted) return;
-        setState(() {
-          _swipeProgress = progress;
-          // Reset selection if swiping away
-          if (progress < 1.0) {
-            _selectedIconKey = null;
-          }
+      if (!isTerminal) {
+        _scrollThrottled = true;
+        // Schedule un-throttle after a short frame to coalesce rapid scroll events
+        Future.delayed(const Duration(milliseconds: 16), () {
+          if (!mounted) return;
+          _scrollThrottled = false;
         });
+      }
+      
+      setState(() {
+        _swipeProgress = progress;
+        // Reset selection if swiping away
+        if (progress < 1.0) {
+          _selectedIconKey = null;
+        }
       });
     }
   }
@@ -525,11 +535,12 @@ class _GraphScreenState extends State<GraphScreen> {
   Widget build(BuildContext context) {
     final cats = _categories;
     final bool hasData = cats.isNotEmpty;
+    final locker = AppColorLocker.of(context);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
-      color: AppColorLocker.of(context).graphBackground,
+      color: locker.graphBackground,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(
@@ -585,10 +596,10 @@ class _GraphScreenState extends State<GraphScreen> {
                             horizontal: 24,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColorLocker.of(context).cardBackground,
+                            color: locker.cardBackground,
                             borderRadius: BorderRadius.circular(32),
                             border: Border.all(
-                              color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.04),
+                              color: locker.textPrimary.withValues(alpha: 0.04),
                               width: 1,
                             ),
                           ),
@@ -802,8 +813,8 @@ class _GraphScreenState extends State<GraphScreen> {
     );
     final details = _detailsForCategory(iconKey);
 
-    // Date formatter for detail rows
-    final DateFormat displayFormat = DateFormat('MMM dd');
+    // Date formatter for detail rows — uses static cached instance
+    final displayFormat = _displayFormat;
 
     return Column(
       key: ValueKey('DetailList_$iconKey'),

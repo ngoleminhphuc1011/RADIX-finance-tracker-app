@@ -18,7 +18,7 @@ class NavWrapper extends StatefulWidget {
 class _NavWrapperState extends State<NavWrapper> {
   final PageController _pageController = PageController(initialPage: 1);
   int _currentIndex = 1;
-  double _pagePosition = 1.0;
+  final ValueNotifier<double> _pagePosition = ValueNotifier<double>(1.0);
 
   // The single DatabaseHelper instance (Singleton — same object app-wide).
   final _db = DatabaseHelper();
@@ -60,6 +60,7 @@ class _NavWrapperState extends State<NavWrapper> {
   void dispose() {
     _pageController.removeListener(_onScroll);
     _pageController.dispose();
+    _pagePosition.dispose();
     super.dispose();
   }
 
@@ -102,9 +103,7 @@ class _NavWrapperState extends State<NavWrapper> {
   void _onScroll() {
     final double? page = _pageController.page;
     if (page != null) {
-      setState(() {
-        _pagePosition = page;
-      });
+      _pagePosition.value = page;
     }
   }
 
@@ -346,29 +345,34 @@ class _NavWrapperState extends State<NavWrapper> {
                 final double barWidth = constraints.maxWidth;
                 final double itemWidth = barWidth / 3;
                 final double indicatorWidth = itemWidth * 0.65;
-                final double indicatorCenterX =
-                    itemWidth * (0.5 + _pagePosition);
-                final double indicatorLeft =
-                    (indicatorCenterX - indicatorWidth / 2).clamp(
-                      0.0,
-                      barWidth - indicatorWidth,
-                    );
 
                 return Stack(
                   children: [
-                    Positioned(
-                      left: indicatorLeft,
-                      top: 6,
-                      bottom: 6,
-                      width: indicatorWidth,
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 400),
-                        curve: Curves.easeInOut,
-                        decoration: BoxDecoration(
-                          color: AppColorLocker.of(context).navIndicatorBackground,
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
+                    ValueListenableBuilder<double>(
+                      valueListenable: _pagePosition,
+                      builder: (context, pagePos, _) {
+                        final double indicatorCenterX =
+                            itemWidth * (0.5 + pagePos);
+                        final double indicatorLeft =
+                            (indicatorCenterX - indicatorWidth / 2).clamp(
+                              0.0,
+                              barWidth - indicatorWidth,
+                            );
+                        return Positioned(
+                          left: indicatorLeft,
+                          top: 6,
+                          bottom: 6,
+                          width: indicatorWidth,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 400),
+                            curve: Curves.easeInOut,
+                            decoration: BoxDecoration(
+                              color: AppColorLocker.of(context).navIndicatorBackground,
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     Row(
                       children: [

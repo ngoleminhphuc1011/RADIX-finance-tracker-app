@@ -104,22 +104,22 @@ class _SplashScreenState extends State<SplashScreen>
                           // Top - moves UP
                           Transform.translate(
                             offset: Offset(0, -_topAnim.value),
-                            child: _buildDot(context),
+                            child: _buildDot(locker.focusBorder),
                           ),
                           // Right - moves RIGHT
                           Transform.translate(
                             offset: Offset(_rightAnim.value, 0),
-                            child: _buildDot(context),
+                            child: _buildDot(locker.focusBorder),
                           ),
                           // Bottom - moves DOWN
                           Transform.translate(
                             offset: Offset(0, _bottomAnim.value),
-                            child: _buildDot(context),
+                            child: _buildDot(locker.focusBorder),
                           ),
                           // Left - moves LEFT
                           Transform.translate(
                             offset: Offset(-_leftAnim.value, 0),
-                            child: _buildDot(context),
+                            child: _buildDot(locker.focusBorder),
                           ),
                           Text(
                             '\$',
@@ -157,12 +157,12 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  Widget _buildDot(BuildContext context) {
+  Widget _buildDot(Color color) {
     return Container(
       width: 28,
       height: 28,
       decoration: BoxDecoration(
-        color: AppColorLocker.of(context).focusBorder,
+        color: color,
         borderRadius: BorderRadius.circular(4),
       ),
     );

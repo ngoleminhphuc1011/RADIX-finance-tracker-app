@@ -164,10 +164,11 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final locker = AppColorLocker.of(context);
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
-      color: AppColorLocker.of(context).settingsBackground,
+      color: locker.settingsBackground,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(
@@ -206,7 +207,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         fontFamily: 'MonumentExtended-Regular',
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: AppColorLocker.of(context).settingsSectionLabel,
+                        color: locker.settingsSectionLabel,
                       ),
                     ),
                   ),
@@ -220,7 +221,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   child: Container(
                     height: 54,
                     decoration: BoxDecoration(
-                      color: AppColorLocker.of(context).settingsCapsuleBarBackground,
+                      color: locker.settingsCapsuleBarBackground,
                       borderRadius: BorderRadius.circular(30),
                     ),
                     child: LayoutBuilder(
@@ -305,7 +306,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                       style: TextStyle(
                         fontFamily: 'MonumentExtended-Regular',
                         fontSize: 12,
-                        color: AppColorLocker.of(context).settingsInfoText,
+                        color: locker.settingsInfoText,
                       ),
                     ),
                   ),
@@ -319,7 +320,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   child: Container(
                     height: 44,
                     decoration: BoxDecoration(
-                      color: AppColorLocker.of(context).searchBarBackground,
+                      color: locker.searchBarBackground,
                       borderRadius: BorderRadius.circular(22),
                     ),
                     child: TextField(
@@ -331,18 +332,18 @@ class _SettingsScreenState extends State<SettingsScreen>
                       style: TextStyle(
                         fontFamily: 'MonumentExtended-Regular',
                         fontSize: 13,
-                        color: AppColorLocker.of(context).textPrimary,
+                        color: locker.textPrimary,
                       ),
                       decoration: InputDecoration(
                         hintText: 'Search currency...',
                         hintStyle: TextStyle(
                           fontFamily: 'MonumentExtended-Regular',
                           fontSize: 13,
-                          color: AppColorLocker.of(context).textTertiary,
+                          color: locker.textTertiary,
                         ),
                         prefixIcon: Icon(
                           Icons.search,
-                          color: AppColorLocker.of(context).textTertiary,
+                          color: locker.textTertiary,
                           size: 20,
                         ),
                         border: InputBorder.none,
@@ -430,12 +431,13 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   void _showResetConfirmDialog(BuildContext context) {
+    final locker = AppColorLocker.of(context);
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Dismiss Reset Confirm',
       transitionDuration: const Duration(milliseconds: 350),
-      barrierColor: AppColorLocker.of(context).barrierColorLight,
+      barrierColor: locker.barrierColorLight,
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(
           opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -474,7 +476,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               margin: const EdgeInsets.symmetric(horizontal: 48),
               constraints: const BoxConstraints(maxWidth: 360),
               decoration: BoxDecoration(
-                color: AppColorLocker.of(context).dialogBackground,
+                color: locker.dialogBackground,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
                   color: _accentRed.withValues(alpha: 0.75),
@@ -482,12 +484,12 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColorLocker.of(context).dialogShadow30,
+                    color: locker.dialogShadow30,
                     blurRadius: 30,
                     offset: const Offset(0, 10),
                   ),
                   BoxShadow(
-                    color: AppColorLocker.of(context).dialogShadow60,
+                    color: locker.dialogShadow60,
                     blurRadius: 60,
                     offset: const Offset(0, 20),
                   ),
@@ -505,7 +507,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         fontFamily: 'MonumentExtended-Regular',
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
-                        color: AppColorLocker.of(context).textDialogTitle,
+                        color: locker.textDialogTitle,
                         letterSpacing: 1.7,
                       ),
                     ),
@@ -516,7 +518,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         fontFamily: 'MonumentExtended-Regular',
                         fontSize: 13,
                         fontWeight: FontWeight.w100,
-                        color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.87),
+                        color: locker.textPrimary.withValues(alpha: 0.87),
                         height: 1.5,
                       ),
                     ),
@@ -550,7 +552,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(14),
                                       border: Border.all(
-                                        color: AppColorLocker.of(context).textTertiary.withValues(alpha: 0.3),
+                                        color: locker.textTertiary.withValues(alpha: 0.3),
                                       ),
                                     ),
                                     child: Text(
@@ -559,7 +561,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                                         fontFamily: 'MonumentExtended-Regular',
                                         fontSize: 14,
                                         fontWeight: FontWeight.w400,
-                                        color: AppColorLocker.of(context).textTertiary,
+                                        color: locker.textTertiary,
                                       ),
                                     ),
                                   ),
@@ -568,7 +570,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                             },
                           ),
                           const SizedBox(width: 20),
-                          _buildHoldConfirmButton(),
+                          _buildHoldConfirmButton(locker),
                         ],
                       ),
                     ),
@@ -582,7 +584,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  Widget _buildHoldConfirmButton() {
+  Widget _buildHoldConfirmButton(AppColorLocker locker) {
     return Listener(
       onPointerDown: (_) {
         setState(() => _isHolding = true);
@@ -623,7 +625,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         shaderCallback: (bounds) => LinearGradient(
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
-                          colors: [AppColorLocker.of(context).textOnDark, _accentRed],
+                          colors: [locker.textOnDark, _accentRed],
                           stops: [_holdProgress.value, _holdProgress.value],
                         ).createShader(bounds),
                         blendMode: BlendMode.srcIn,
@@ -634,7 +636,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                             fontFamily: 'MonumentExtended-Regular',
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
-                            color: AppColorLocker.of(context).textOnLight,
+                            color: locker.textOnLight,
                           ),
                         ),
                       ),

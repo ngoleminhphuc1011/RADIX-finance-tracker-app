@@ -270,7 +270,7 @@ class DatabaseHelper {
         for (final row in rows) {
           final int id = row['id'] as int;
           final double originalAmount = row['amount'] as double;
-          double convertedAmount = (originalAmount * factor).roundToDouble();
+          double convertedAmount = originalAmount * factor;
           if (convertedAmount < 0) convertedAmount = 0.0;
           await txn.update(
             'transactions',
@@ -288,7 +288,7 @@ class DatabaseHelper {
         );
         if (budgetRows.isNotEmpty) {
           final double originalBudget = double.tryParse(budgetRows.first['value'] as String) ?? 0.0;
-          double convertedBudget = (originalBudget * factor).roundToDouble();
+          double convertedBudget = originalBudget * factor;
           if (convertedBudget < 0) convertedBudget = 0.0;
           await txn.update(
             'settings',
