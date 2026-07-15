@@ -121,6 +121,11 @@ class GraphScreen extends StatefulWidget {
 class _GraphScreenState extends State<GraphScreen> {
   Color get _textColor => AppColorLocker.of(context).textPrimary;
 
+  Color _getContrastIconColor(Color categoryColor) {
+    final hsl = HSLColor.fromColor(categoryColor);
+    return hsl.withLightness((hsl.lightness * 0.35).clamp(0.0, 1.0)).toColor();
+  }
+
   String? _selectedIconKey;
   ScrollPosition? _scrollPosition;
   double _swipeProgress = 0.0;
@@ -553,7 +558,7 @@ class _GraphScreenState extends State<GraphScreen> {
                       top: 40,
                       left: 24,
                       right: 24,
-                      bottom: 40,
+                      bottom: 110,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -725,7 +730,7 @@ class _GraphScreenState extends State<GraphScreen> {
                         child: Icon(
                           category.icon,
                           size: 16,
-                          color: AppColorLocker.of(context).textPrimary,
+                          color: _getContrastIconColor(category.color),
                         ),
                       ),
                     ),
@@ -909,7 +914,7 @@ class _GraphScreenState extends State<GraphScreen> {
                             child: Icon(
                               category.icon,
                               size: 16,
-                              color: AppColorLocker.of(context).textPrimary,
+                              color: _getContrastIconColor(category.color),
                             ),
                           ),
                         ),

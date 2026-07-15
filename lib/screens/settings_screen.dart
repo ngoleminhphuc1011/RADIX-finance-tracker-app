@@ -27,7 +27,9 @@ const List<_Currency> _allCurrencies = [
 ];
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final VoidCallback onResetAll;
+
+  const SettingsScreen({super.key, required this.onResetAll});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -148,6 +150,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       if (status == AnimationStatus.completed) {
         debugPrint('Hold Confirm Success');
         Navigator.pop(context);
+        widget.onResetAll();
       }
     });
   }
@@ -175,7 +178,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             top: 40,
             left: 24,
             right: 24,
-            bottom: 40,
+            bottom: 110,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -463,6 +466,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         );
       },
       pageBuilder: (context, animation, secondaryAnimation) {
+        bool isCancelPressed = false;
         return Center(
           child: Material(
             type: MaterialType.transparency,
@@ -470,7 +474,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               margin: const EdgeInsets.symmetric(horizontal: 48),
               constraints: const BoxConstraints(maxWidth: 360),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColorLocker.of(context).dialogBackground,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
                   color: _accentRed.withValues(alpha: 0.75),
@@ -522,29 +526,46 @@ class _SettingsScreenState extends State<SettingsScreen>
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: AppColorLocker.of(context).textTertiary.withValues(alpha: 0.3),
+                          StatefulBuilder(
+                            builder: (context, setState) {
+                              return GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTapDown: (_) => setState(() => isCancelPressed = true),
+                                onTapUp: (_) {
+                                  setState(() => isCancelPressed = false);
+                                  Future.delayed(const Duration(milliseconds: 120), () {
+                                    if (context.mounted) Navigator.pop(context);
+                                  });
+                                },
+                                onTapCancel: () => setState(() => isCancelPressed = false),
+                                child: AnimatedScale(
+                                  scale: isCancelPressed ? 0.85 : 1.0,
+                                  duration: const Duration(milliseconds: 400),
+                                  curve: Curves.elasticOut,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 12,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(
+                                        color: AppColorLocker.of(context).textTertiary.withValues(alpha: 0.3),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'Cancel',
+                                      style: TextStyle(
+                                        fontFamily: 'MonumentExtended-Regular',
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w400,
+                                        color: AppColorLocker.of(context).textTertiary,
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              child: Text(
-                                'Cancel',
-                                style: TextStyle(
-                                  fontFamily: 'MonumentExtended-Regular',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w400,
-                                  color: AppColorLocker.of(context).textTertiary,
-                                ),
-                              ),
-                            ),
+                              );
+                            },
                           ),
                           const SizedBox(width: 20),
                           _buildHoldConfirmButton(),
@@ -637,13 +658,18 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Color get _activeTextColor {
-    switch (_selectedTheme) {
-      case ThemeOption.light:
-        return AppColorLocker.of(context).textPrimary;
-      case ThemeOption.system:
-        return AppColorLocker.of(context).textOnDark;
-      case ThemeOption.dark:
-        return AppColorLocker.of(context).textOnDark;
+    final bool isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+    if (isDarkTheme) {
+      return AppColorLocker.of(context).textPrimary;
+    } else {
+      switch (_selectedTheme) {
+        case ThemeOption.light:
+          return AppColorLocker.of(context).textPrimary;
+        case ThemeOption.system:
+          return AppColorLocker.of(context).textPrimary;
+        case ThemeOption.dark:
+          return AppColorLocker.of(context).textOnDark;
+      }
     }
   }
 

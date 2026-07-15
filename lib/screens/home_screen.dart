@@ -598,6 +598,10 @@ class _HomeScreenState extends State<HomeScreen> {
       color: AppColorLocker.of(context).scaffoldBackground,
       child: Scaffold(
         backgroundColor: Colors.transparent,
+        floatingActionButtonLocation: const _CustomFloatingActionButtonLocation(
+          FloatingActionButtonLocation.endFloat,
+          offsetY: -92,
+        ),
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -764,7 +768,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: ListView.builder(
                                 controller: _scrollController,
                                 key: ValueKey<String>(currentSort),
-                                padding: const EdgeInsets.only(bottom: 80),
+                                padding: const EdgeInsets.only(bottom: 110),
                                 physics: const BouncingScrollPhysics(),
                                 itemCount: grouped.keys.length,
                                 itemBuilder: (context, index) {
@@ -1793,5 +1797,21 @@ class _BounceCardState extends State<BounceCard>
         child: ScaleTransition(scale: _scaleAnimation, child: widget.child),
       ),
     );
+  }
+}
+
+class _CustomFloatingActionButtonLocation extends FloatingActionButtonLocation {
+  final FloatingActionButtonLocation location;
+  final double offsetY;
+
+  const _CustomFloatingActionButtonLocation(
+    this.location, {
+    required this.offsetY,
+  });
+
+  @override
+  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
+    final Offset offset = location.getOffset(scaffoldGeometry);
+    return Offset(offset.dx, offset.dy + offsetY);
   }
 }

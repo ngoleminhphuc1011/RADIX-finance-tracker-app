@@ -189,6 +189,30 @@ class DatabaseHelper {
   // SETTINGS (key-value store)
   // ═══════════════════════════════════════════════════════════════════════════
 
+  /// Deletes all transactions and resets the monthly budget to 0.0.
+  /// Keeps other settings like theme and currency intact.
+  Future<void> resetDataKeepSettings() async {
+    try {
+      final Database db = await database;
+      await db.transaction((txn) async {
+        // 1. Delete all transactions
+        await txn.delete('transactions');
+        
+        // 2. Delete monthly budget setting
+        await txn.delete(
+          'settings',
+          where: 'key = ?',
+          whereArgs: ['monthly_budget'],
+        );
+      });
+      debugPrint('[DB] Reset data keeping theme/currency successfully.');
+    } catch (e, stackTrace) {
+      debugPrint('[DB] ERROR — resetDataKeepSettings: $e');
+      debugPrint('[DB] StackTrace: $stackTrace');
+      rethrow;
+    }
+  }
+
   /// Reads a setting value by [key]. Returns null if not found.
   Future<String?> getSetting(String key) async {
     try {

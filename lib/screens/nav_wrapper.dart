@@ -262,6 +262,23 @@ class _NavWrapperState extends State<NavWrapper> {
     recalculateGlobalBalances();
   }
 
+  // ── Reset ───────────────────────────────────────────────────────────────────
+
+  /// Called from SettingsScreen when the user confirms a full data reset.
+  Future<void> _resetAllData() async {
+    try {
+      await _db.resetDataKeepSettings();
+      if (!mounted) return;
+      setState(() {
+        _transactions.clear();
+        _userSetBudget = 0.0;
+      });
+      recalculateGlobalBalances();
+    } catch (e) {
+      debugPrint('[Nav] ERROR resetting data: $e');
+    }
+  }
+
   // ── Build ────────────────────────────────────────────────────────────────────
 
   Color get _currentTabBackgroundColor {
@@ -285,8 +302,9 @@ class _NavWrapperState extends State<NavWrapper> {
       curve: Curves.easeInOut,
       color: _currentTabBackgroundColor,
       child: Scaffold(
+        extendBody: true,
         backgroundColor: Colors.transparent,
-      body: PageView(
+        body: PageView(
         controller: _pageController,
         onPageChanged: _onPageChanged,
         children: [
@@ -302,7 +320,7 @@ class _NavWrapperState extends State<NavWrapper> {
             onBudgetChanged: _setBudget,
             onSpentChanged: _setSpent,
           ),
-          const SettingsScreen(),
+          SettingsScreen(onResetAll: _resetAllData),
         ],
       ),
       bottomNavigationBar: Padding(
@@ -392,9 +410,12 @@ class _NavWrapperState extends State<NavWrapper> {
     double itemWidth,
   ) {
     final bool isActive = _currentIndex == index;
+    final locker = AppColorLocker.of(context);
     final Color targetColor = isActive
-        ? AppColorLocker.of(context).textPrimary
-        : AppColorLocker.of(context).textTertiary;
+        ? (locker.navIndicatorBackground.computeLuminance() > 0.5
+            ? const Color(0xFF090A0C)
+            : locker.textPrimary)
+        : locker.textTertiary;
 
     return SizedBox(
       width: itemWidth,

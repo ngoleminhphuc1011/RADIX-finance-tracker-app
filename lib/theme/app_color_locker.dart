@@ -373,7 +373,7 @@ class DarkColorLocker extends AppColorLocker {
   Color get scaffoldBackground => const Color(0xFF090A0C);
 
   @override
-  Color get navBarBackground => const Color(0xFF131518);
+  Color get navBarBackground => const Color.fromARGB(255, 39, 41, 44);
 
   @override
   Color get cardBackground => const Color(0xFF131518);
@@ -436,7 +436,7 @@ class DarkColorLocker extends AppColorLocker {
   Color get shadowLight => Colors.transparent;
 
   @override
-  Color get navIndicatorBackground => const Color(0xFF20272F);
+  Color get navIndicatorBackground => const Color.fromARGB(255, 222, 236, 253);
 
   @override
   Color get expenseBg => const Color(0xFF2A1C1C);
