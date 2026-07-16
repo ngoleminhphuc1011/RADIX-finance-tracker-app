@@ -130,6 +130,15 @@ class _HomeScreenState extends State<HomeScreen> {
   int _cachedGroupedHash = -1;
   String _cachedGroupedSort = '';
 
+  @override
+  void didUpdateWidget(covariant HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.transactions != widget.transactions || oldWidget.monthlyBudget != widget.monthlyBudget || oldWidget.spent != widget.spent) {
+      _cachedGrouped = null;
+      _cachedGroupedHash = -1;
+    }
+  }
+
   int _calculateHash() {
     int hash = 17;
     try {
@@ -199,6 +208,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _expenseTitleController.dispose();
+    _expenseAmountController.dispose();
+    _incomeTitleController.dispose();
+    _incomeAmountController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -235,8 +248,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final TextEditingController descController = TextEditingController(
       text: model.title,
     );
+    final String initialAmount = model.amount == model.amount.toInt()
+        ? model.amount.toInt().toString()
+        : model.amount.toString();
     final TextEditingController amountController = TextEditingController(
-      text: model.amount.toString(),
+      text: initialAmount,
     );
 
     showGeneralDialog(
@@ -434,9 +450,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               // SAVE button — prominent primary action
                               GestureDetector(
                                 onTap: () {
-                                  final double? amount = double.tryParse(
-                                    amountController.text,
-                                  );
+                                  final String cleanAmount = amountController.text.replaceAll(',', '');
+                                  final double? amount = double.tryParse(cleanAmount);
                                   if (descController.text.isNotEmpty &&
                                       amount != null &&
                                       widget.onUpdateTransaction != null) {
@@ -591,7 +606,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final grouped = _grouped;
     final groupedKeys = grouped.keys.toList(growable: false);
     final locker = AppColorLocker.of(context);
-    final currencyInfo = CurrencyProvider.read(context);
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
@@ -649,35 +663,50 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 4),
                         FittedBox(
                           fit: BoxFit.scaleDown,
-                          child: Text(
-                            currencyInfo.format(widget.spent),
-                            style: _styleBalance55,
+                          child: Builder(
+                            builder: (context) {
+                              final currencyInfo = CurrencyProvider.watch(context);
+                              return Text(
+                                currencyInfo.format(widget.spent),
+                                style: _styleBalance55,
+                              );
+                            }
                           ),
                         ),
                         const SizedBox(height: 6),
                         FittedBox(
                           fit: BoxFit.scaleDown,
-                          child: Text(
-                            'BUDGET LEFT: ${currencyInfo.format(widget.budgetLeft)}',
-                            style: _styleBudgetLeft18.copyWith(
-                              color: isOverBudget
-                                  ? _premiumPastelRed
-                                  : locker.textPrimary,
-                            ),
+                          child: Builder(
+                            builder: (context) {
+                              final currencyInfo = CurrencyProvider.watch(context);
+                              return Text(
+                                'BUDGET LEFT: ${currencyInfo.format(widget.budgetLeft)}',
+                                style: _styleBudgetLeft18.copyWith(
+                                  color: isOverBudget
+                                      ? _premiumPastelRed
+                                      : locker.textPrimary,
+                                ),
+                              );
+                            }
                           ),
                         ),
                         if (isOverBudget) ...[
                           const SizedBox(height: 6),
                           FittedBox(
                             fit: BoxFit.scaleDown,
-                            child: Text(
-                              'Overspent by ${currencyInfo.format(widget.spent - widget.monthlyBudget)}',
-                              style: TextStyle(
-                                fontFamily: 'MonumentExtended-Regular',
-                                fontSize: 12,
-                                fontWeight: FontWeight.w300,
-                                color: _premiumPastelRed,
-                              ),
+                            child: Builder(
+                              builder: (context) {
+                                final currencyInfo = CurrencyProvider.watch(context);
+                                return Text(
+                                  'Overspent by ${currencyInfo.format(widget.spent - widget.monthlyBudget)}',
+                                  style: TextStyle(
+                                    fontFamily: 'MonumentExtended-Regular',
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w300,
+                                    color: _premiumPastelRed,
+                                  ),
+                                );
+                              }
                             ),
                           ),
                         ],
@@ -1244,10 +1273,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                     }
                                   }
                                 },
-                                child: const Text(
+                                child: Text(
                                   'ADD',
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: AppColorLocker.of(context).textOnDark,
                                     fontFamily: 'MonumentExtended-Regular',
                                     fontWeight: FontWeight.w100,
                                   ),

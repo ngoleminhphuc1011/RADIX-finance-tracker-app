@@ -484,16 +484,21 @@ class _GraphScreenState extends State<GraphScreen> {
         const SizedBox(height: 8),
         FittedBox(
           fit: BoxFit.scaleDown,
-          child: Text(
-            touchedIdx != -1 && touchedIdx < cats.length
-                ? CurrencyProvider.read(context).format(cats[touchedIdx].amount)
-                : CurrencyProvider.read(context).format(_totalSpent * _swipeProgress),
-            style: TextStyle(
-              fontFamily: 'MonumentExtended-Regular',
-              fontSize: 22,
-              fontWeight: FontWeight.w600,
-              color: _textColor,
-            ),
+          child: Builder(
+            builder: (context) {
+              final currencyInfo = CurrencyProvider.watch(context);
+              return Text(
+                touchedIdx != -1 && touchedIdx < cats.length
+                    ? currencyInfo.format(cats[touchedIdx].amount)
+                    : currencyInfo.format(_totalSpent * _swipeProgress),
+                style: TextStyle(
+                  fontFamily: 'MonumentExtended-Regular',
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                  color: _textColor,
+                ),
+              );
+            }
           ),
         ),
       ],

@@ -25,7 +25,7 @@ class _NavWrapperState extends State<NavWrapper> {
 
   // Lifted global state — persists across page switches.
   // All of this is loaded from DB on startup and saved to DB on every change.
-  final List<TransactionModel> _transactions = [];
+  List<TransactionModel> _transactions = [];
   double _userSetBudget = 0.0; // loaded from DB; 0.0 = "not set yet"
   double monthlyBudget = 0.0;
   double spent = 0.0;
@@ -38,7 +38,7 @@ class _NavWrapperState extends State<NavWrapper> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final currentCurrency = CurrencyProvider.read(context);
+    final currentCurrency = CurrencyProvider.watch(context);
     if (_prevCurrency != null && _prevCurrency!.code != currentCurrency.code) {
       debugPrint('[NavWrapper] Currency change detected from ${_prevCurrency!.code} to ${currentCurrency.code}. Reloading DB...');
       _loadAllFromDB();
@@ -166,7 +166,7 @@ class _NavWrapperState extends State<NavWrapper> {
       final TransactionModel txWithId = sanitizedTx.copyWith(id: newId);
 
       setState(() {
-        _transactions.insert(0, txWithId);
+        _transactions = List.from(_transactions)..insert(0, txWithId);
       });
       recalculateGlobalBalances();
     } catch (e) {
@@ -200,11 +200,13 @@ class _NavWrapperState extends State<NavWrapper> {
       if (index == -1) return;
 
       setState(() {
-        _transactions[index] = _transactions[index].copyWith(
+        final newList = List<TransactionModel>.from(_transactions);
+        newList[index] = newList[index].copyWith(
           category: newCategory,
           title: newTitle,
           amount: roundedAmount,
         );
+        _transactions = newList;
       });
 
       recalculateGlobalBalances();
@@ -223,7 +225,9 @@ class _NavWrapperState extends State<NavWrapper> {
 
       // 2. Remove from RAM.
       setState(() {
-        _transactions.removeWhere((t) => t.id == id);
+        final newList = List<TransactionModel>.from(_transactions);
+        newList.removeWhere((t) => t.id == id);
+        _transactions = newList;
       });
 
       recalculateGlobalBalances();

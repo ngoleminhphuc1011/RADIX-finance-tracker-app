@@ -28,7 +28,7 @@ class TransactionTile extends StatelessWidget {
     final Color fgColor = isExpense
         ? locker.expenseFg
         : locker.incomeFg;
-    final currencyInfo = CurrencyProvider.read(context);
+    final currencyInfo = CurrencyProvider.watch(context);
     final String amountText =
         '${isExpense ? '-' : '+'} ${currencyInfo.format(model.amount)}';
     final IconData? resolvedIcon = iconOptions[model.category];

@@ -171,11 +171,14 @@ class DatabaseHelper {
   Future<int> deleteTransaction(int id) async {
     try {
       final Database db = await database;
-      final int rowsAffected = await db.delete(
-        'transactions',
-        where: 'id = ?',
-        whereArgs: [id],
-      );
+      int rowsAffected = 0;
+      await db.transaction((txn) async {
+        rowsAffected = await txn.delete(
+          'transactions',
+          where: 'id = ?',
+          whereArgs: [id],
+        );
+      });
       debugPrint('[DB] Deleted transaction id: $id ($rowsAffected row(s))');
       return rowsAffected;
     } catch (e, stackTrace) {

@@ -416,7 +416,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         fontFamily: 'MonumentExtended-Regular',
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
-                        color: Colors.white,
+                        color: AppColorLocker.of(context).textOnDark,
                         letterSpacing: 1.0,
                       ),
                     ),
@@ -446,7 +446,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           child: Stack(
             children: [
               Container(
-                color: Colors.black.withValues(alpha: 0.15),
+                color: locker.textPrimary.withValues(alpha: 0.15),
                 child: BackdropFilter(
                   filter: ui.ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                   child: const SizedBox.expand(),

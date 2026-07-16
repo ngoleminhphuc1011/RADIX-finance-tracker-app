@@ -146,8 +146,8 @@ class _SplashScreenState extends State<SplashScreen>
               'Fulton Ngo corporation',
               style: TextStyle(
                 fontFamily: 'FontUltra',
-                fontSize: 10,
-                fontWeight: FontWeight.w400,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
                 color: locker.textPrimary,
               ),
             ),
