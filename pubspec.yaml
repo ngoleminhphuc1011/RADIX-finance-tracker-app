@@ -63,7 +63,7 @@ flutter:
   assets:
     - assets/images/logo/LOGORADIX.png
 
-  # Khai báo cấu hình font Monument Extended
+  # Configure custom Monument Extended and Ultra fonts
   fonts:
     - family: MonumentExtended
       fonts:
