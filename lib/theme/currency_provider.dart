@@ -70,7 +70,8 @@ class CurrencyProvider extends InheritedNotifier<ValueNotifier<CurrencyInfo>> {
   }) : super(notifier: notifier);
 
   static ValueNotifier<CurrencyInfo> of(BuildContext context) {
-    final element = context.getElementForInheritedWidgetOfExactType<CurrencyProvider>();
+    final element = context
+        .getElementForInheritedWidgetOfExactType<CurrencyProvider>();
     assert(element != null, 'No CurrencyProvider found in context');
     return (element!.widget as CurrencyProvider).notifier!;
   }
@@ -80,7 +81,8 @@ class CurrencyProvider extends InheritedNotifier<ValueNotifier<CurrencyInfo>> {
   }
 
   static CurrencyInfo watch(BuildContext context) {
-    final provider = context.dependOnInheritedWidgetOfExactType<CurrencyProvider>();
+    final provider = context
+        .dependOnInheritedWidgetOfExactType<CurrencyProvider>();
     assert(provider != null, 'No CurrencyProvider found in context');
     return provider!.notifier!.value;
   }

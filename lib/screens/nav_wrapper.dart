@@ -40,7 +40,9 @@ class _NavWrapperState extends State<NavWrapper> {
     super.didChangeDependencies();
     final currentCurrency = CurrencyProvider.watch(context);
     if (_prevCurrency != null && _prevCurrency!.code != currentCurrency.code) {
-      debugPrint('[NavWrapper] Currency change detected from ${_prevCurrency!.code} to ${currentCurrency.code}. Reloading DB...');
+      debugPrint(
+        '[NavWrapper] Currency change detected from ${_prevCurrency!.code} to ${currentCurrency.code}. Reloading DB...',
+      );
       _loadAllFromDB();
     }
     _prevCurrency = currentCurrency;
@@ -308,108 +310,113 @@ class _NavWrapperState extends State<NavWrapper> {
         extendBody: true,
         backgroundColor: Colors.transparent,
         body: PageView(
-        controller: _pageController,
-        onPageChanged: _onPageChanged,
-        children: [
-          GraphScreen(isActive: _currentIndex == 0, transactions: _transactions),
-          HomeScreen(
-            transactions: _transactions,
-            onAddTransaction: _addTransaction,
-            onUpdateTransaction: updateTransaction,
-            onDeleteTransaction: deleteTransaction,
-            monthlyBudget: monthlyBudget,
-            spent: spent,
-            budgetLeft: budgetLeft,
-            onBudgetChanged: _setBudget,
-            onSpentChanged: _setSpent,
-          ),
-          SettingsScreen(onResetAll: _resetAllData),
-        ],
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(bottom: 24, left: 20, right: 20),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(32),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 400),
-            curve: Curves.easeInOut,
-            height: 68,
-            decoration: BoxDecoration(
-              color: AppColorLocker.of(context).navBarBackground,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColorLocker.of(context).shadowLight,
-                  blurRadius: 20,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+          controller: _pageController,
+          onPageChanged: _onPageChanged,
+          children: [
+            GraphScreen(
+              isActive: _currentIndex == 0,
+              transactions: _transactions,
             ),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final double barWidth = constraints.maxWidth;
-                final double itemWidth = barWidth / 3;
-                final double indicatorWidth = itemWidth * 0.65;
+            HomeScreen(
+              transactions: _transactions,
+              onAddTransaction: _addTransaction,
+              onUpdateTransaction: updateTransaction,
+              onDeleteTransaction: deleteTransaction,
+              monthlyBudget: monthlyBudget,
+              spent: spent,
+              budgetLeft: budgetLeft,
+              onBudgetChanged: _setBudget,
+              onSpentChanged: _setSpent,
+            ),
+            SettingsScreen(onResetAll: _resetAllData),
+          ],
+        ),
+        bottomNavigationBar: Padding(
+          padding: const EdgeInsets.only(bottom: 24, left: 20, right: 20),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(32),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeInOut,
+              height: 68,
+              decoration: BoxDecoration(
+                color: AppColorLocker.of(context).navBarBackground,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColorLocker.of(context).shadowLight,
+                    blurRadius: 20,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final double barWidth = constraints.maxWidth;
+                  final double itemWidth = barWidth / 3;
+                  final double indicatorWidth = itemWidth * 0.65;
 
-                return Stack(
-                  children: [
-                    ValueListenableBuilder<double>(
-                      valueListenable: _pagePosition,
-                      builder: (context, pagePos, _) {
-                        final double indicatorCenterX =
-                            itemWidth * (0.5 + pagePos);
-                        final double indicatorLeft =
-                            (indicatorCenterX - indicatorWidth / 2).clamp(
-                              0.0,
-                              barWidth - indicatorWidth,
-                            );
-                        return Positioned(
-                          left: indicatorLeft,
-                          top: 6,
-                          bottom: 6,
-                          width: indicatorWidth,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 400),
-                            curve: Curves.easeInOut,
-                            decoration: BoxDecoration(
-                              color: AppColorLocker.of(context).navIndicatorBackground,
-                              borderRadius: BorderRadius.circular(30),
+                  return Stack(
+                    children: [
+                      ValueListenableBuilder<double>(
+                        valueListenable: _pagePosition,
+                        builder: (context, pagePos, _) {
+                          final double indicatorCenterX =
+                              itemWidth * (0.5 + pagePos);
+                          final double indicatorLeft =
+                              (indicatorCenterX - indicatorWidth / 2).clamp(
+                                0.0,
+                                barWidth - indicatorWidth,
+                              );
+                          return Positioned(
+                            left: indicatorLeft,
+                            top: 6,
+                            bottom: 6,
+                            width: indicatorWidth,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 400),
+                              curve: Curves.easeInOut,
+                              decoration: BoxDecoration(
+                                color: AppColorLocker.of(
+                                  context,
+                                ).navIndicatorBackground,
+                                borderRadius: BorderRadius.circular(30),
+                              ),
                             ),
+                          );
+                        },
+                      ),
+                      Row(
+                        children: [
+                          _buildNavItem(
+                            0,
+                            Icons.bar_chart_outlined,
+                            Icons.bar_chart,
+                            itemWidth,
                           ),
-                        );
-                      },
-                    ),
-                    Row(
-                      children: [
-                        _buildNavItem(
-                          0,
-                          Icons.bar_chart_outlined,
-                          Icons.bar_chart,
-                          itemWidth,
-                        ),
-                        _buildNavItem(
-                          1,
-                          Icons.home_outlined,
-                          Icons.home,
-                          itemWidth,
-                        ),
-                        _buildNavItem(
-                          2,
-                          Icons.settings_outlined,
-                          Icons.settings,
-                          itemWidth,
-                        ),
-                      ],
-                    ),
-                  ],
-                );
-              },
+                          _buildNavItem(
+                            1,
+                            Icons.home_outlined,
+                            Icons.home,
+                            itemWidth,
+                          ),
+                          _buildNavItem(
+                            2,
+                            Icons.settings_outlined,
+                            Icons.settings,
+                            itemWidth,
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildNavItem(
     int index,
@@ -421,8 +428,8 @@ class _NavWrapperState extends State<NavWrapper> {
     final locker = AppColorLocker.of(context);
     final Color targetColor = isActive
         ? (locker.navIndicatorBackground.computeLuminance() > 0.5
-            ? const Color(0xFF090A0C)
-            : locker.textPrimary)
+              ? const Color(0xFF090A0C)
+              : locker.textPrimary)
         : locker.textTertiary;
 
     return SizedBox(

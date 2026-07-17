@@ -200,7 +200,7 @@ class DatabaseHelper {
       await db.transaction((txn) async {
         // 1. Delete all transactions
         await txn.delete('transactions');
-        
+
         // 2. Delete monthly budget setting
         await txn.delete(
           'settings',
@@ -256,7 +256,10 @@ class DatabaseHelper {
 
   /// Converts all transactions and the monthly budget from one currency to another.
   /// Runs inside a database transaction to ensure safety and atomicity.
-  Future<void> convertAllTransactionsAndBudget(String fromCode, String toCode) async {
+  Future<void> convertAllTransactionsAndBudget(
+    String fromCode,
+    String toCode,
+  ) async {
     if (fromCode.toUpperCase() == toCode.toUpperCase()) return;
 
     try {
@@ -265,7 +268,9 @@ class DatabaseHelper {
       final double toRate = CurrencyInfo.exchangeRates[toCode] ?? 1.0;
       final double factor = toRate / fromRate;
 
-      debugPrint('[DB] convertAllTransactionsAndBudget: $fromCode -> $toCode (factor: $factor)');
+      debugPrint(
+        '[DB] convertAllTransactionsAndBudget: $fromCode -> $toCode (factor: $factor)',
+      );
 
       await db.transaction((txn) async {
         // 1. Convert all transaction amounts
@@ -290,7 +295,8 @@ class DatabaseHelper {
           whereArgs: ['monthly_budget'],
         );
         if (budgetRows.isNotEmpty) {
-          final double originalBudget = double.tryParse(budgetRows.first['value'] as String) ?? 0.0;
+          final double originalBudget =
+              double.tryParse(budgetRows.first['value'] as String) ?? 0.0;
           double convertedBudget = originalBudget * factor;
           if (convertedBudget < 0) convertedBudget = 0.0;
           await txn.update(

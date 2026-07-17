@@ -104,6 +104,11 @@ abstract class AppColorLocker {
   Color get catTransit;
   Color get catOther;
 
+  // Instruction screen specific colors
+  Color get instructionIconColor;
+  Color get instructionWarningColor;
+  Color get instructionBodyColor;
+
   Color getCategoryColor(String key) {
     switch (key) {
       case 'fastfood':
@@ -364,6 +369,13 @@ class LightColorLocker extends AppColorLocker {
   Color get catTransit => const Color(0xFFAEC6CF);
   @override
   Color get catOther => const Color(0xFFE2E8F0);
+
+  @override
+  Color get instructionIconColor => const Color(0xFF81C784); // accentGreen
+  @override
+  Color get instructionWarningColor => const Color(0xFFE57373); // accentRed
+  @override
+  Color get instructionBodyColor => Colors.black.withValues(alpha: 0.8);
 }
 
 class DarkColorLocker extends AppColorLocker {
@@ -599,4 +611,12 @@ class DarkColorLocker extends AppColorLocker {
 
   @override
   Color get catOther => const Color(0xFFCFD8DC);
+
+  @override
+  Color get instructionIconColor => const Color(0xFF8CD4B4); // accentGreen
+  @override
+  Color get instructionWarningColor => const Color(0xFFE28F8F); // accentRed
+  @override
+  Color get instructionBodyColor =>
+      const Color(0xFFECEFF1).withValues(alpha: 0.8);
 }

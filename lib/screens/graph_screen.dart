@@ -13,17 +13,11 @@ class _CategoryInfo {
   final String name;
   final IconData icon;
 
-  const _CategoryInfo({
-    required this.name,
-    required this.icon,
-  });
+  const _CategoryInfo({required this.name, required this.icon});
 }
 
 const Map<String, _CategoryInfo> _categoryRegistry = {
-  'fastfood': _CategoryInfo(
-    name: 'Food',
-    icon: Icons.fastfood_outlined,
-  ),
+  'fastfood': _CategoryInfo(name: 'Food', icon: Icons.fastfood_outlined),
   'shopping_bag': _CategoryInfo(
     name: 'Shopping',
     icon: Icons.shopping_bag_outlined,
@@ -32,30 +26,15 @@ const Map<String, _CategoryInfo> _categoryRegistry = {
     name: 'Transport',
     icon: Icons.directions_car_filled_outlined,
   ),
-  'home': _CategoryInfo(
-    name: 'Utilities',
-    icon: Icons.home_outlined,
-  ),
+  'home': _CategoryInfo(name: 'Utilities', icon: Icons.home_outlined),
   'celebration': _CategoryInfo(
     name: 'Entertainment',
     icon: Icons.celebration_outlined,
   ),
-  'payments': _CategoryInfo(
-    name: 'Payments',
-    icon: Icons.payments_outlined,
-  ),
-  'work': _CategoryInfo(
-    name: 'Work',
-    icon: Icons.work_outline,
-  ),
-  'school': _CategoryInfo(
-    name: 'Education',
-    icon: Icons.school_outlined,
-  ),
-  'flight': _CategoryInfo(
-    name: 'Travel',
-    icon: Icons.flight_outlined,
-  ),
+  'payments': _CategoryInfo(name: 'Payments', icon: Icons.payments_outlined),
+  'work': _CategoryInfo(name: 'Work', icon: Icons.work_outline),
+  'school': _CategoryInfo(name: 'Education', icon: Icons.school_outlined),
+  'flight': _CategoryInfo(name: 'Travel', icon: Icons.flight_outlined),
   'fitness_center': _CategoryInfo(
     name: 'Fitness',
     icon: Icons.fitness_center_outlined,
@@ -64,18 +43,12 @@ const Map<String, _CategoryInfo> _categoryRegistry = {
     name: 'Health',
     icon: Icons.health_and_safety_outlined,
   ),
-  'pets': _CategoryInfo(
-    name: 'Pets',
-    icon: Icons.pets_outlined,
-  ),
+  'pets': _CategoryInfo(name: 'Pets', icon: Icons.pets_outlined),
   'local_gas_station': _CategoryInfo(
     name: 'Gas',
     icon: Icons.local_gas_station_outlined,
   ),
-  'train': _CategoryInfo(
-    name: 'Transit',
-    icon: Icons.train_outlined,
-  ),
+  'train': _CategoryInfo(name: 'Transit', icon: Icons.train_outlined),
 };
 
 // Fallback for empty or unknown category keys
@@ -290,11 +263,11 @@ class _GraphScreenState extends State<GraphScreen> {
 
     // progress: 0.0 when on HomeScreen, 1.0 when fully on GraphScreen
     double progress = (1.0 - page).clamp(0.0, 1.0);
-    
+
     // Snap progress to terminal values to avoid floating point issues
     if (progress > 0.99) progress = 1.0;
     if (progress < 0.01) progress = 0.0;
-    
+
     // Always process terminal values immediately so they aren't dropped by the throttle
     final bool isTerminal = progress == 0.0 || progress == 1.0;
 
@@ -309,7 +282,7 @@ class _GraphScreenState extends State<GraphScreen> {
           _scrollThrottled = false;
         });
       }
-      
+
       setState(() {
         _swipeProgress = progress;
         // Reset selection if swiping away
@@ -498,7 +471,7 @@ class _GraphScreenState extends State<GraphScreen> {
                   color: _textColor,
                 ),
               );
-            }
+            },
           ),
         ),
       ],
@@ -549,134 +522,139 @@ class _GraphScreenState extends State<GraphScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(
-        bottom: false,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    if (_selectedIconKey != null) {
-                      Future.delayed(Duration.zero, () {
-                        if (mounted) {
-                          setState(() {
-                            _selectedIconKey = null;
-                          });
-                        }
-                      });
-                    }
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      top: 40,
-                      left: 24,
-                      right: 24,
-                      bottom: 110,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // --- Header ---
-                        Text(
-                          'ANALYTICS',
-                          style: TextStyle(
-                            fontFamily: 'MonumentExtended-Regular',
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: _textColor,
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-
-                        // --- Premium Floating Donut Chart Card ---
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 400),
-                          curve: Curves.easeInOut,
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 40,
-                            horizontal: 24,
-                          ),
-                          decoration: BoxDecoration(
-                            color: locker.cardBackground,
-                            borderRadius: BorderRadius.circular(32),
-                            border: Border.all(
-                              color: locker.textPrimary.withValues(alpha: 0.04),
-                              width: 1,
+          bottom: false,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      if (_selectedIconKey != null) {
+                        Future.delayed(Duration.zero, () {
+                          if (mounted) {
+                            setState(() {
+                              _selectedIconKey = null;
+                            });
+                          }
+                        });
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        top: 40,
+                        left: 24,
+                        right: 24,
+                        bottom: 110,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // --- Header ---
+                          Text(
+                            'ANALYTICS',
+                            style: TextStyle(
+                              fontFamily: 'MonumentExtended-Regular',
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: _textColor,
                             ),
                           ),
-                          child: Column(
-                            children: [
-                              // Hollow Spacious Donut Chart
-                              _buildDonutChart(),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 32),
+                          const SizedBox(height: 32),
 
-                        // --- Drill-Down Bottom Section ---
-                        if (hasData)
-                          AnimatedSize(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOutCubic,
-                            alignment: Alignment.topCenter,
-                            child: AnimatedSwitcher(
+                          // --- Premium Floating Donut Chart Card ---
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 400),
+                            curve: Curves.easeInOut,
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 40,
+                              horizontal: 24,
+                            ),
+                            decoration: BoxDecoration(
+                              color: locker.cardBackground,
+                              borderRadius: BorderRadius.circular(32),
+                              border: Border.all(
+                                color: locker.textPrimary.withValues(
+                                  alpha: 0.04,
+                                ),
+                                width: 1,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                // Hollow Spacious Donut Chart
+                                _buildDonutChart(),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+
+                          // --- Drill-Down Bottom Section ---
+                          if (hasData)
+                            AnimatedSize(
                               duration: const Duration(milliseconds: 300),
-                              switchInCurve: Curves.easeOutCubic,
-                              switchOutCurve: Curves.easeInCubic,
-                              layoutBuilder:
-                                  (
-                                    Widget? currentChild,
-                                    List<Widget> previousChildren,
-                                  ) {
-                                    final children = List<Widget>.from(
-                                      previousChildren,
-                                    );
-                                    if (currentChild != null) {
-                                      children.add(currentChild);
-                                    }
-                                    return Stack(
-                                      alignment: Alignment.topCenter,
-                                      children: children,
-                                    );
-                                  },
-                              transitionBuilder:
-                                  (Widget child, Animation<double> animation) {
-                                    final isDetail =
-                                        child.key !=
-                                        const ValueKey('CategoryList');
-                                    return ClipRect(
-                                      child: SlideTransition(
-                                        position: Tween<Offset>(
-                                          begin: Offset(
-                                            isDetail ? 1.0 : -1.0,
-                                            0.0,
+                              curve: Curves.easeInOutCubic,
+                              alignment: Alignment.topCenter,
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 300),
+                                switchInCurve: Curves.easeOutCubic,
+                                switchOutCurve: Curves.easeInCubic,
+                                layoutBuilder:
+                                    (
+                                      Widget? currentChild,
+                                      List<Widget> previousChildren,
+                                    ) {
+                                      final children = List<Widget>.from(
+                                        previousChildren,
+                                      );
+                                      if (currentChild != null) {
+                                        children.add(currentChild);
+                                      }
+                                      return Stack(
+                                        alignment: Alignment.topCenter,
+                                        children: children,
+                                      );
+                                    },
+                                transitionBuilder:
+                                    (
+                                      Widget child,
+                                      Animation<double> animation,
+                                    ) {
+                                      final isDetail =
+                                          child.key !=
+                                          const ValueKey('CategoryList');
+                                      return ClipRect(
+                                        child: SlideTransition(
+                                          position: Tween<Offset>(
+                                            begin: Offset(
+                                              isDetail ? 1.0 : -1.0,
+                                              0.0,
+                                            ),
+                                            end: Offset.zero,
+                                          ).animate(animation),
+                                          child: FadeTransition(
+                                            opacity: animation,
+                                            child: child,
                                           ),
-                                          end: Offset.zero,
-                                        ).animate(animation),
-                                        child: FadeTransition(
-                                          opacity: animation,
-                                          child: child,
                                         ),
-                                      ),
-                                    );
-                                  },
-                              child: _selectedIconKey == null
-                                  ? _buildCategoryList(cats)
-                                  : _buildDetailList(_selectedIconKey!, cats),
+                                      );
+                                    },
+                                child: _selectedIconKey == null
+                                    ? _buildCategoryList(cats)
+                                    : _buildDetailList(_selectedIconKey!, cats),
+                              ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
-        ),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -728,7 +706,9 @@ class _GraphScreenState extends State<GraphScreen> {
                   color: AppColorLocker.of(context).cardBackground,
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
-                    color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.04),
+                    color: AppColorLocker.of(
+                      context,
+                    ).textPrimary.withValues(alpha: 0.04),
                     width: 1,
                   ),
                 ),
@@ -783,7 +763,9 @@ class _GraphScreenState extends State<GraphScreen> {
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.centerRight,
                         child: Text(
-                          CurrencyProvider.read(context).format(category.amount),
+                          CurrencyProvider.read(
+                            context,
+                          ).format(category.amount),
                           style: TextStyle(
                             fontFamily: 'MonumentExtended-Regular',
                             fontSize: 13,
@@ -912,7 +894,9 @@ class _GraphScreenState extends State<GraphScreen> {
                       color: AppColorLocker.of(context).cardBackground,
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(
-                        color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.04),
+                        color: AppColorLocker.of(
+                          context,
+                        ).textPrimary.withValues(alpha: 0.04),
                         width: 1,
                       ),
                     ),
@@ -956,7 +940,9 @@ class _GraphScreenState extends State<GraphScreen> {
                                 style: TextStyle(
                                   fontFamily: 'MonumentExtended-Regular',
                                   fontSize: 10,
-                                  color: AppColorLocker.of(context).textTertiary,
+                                  color: AppColorLocker.of(
+                                    context,
+                                  ).textTertiary,
                                 ),
                               ),
                             ],
@@ -974,7 +960,9 @@ class _GraphScreenState extends State<GraphScreen> {
                                 fontFamily: 'MonumentExtended-Regular',
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: AppColorLocker.of(context).expenseModelFg,
+                                color: AppColorLocker.of(
+                                  context,
+                                ).expenseModelFg,
                               ),
                             ),
                           ),
@@ -1021,7 +1009,9 @@ class _CategoryBadge extends StatelessWidget {
             color: AppColorLocker.of(context).cardBackground,
             shape: BoxShape.circle,
             border: Border.all(
-              color: AppColorLocker.of(context).textPrimary.withValues(alpha: 0.10),
+              color: AppColorLocker.of(
+                context,
+              ).textPrimary.withValues(alpha: 0.10),
               width: 1,
             ),
           ),

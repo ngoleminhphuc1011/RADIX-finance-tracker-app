@@ -41,7 +41,9 @@ void main() async {
     ThemeProvider(
       notifier: ValueNotifier<ThemeMode>(initialTheme),
       child: CurrencyProvider(
-        notifier: ValueNotifier<CurrencyInfo>(CurrencyInfo.find(initialCurrencyCode)),
+        notifier: ValueNotifier<CurrencyInfo>(
+          CurrencyInfo.find(initialCurrencyCode),
+        ),
         child: const MyApp(),
       ),
     ),

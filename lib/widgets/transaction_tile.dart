@@ -25,9 +25,7 @@ class TransactionTile extends StatelessWidget {
     final bool isExpense = model.isExpense;
     final locker = AppColorLocker.of(context);
     final colors = model.getColors(context);
-    final Color fgColor = isExpense
-        ? locker.expenseFg
-        : locker.incomeFg;
+    final Color fgColor = isExpense ? locker.expenseFg : locker.incomeFg;
     final currencyInfo = CurrencyProvider.watch(context);
     final String amountText =
         '${isExpense ? '-' : '+'} ${currencyInfo.format(model.amount)}';
@@ -72,7 +70,10 @@ class TransactionTile extends StatelessWidget {
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerRight,
-                child: Text(amountText, style: _amountStyle.copyWith(color: fgColor)),
+                child: Text(
+                  amountText,
+                  style: _amountStyle.copyWith(color: fgColor),
+                ),
               ),
             ),
           ],
