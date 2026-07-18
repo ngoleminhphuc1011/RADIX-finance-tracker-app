@@ -135,8 +135,8 @@ lib/
 
 ### Try It Instantly
 
-- **Direct Download (Android):** Download the pre-built [RADIX Android APK](https://github.com/ngoleminhphuc1011/RADIX/releases) directly from the Releases page and install it on your device.
-- **Web Demo (Not recommended for regular use):** Open the [Interactive Web Version](https://ngoleminhphuc1011.github.io/RADIX/) in your browser for a quick preview. *(Note: The Web build is provided solely for demonstration purposes; for optimal performance, full offline capabilities, and design accuracy, please use the native Android or iOS builds).*
+- **Direct Download (Android):** Download the pre-built [RADIX Android APK](https://github.com/ngoleminhphuc1011/RADIX-finance-tracker-app/releases/tag/v1.0.0) directly from the Releases page and install it on your device.
+- **Web Demo (Not recommended for regular use):** Open the [Interactive Web Version](https://ngoleminhphuc1011.github.io/RADIX-finance-tracker-app/) in your browser for a quick preview. *(Note: The Web build is provided solely for demonstration purposes; for optimal performance, full offline capabilities, and design accuracy, please use the native Android or iOS builds).*
 
 ---
 
@@ -153,8 +153,8 @@ Follow these steps to compile and run the project on your machine.
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/ngoleminhphuc1011/RADIX.git
-   cd RADIX
+   git clone https://github.com/ngoleminhphuc1011/RADIX-finance-tracker-app.git
+   cd RADIX-finance-tracker-app
    ```
 
 2. **Get packages:**
