@@ -203,4 +203,4 @@ Developed by **Fulton Ngo Corporation**.
 ### Credits
 
 - **Idea by:** Phuc Ngo
-- **Writing & Improvement by:** Gemini 3.5 Flash
+- **Writing & Improvement by:** Gemini 3.5 Flash and Phuc Ngo
