@@ -196,6 +196,7 @@ I would like to express my deepest gratitude to:
 
 This is my first personal project and was coded with AI assistance, so quite a few bugs are expected. I am very open to hearing both positive and negative suggestions, feedback, or feature requests! Please feel free to open an issue, submit a pull request, or share your thoughts.
 
+
 Developed by **Fulton Ngo Corporation**.
 
 ---
@@ -206,10 +207,16 @@ Developed by **Fulton Ngo Corporation**.
 - **Writing & Improvement by:** Gemini 3.5 Flash and Phuc Ngo
 
 DEMO IMAGES:
-<img width="858" height="1908" alt="z8059813037209_b51db09acbdf5fd2e496fba9da285b7a" src="https://github.com/user-attachments/assets/2a914495-3f0f-4866-926e-cdec2469959d" />
-<img width="858" height="1908" alt="z8059813121439_8dfad1fd189282aff103da0c5a5fe166" src="https://github.com/user-attachments/assets/bdf188fe-4655-47d2-9c7e-0111cf8e9e8a" />
-<img width="858" height="1908" alt="z8059813103919_c9131dc7bc6ee4946c928d4b9cd8b227" src="https://github.com/user-attachments/assets/464bfd93-0a3c-4ef9-a815-1863f9160777" />
-<img width="858" height="1908" alt="z8059813101033_48ab55434e6b0d8860d401180a0b9019" src="https://github.com/user-attachments/assets/ec30796a-208d-4742-9cd0-accceca12dec" />
-<img width="858" height="1908" alt="z8059813064378_78b940dc67da6788490a6ea629c3eb1e" src="https://github.com/user-attachments/assets/99507501-8dd5-4e60-acab-963691956cee" />
-<img width="858" height="1908" alt="z8059813061439_29abc556a89c42f87af1ecb9aac0b1aa" src="https://github.com/user-attachments/assets/d2b94143-ab4c-4392-a963-c5a58c80ceb7" />
+<img width="858" height="1908" alt="z8059831511430_b7b52bb460307cc09557cfa4684eee99" src="https://github.com/user-attachments/assets/5916b6d4-f48d-4086-9cf8-d737681e4c28" />
+<img width="858" height="1908" alt="z8059831487564_85ed76fd2b9262dc9314e3c93782ddfb" src="https://github.com/user-attachments/assets/dc8e6b1a-5f55-462d-931b-c40c890e2b74" />
+<img width="858" height="1908" alt="z8059831487565_585d44928fdc0d971a8f3c36d75383e9" src="https://github.com/user-attachments/assets/4ad490a1-69ec-42e2-afe3-d1134106e0d4" />
+<img width="858" height="1908" alt="z8059831487562_b962b754696951172e42dd77a3eb7628" src="https://github.com/user-attachments/assets/ceb6fe58-cdc4-4f58-95da-99cf1fa811a5" />
+<img width="858" height="1908" alt="z8059831725787_d25b3e96d7b5855196df027db803ca10" src="https://github.com/user-attachments/assets/643b24a6-eed6-49a4-835a-e4232962842c" />
+<img width="858" height="1908" alt="z8059831735573_ef872c8526f8bdf0c4820256f6a341dd" src="https://github.com/user-attachments/assets/1dc49878-3402-4485-bfdb-453aee0153e3" />
+<img width="858" height="1908" alt="z8059831776816_81d5d452247a90c2203f4dde8ae843a8" src="https://github.com/user-attachments/assets/0678d18f-fa4b-44b7-b6d3-6a368638558f" />
+<img width="858" height="1908" alt="z8059831490887_a406159410025fc105d26ad67bbf3e3e" src="https://github.com/user-attachments/assets/3b5cdbcc-b67a-424a-9a85-f58e3de6a490" />
+<img width="858" height="1908" alt="z8059831857273_b9a2ccb3af15005a2a09e422a0c832e3" src="https://github.com/user-attachments/assets/75226bf7-cd30-4bec-9485-bca3e3b74b90" />
+<img width="858" height="1908" alt="z8059831490886_501648fb20b8e4ed5bf178d05edd930a" src="https://github.com/user-attachments/assets/2a400df1-e4d2-4d46-b868-4c1e27277650" />
+<img width="858" height="1908" alt="z8059831795905_c1664d4dd62e59bd14f6357bbac8227f" src="https://github.com/user-attachments/assets/31312b41-b284-4c03-85cf-f9ff08399d33" />
+
 
