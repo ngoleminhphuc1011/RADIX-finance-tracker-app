@@ -204,3 +204,12 @@ Developed by **Fulton Ngo Corporation**.
 
 - **Idea by:** Phuc Ngo
 - **Writing & Improvement by:** Gemini 3.5 Flash and Phuc Ngo
+
+DEMO IMAGES:
+<img width="858" height="1908" alt="z8059813037209_b51db09acbdf5fd2e496fba9da285b7a" src="https://github.com/user-attachments/assets/2a914495-3f0f-4866-926e-cdec2469959d" />
+<img width="858" height="1908" alt="z8059813121439_8dfad1fd189282aff103da0c5a5fe166" src="https://github.com/user-attachments/assets/bdf188fe-4655-47d2-9c7e-0111cf8e9e8a" />
+<img width="858" height="1908" alt="z8059813103919_c9131dc7bc6ee4946c928d4b9cd8b227" src="https://github.com/user-attachments/assets/464bfd93-0a3c-4ef9-a815-1863f9160777" />
+<img width="858" height="1908" alt="z8059813101033_48ab55434e6b0d8860d401180a0b9019" src="https://github.com/user-attachments/assets/ec30796a-208d-4742-9cd0-accceca12dec" />
+<img width="858" height="1908" alt="z8059813064378_78b940dc67da6788490a6ea629c3eb1e" src="https://github.com/user-attachments/assets/99507501-8dd5-4e60-acab-963691956cee" />
+<img width="858" height="1908" alt="z8059813061439_29abc556a89c42f87af1ecb9aac0b1aa" src="https://github.com/user-attachments/assets/d2b94143-ab4c-4392-a963-c5a58c80ceb7" />
+
