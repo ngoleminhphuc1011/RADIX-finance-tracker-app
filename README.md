@@ -206,6 +206,11 @@ Developed by **Fulton Ngo Corporation**.
 - **Idea by:** Phuc Ngo
 - **Writing & Improvement by:** Gemini 3.5 Flash and Phuc Ngo
 
+
+## ⚖️ License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 ## 11. DEMO IMAGES:
 <img width="858" height="1908" alt="z8059831511430_b7b52bb460307cc09557cfa4684eee99" src="https://github.com/user-attachments/assets/5916b6d4-f48d-4086-9cf8-d737681e4c28" />
 <img width="858" height="1908" alt="z8059831487564_85ed76fd2b9262dc9314e3c93782ddfb" src="https://github.com/user-attachments/assets/dc8e6b1a-5f55-462d-931b-c40c890e2b74" />
