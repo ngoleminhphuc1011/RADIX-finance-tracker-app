@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/transaction_model.dart';
-import '../core/theme/app_color_locker.dart';
-import '../core/theme/currency_provider.dart';
+import '../../../models/transaction_model.dart';
+import '../../../core/theme/app_color_locker.dart';
+import '../../../core/theme/currency_provider.dart';
 
 class TransactionTile extends StatelessWidget {
   final TransactionModel model;
@@ -83,8 +83,8 @@ class TransactionTile extends StatelessWidget {
   }
 }
 
-/// Shared icon key-to-IconData mapping used by both TransactionTile
-/// and the icon picker in HomeScreen.
+/// Shared icon key-to-IconData mapping used by TransactionTile,
+/// AddTransactionDialog, and EditMorphDialog.
 const Map<String, IconData> iconOptions = {
   'fastfood': Icons.fastfood_outlined,
   'shopping_bag': Icons.shopping_bag_outlined,

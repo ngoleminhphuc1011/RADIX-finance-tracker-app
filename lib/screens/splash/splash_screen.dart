@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../nav_wrapper.dart';
 import '../../core/theme/app_color_locker.dart';
+import 'widgets/money_loop_animation.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -9,50 +11,14 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _topAnim;
-  late Animation<double> _rightAnim;
-  late Animation<double> _bottomAnim;
-  late Animation<double> _leftAnim;
+class _SplashScreenState extends State<SplashScreen> {
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
 
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2000),
-    )..repeat();
-
-    _topAnim = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0.0, end: 12.0), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: 12.0, end: 0.0), weight: 1),
-      TweenSequenceItem(tween: ConstantTween(0.0), weight: 6),
-    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-
-    _rightAnim = TweenSequence<double>([
-      TweenSequenceItem(tween: ConstantTween(0.0), weight: 2),
-      TweenSequenceItem(tween: Tween(begin: 0.0, end: 12.0), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: 12.0, end: 0.0), weight: 1),
-      TweenSequenceItem(tween: ConstantTween(0.0), weight: 4),
-    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-
-    _bottomAnim = TweenSequence<double>([
-      TweenSequenceItem(tween: ConstantTween(0.0), weight: 4),
-      TweenSequenceItem(tween: Tween(begin: 0.0, end: 12.0), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: 12.0, end: 0.0), weight: 1),
-      TweenSequenceItem(tween: ConstantTween(0.0), weight: 2),
-    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-
-    _leftAnim = TweenSequence<double>([
-      TweenSequenceItem(tween: ConstantTween(0.0), weight: 6),
-      TweenSequenceItem(tween: Tween(begin: 0.0, end: 12.0), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: 12.0, end: 0.0), weight: 1),
-    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-
-    Future.delayed(const Duration(seconds: 3), () {
+    _timer = Timer(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -64,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
-    _controller.dispose();
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -91,50 +57,7 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
                 const SizedBox(height: 40),
-                // Clockwise sequential loop animation
-                AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, child) {
-                    return SizedBox(
-                      width: 60,
-                      height: 60,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // Top - moves UP
-                          Transform.translate(
-                            offset: Offset(0, -_topAnim.value),
-                            child: _buildDot(locker.focusBorder),
-                          ),
-                          // Right - moves RIGHT
-                          Transform.translate(
-                            offset: Offset(_rightAnim.value, 0),
-                            child: _buildDot(locker.focusBorder),
-                          ),
-                          // Bottom - moves DOWN
-                          Transform.translate(
-                            offset: Offset(0, _bottomAnim.value),
-                            child: _buildDot(locker.focusBorder),
-                          ),
-                          // Left - moves LEFT
-                          Transform.translate(
-                            offset: Offset(-_leftAnim.value, 0),
-                            child: _buildDot(locker.focusBorder),
-                          ),
-                          Text(
-                            '\$',
-                            style: TextStyle(
-                              fontFamily: 'MonumentExtended',
-                              fontSize: 19,
-                              fontWeight: FontWeight.w400,
-                              color: locker.textOnDark,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                const MoneyLoopAnimation(),
               ],
             ),
           ),
@@ -153,17 +76,6 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildDot(Color color) {
-    return Container(
-      width: 28,
-      height: 28,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(4),
       ),
     );
   }
