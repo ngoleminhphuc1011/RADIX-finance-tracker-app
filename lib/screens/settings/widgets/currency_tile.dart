@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_color_locker.dart';
+import '../../../core/theme/app_typography.dart';
 
 class CurrencyItem {
   final String symbol;
@@ -45,13 +46,13 @@ class _CurrencyTileState extends State<CurrencyTile>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 150),
+      duration: const Duration(milliseconds: 120),
       vsync: this,
     );
     _scaleAnimation = Tween<double>(
       begin: 1.0,
       end: 0.96,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
   }
 
   @override
@@ -95,18 +96,6 @@ class _CurrencyTileState extends State<CurrencyTile>
         ? locker.settingsCurrencySelectedText
         : locker.settingsCurrencyUnselectedSymbol;
 
-    final List<BoxShadow> boxShadow = widget.isSelected
-        ? [
-            BoxShadow(
-              color: locker.settingsCurrencySelectedBorder.withValues(
-                alpha: 0.18,
-              ),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ]
-        : [];
-
     return GestureDetector(
       onTapDown: (_) => _controller.forward(),
       onTapUp: (_) {
@@ -117,21 +106,22 @@ class _CurrencyTileState extends State<CurrencyTile>
       child: ScaleTransition(
         scale: _scaleAnimation,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
           margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             gradient: gradient,
             border: border,
             borderRadius: BorderRadius.circular(14),
-            boxShadow: boxShadow,
           ),
           child: Row(
             children: [
               SizedBox(
                 width: 32,
                 child: AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 300),
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOutCubic,
                   style: TextStyle(
                     fontFamily: null,
                     fontWeight: FontWeight.bold,
@@ -144,13 +134,13 @@ class _CurrencyTileState extends State<CurrencyTile>
               const SizedBox(width: 12),
               Expanded(
                 child: AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 300),
-                  style: TextStyle(
-                    fontFamily: 'MonumentExtended-Regular',
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOutCubic,
+                  style: AppTypography.openSans(
                     fontSize: 13,
                     fontWeight: widget.isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
+                        ? FontWeight.w900
+                        : FontWeight.bold,
                     color: textColor,
                   ),
                   child: Text(
@@ -158,12 +148,16 @@ class _CurrencyTileState extends State<CurrencyTile>
                   ),
                 ),
               ),
-              if (widget.isSelected)
-                Icon(
+              AnimatedOpacity(
+                opacity: widget.isSelected ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutCubic,
+                child: Icon(
                   Icons.check_circle_rounded,
                   color: locker.settingsCurrencySelectedText,
                   size: 18,
                 ),
+              ),
             ],
           ),
         ),

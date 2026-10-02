@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/theme/app_color_locker.dart';
+import '../../../core/theme/app_typography.dart';
 
 /// A luxury minimalist segmented capsule selector for setting the budget reset interval (1M to 6M).
 class ResetIntervalSelector extends StatelessWidget {
@@ -61,9 +62,9 @@ class ResetIntervalSelector extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 intervalDescription,
-                style: TextStyle(
-                  fontFamily: 'MonumentExtended-Regular',
+                style: AppTypography.openSans(
                   fontSize: 12,
+                  fontWeight: FontWeight.bold,
                   color: locker.settingsInfoText,
                 ),
               ),

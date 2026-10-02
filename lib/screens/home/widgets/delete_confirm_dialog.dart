@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/transaction_model.dart';
 import '../../../core/theme/app_color_locker.dart';
+import '../../../core/theme/app_typography.dart';
 
 /// Shows a modern minimalist delete confirmation with fluid bounce animation.
 void showDeleteConfirmDialog(
@@ -64,9 +65,9 @@ void showDeleteConfirmDialog(
                   Text(
                     'Are you sure you want to delete this?'
                     ' This action cannot be undone.',
-                    style: TextStyle(
-                      fontFamily: 'MonumentExtended-Regular',
+                    style: AppTypography.openSans(
                       fontSize: 14,
+                      fontWeight: FontWeight.bold,
                       color: locker.textSecondary,
                       height: 1.4,
                     ),
@@ -88,9 +89,9 @@ void showDeleteConfirmDialog(
                             child: Center(
                               child: Text(
                                 'Cancel',
-                                style: TextStyle(
-                                  fontFamily: 'MonumentExtended-Regular',
+                                style: AppTypography.openSans(
                                   fontSize: 13,
+                                  fontWeight: FontWeight.bold,
                                   color: locker.textSecondary,
                                 ),
                               ),

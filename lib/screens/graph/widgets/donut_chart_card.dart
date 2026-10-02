@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../core/theme/app_color_locker.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/currency_provider.dart';
 import 'graph_models.dart';
 import 'category_badge.dart';
@@ -140,29 +141,42 @@ class DonutChartCard extends StatelessWidget {
 
   Widget _buildEmptyChart() {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.pie_chart_outline, size: 48, color: Colors.grey[400]),
-          const SizedBox(height: 12),
-          Text(
-            'No expenses yet',
-            style: TextStyle(
-              fontFamily: 'MonumentExtended-Regular',
-              fontSize: 14,
-              color: Colors.grey[500],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.pie_chart_outline, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                'No expenses yet',
+                maxLines: 1,
+                softWrap: false,
+                style: AppTypography.openSans(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[500],
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Add transactions to see your breakdown',
-            style: TextStyle(
-              fontFamily: 'MonumentExtended-Regular',
-              fontSize: 11,
-              color: Colors.grey[400],
+            const SizedBox(height: 6),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                'Add transactions to see your breakdown',
+                maxLines: 1,
+                softWrap: false,
+                style: AppTypography.openSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[400],
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

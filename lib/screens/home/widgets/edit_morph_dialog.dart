@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/transaction_model.dart';
 import '../../../core/theme/app_color_locker.dart';
+import '../../../core/theme/app_typography.dart';
 import 'transaction_tile.dart';
 import 'icon_picker_sheet.dart';
 import 'delete_confirm_dialog.dart';
@@ -88,13 +89,12 @@ void showEditMorphDialog(
                           children: [
                             Text(
                               model.date,
-                              style: TextStyle(
-                                fontFamily: 'MonumentExtended-Regular',
+                              style: AppTypography.openSans(
                                 fontSize: 12,
                                 color: locker.textPrimary.withValues(
                                   alpha: 0.38,
                                 ),
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                             Container(
@@ -150,20 +150,18 @@ void showEditMorphDialog(
                         // Description — editable TextField
                         TextField(
                           controller: descController,
-                          style: TextStyle(
-                            fontFamily: 'MonumentExtended-Regular',
+                          style: AppTypography.openSans(
                             fontSize: 18,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.bold,
                             color: locker.textPrimary.withValues(alpha: 0.87),
                             letterSpacing: 0.5,
                           ),
                           textAlign: TextAlign.center,
                           decoration: InputDecoration(
                             hintText: 'Enter description',
-                            hintStyle: TextStyle(
-                              fontFamily: 'MonumentExtended-Regular',
+                            hintStyle: AppTypography.openSans(
                               fontSize: 18,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.bold,
                               color: locker.textPrimary.withValues(
                                 alpha: 0.38,
                               ),

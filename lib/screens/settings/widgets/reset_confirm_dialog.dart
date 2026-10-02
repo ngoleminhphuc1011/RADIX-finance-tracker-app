@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_color_locker.dart';
+import '../../../core/theme/app_typography.dart';
 import 'hold_confirm_button.dart';
 
 /// Displays the confirmation dialog with blurred backdrop and hold-to-confirm mechanism.
@@ -90,10 +91,9 @@ void showResetConfirmDialog(BuildContext context, {required VoidCallback onReset
                   const SizedBox(height: 8),
                   Text(
                     'This action cannot be undone. Are you sure you want to clear all spending history?',
-                    style: TextStyle(
-                      fontFamily: 'MonumentExtended-Regular',
+                    style: AppTypography.openSans(
                       fontSize: 13,
-                      fontWeight: FontWeight.w100,
+                      fontWeight: FontWeight.bold,
                       color: locker.textPrimary.withValues(alpha: 0.87),
                       height: 1.5,
                     ),
@@ -142,10 +142,9 @@ void showResetConfirmDialog(BuildContext context, {required VoidCallback onReset
                                   ),
                                   child: Text(
                                     'Cancel',
-                                    style: TextStyle(
-                                      fontFamily: 'MonumentExtended-Regular',
+                                    style: AppTypography.openSans(
                                       fontSize: 14,
-                                      fontWeight: FontWeight.w400,
+                                      fontWeight: FontWeight.bold,
                                       color: locker.textTertiary,
                                     ),
                                   ),

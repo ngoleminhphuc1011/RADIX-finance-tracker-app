@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/transaction_model.dart';
 import '../../../core/theme/app_color_locker.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/currency_provider.dart';
 import 'transaction_tile.dart';
 import 'icon_picker_sheet.dart';
@@ -409,11 +410,16 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
               Expanded(
                 child: TextField(
                   controller: titleController,
+                  style: AppTypography.openSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: locker.textPrimary,
+                  ),
                   decoration: InputDecoration(
                     hintText: hintText,
-                    hintStyle: TextStyle(
-                      fontFamily: 'MonumentExtended-Regular',
+                    hintStyle: AppTypography.openSans(
                       fontSize: 12,
+                      fontWeight: FontWeight.bold,
                       color: locker.textTertiary,
                     ),
                     border: OutlineInputBorder(
@@ -462,9 +468,15 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
             controller: amountController,
             keyboardType: TextInputType.number,
             autofocus: true,
+            style: AppTypography.openSans(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: locker.textPrimary,
+            ),
             decoration: InputDecoration(
               hintText: '0',
-              hintStyle: TextStyle(
+              hintStyle: AppTypography.openSans(
+                fontWeight: FontWeight.bold,
                 color: locker.textTertiary,
               ),
               prefixText: CurrencyProvider.read(context).symbol,
@@ -530,9 +542,9 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
                 onPressed: onCancel,
                 child: Text(
                   'Cancel',
-                  style: TextStyle(
-                    fontFamily: 'MonumentExtended-Regular',
+                  style: AppTypography.openSans(
                     fontSize: 12,
+                    fontWeight: FontWeight.bold,
                     color: locker.textTertiary,
                     decoration: TextDecoration.underline,
                   ),
@@ -598,8 +610,9 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
                     const SizedBox(height: 4),
                     Text(
                       description,
-                      style: TextStyle(
+                      style: AppTypography.openSans(
                         fontSize: 13,
+                        fontWeight: FontWeight.bold,
                         color: locker.textSecondary,
                         height: 1.2,
                       ),

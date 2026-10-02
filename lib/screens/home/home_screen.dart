@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'instruction_screen.dart';
 import '../../models/transaction_model.dart';
 import '../../core/theme/app_color_locker.dart';
+import '../../core/theme/app_typography.dart';
 import '../../core/theme/currency_provider.dart';
 import 'widgets/bounce_card.dart';
 import 'widgets/transaction_tile.dart';
@@ -64,9 +65,9 @@ class _HomeScreenState extends State<HomeScreen> {
     fontSize: 18,
     color: AppColorLocker.of(context).textPrimary,
   );
-  TextStyle get _styleEmptyState => TextStyle(
-    fontFamily: 'MonumentExtended-Regular',
+  TextStyle get _styleEmptyState => AppTypography.openSans(
     fontSize: 14,
+    fontWeight: FontWeight.bold,
     color: AppColorLocker.of(context).textTertiary,
   );
 
@@ -269,10 +270,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   );
                                   return Text(
                                     'Overspent by ${currencyInfo.format(widget.spent - widget.monthlyBudget)}',
-                                    style: TextStyle(
-                                      fontFamily: 'MonumentExtended-Regular',
+                                    style: AppTypography.openSans(
                                       fontSize: 12,
-                                      fontWeight: FontWeight.w300,
+                                      fontWeight: FontWeight.bold,
                                       color: _premiumPastelRed,
                                     ),
                                   );
@@ -297,10 +297,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               Text(
                                 'Sort: $currentSort',
-                                style: TextStyle(
-                                  fontFamily: 'MonumentExtended-Regular',
+                                style: AppTypography.openSans(
                                   fontSize: 14,
-                                  fontWeight: FontWeight.w300,
+                                  fontWeight: FontWeight.bold,
                                   color: locker.textSecondary,
                                 ),
                               ),
@@ -492,8 +491,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Text(
         displayDate,
-        style: TextStyle(
-          fontFamily: 'MonumentExtended-Regular',
+        style: AppTypography.openSans(
           fontSize: 12,
           fontWeight: FontWeight.bold,
           color: AppColorLocker.of(context).textTertiary,

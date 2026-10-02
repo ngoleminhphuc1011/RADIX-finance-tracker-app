@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_color_locker.dart';
+import '../../core/theme/app_typography.dart';
 
 class InstructionScreen extends StatelessWidget {
   const InstructionScreen({super.key});
@@ -119,13 +120,13 @@ class InstructionScreen extends StatelessWidget {
           padding: const EdgeInsets.only(left: 30),
           child: Text(
             body,
-            style: TextStyle(
+            style: AppTypography.openSans(
               color: isWarning
                   ? locker.instructionWarningColor
                   : locker.instructionBodyColor,
-              fontSize: 12.5,
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
               height: 1.6,
-              fontFamily: 'MonumentExtended-Regular',
             ),
           ),
         ),

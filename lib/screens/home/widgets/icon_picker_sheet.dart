@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_color_locker.dart';
+import '../../../core/theme/app_typography.dart';
 import 'transaction_tile.dart';
 
 class IconTile extends StatefulWidget {
@@ -137,8 +138,9 @@ void showIconPickerSheet(
                       },
                       child: Text(
                         'None',
-                        style: TextStyle(
+                        style: AppTypography.openSans(
                           fontSize: 13,
+                          fontWeight: FontWeight.bold,
                           color: locker.textTertiary,
                           decoration: TextDecoration.underline,
                         ),

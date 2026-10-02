@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../../models/transaction_model.dart';
 import '../../../core/theme/app_color_locker.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/currency_provider.dart';
 
 class TransactionTile extends StatelessWidget {
   final TransactionModel model;
   final VoidCallback? onTap;
 
-  static const TextStyle _titleStyle = TextStyle(
-    fontFamily: 'MonumentExtended-Regular',
+  static final TextStyle _titleStyle = AppTypography.openSans(
     fontSize: 16,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.bold,
   );
-  static const TextStyle _amountStyle = TextStyle(
-    fontFamily: 'MonumentExtended-Regular',
+  static final TextStyle _amountStyle = AppTypography.openSans(
     fontSize: 16,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w800,
   );
 
   const TransactionTile({super.key, required this.model, this.onTap});

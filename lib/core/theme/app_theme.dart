@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'app_color_locker.dart';
+import 'app_typography.dart';
 
 class AppTheme {
   // ── Light Mode (Crisp Apple Minimalist White) ──
@@ -19,25 +20,24 @@ class AppTheme {
         onSurface: locker.textPrimary,
       ),
       textTheme: TextTheme(
-        bodyLarge: TextStyle(
-          fontFamily: 'MonumentExtended-Regular',
+        bodyLarge: AppTypography.openSans(
           fontSize: 16,
-          fontWeight: FontWeight.w400,
+          fontWeight: FontWeight.bold,
           color: locker.textPrimary,
         ),
-        bodyMedium: TextStyle(
-          fontFamily: 'MonumentExtended-Regular',
+        bodyMedium: AppTypography.openSans(
           fontSize: 14,
+          fontWeight: FontWeight.bold,
           color: locker.textSecondary,
         ),
-        bodySmall: TextStyle(
-          fontFamily: 'MonumentExtended-Regular',
+        bodySmall: AppTypography.openSans(
           fontSize: 14,
+          fontWeight: FontWeight.bold,
           color: locker.textTertiary,
         ),
-        labelLarge: TextStyle(
-          fontFamily: 'MonumentExtended-Regular',
+        labelLarge: AppTypography.openSans(
           fontSize: 18,
+          fontWeight: FontWeight.w800,
           color: locker.textPrimary,
         ),
         headlineLarge: TextStyle(
@@ -88,25 +88,24 @@ class AppTheme {
         onSurface: locker.textPrimary,
       ),
       textTheme: TextTheme(
-        bodyLarge: TextStyle(
-          fontFamily: 'MonumentExtended-Regular',
+        bodyLarge: AppTypography.openSans(
           fontSize: 16,
-          fontWeight: FontWeight.w400,
+          fontWeight: FontWeight.bold,
           color: locker.textPrimary,
         ),
-        bodyMedium: TextStyle(
-          fontFamily: 'MonumentExtended-Regular',
+        bodyMedium: AppTypography.openSans(
           fontSize: 14,
+          fontWeight: FontWeight.bold,
           color: locker.textSecondary,
         ),
-        bodySmall: TextStyle(
-          fontFamily: 'MonumentExtended-Regular',
+        bodySmall: AppTypography.openSans(
           fontSize: 14,
+          fontWeight: FontWeight.bold,
           color: locker.textTertiary,
         ),
-        labelLarge: TextStyle(
-          fontFamily: 'MonumentExtended-Regular',
+        labelLarge: AppTypography.openSans(
           fontSize: 18,
+          fontWeight: FontWeight.w800,
           color: locker.textPrimary,
         ),
         headlineLarge: TextStyle(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_color_locker.dart';
+import '../../../core/theme/app_typography.dart';
 import 'currency_tile.dart';
 
 class CurrencyPickerSection extends StatefulWidget {
@@ -67,9 +68,9 @@ class _CurrencyPickerSectionState extends State<CurrencyPickerSection> {
               alignment: Alignment.centerLeft,
               child: Text(
                 'You are using ${widget.selectedCurrencyCode} (${activeCurrency.symbol})',
-                style: TextStyle(
-                  fontFamily: 'MonumentExtended-Regular',
+                style: AppTypography.openSans(
                   fontSize: 12,
+                  fontWeight: FontWeight.bold,
                   color: locker.settingsInfoText,
                 ),
               ),
@@ -93,16 +94,16 @@ class _CurrencyPickerSectionState extends State<CurrencyPickerSection> {
                     _searchQuery = value;
                   });
                 },
-                style: TextStyle(
-                  fontFamily: 'MonumentExtended-Regular',
+                style: AppTypography.openSans(
                   fontSize: 13,
+                  fontWeight: FontWeight.bold,
                   color: locker.textPrimary,
                 ),
                 decoration: InputDecoration(
                   hintText: 'Search currency...',
-                  hintStyle: TextStyle(
-                    fontFamily: 'MonumentExtended-Regular',
+                  hintStyle: AppTypography.openSans(
                     fontSize: 13,
+                    fontWeight: FontWeight.bold,
                     color: locker.textTertiary,
                   ),
                   prefixIcon: Icon(

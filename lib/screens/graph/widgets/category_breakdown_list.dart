@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_color_locker.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/currency_provider.dart';
 import 'graph_models.dart';
 
@@ -88,19 +89,18 @@ class CategoryBreakdownList extends StatelessWidget {
                       children: [
                         Text(
                           category.name,
-                          style: TextStyle(
-                            fontFamily: 'MonumentExtended-Regular',
+                          style: AppTypography.openSans(
                             fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.bold,
                             color: locker.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '$percent%',
-                          style: TextStyle(
-                            fontFamily: 'MonumentExtended-Regular',
-                            fontSize: 10,
+                          style: AppTypography.openSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
                             color: locker.textTertiary,
                           ),
                         ),
@@ -117,10 +117,9 @@ class CategoryBreakdownList extends StatelessWidget {
                           CurrencyProvider.read(
                             context,
                           ).format(category.amount),
-                          style: TextStyle(
-                            fontFamily: 'MonumentExtended-Regular',
+                          style: AppTypography.openSans(
                             fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w800,
                             color: locker.textPrimary,
                           ),
                         ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../models/transaction_model.dart';
 import '../../../core/theme/app_color_locker.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/currency_provider.dart';
 import 'graph_models.dart';
 
@@ -62,10 +63,9 @@ class CategoryDetailList extends StatelessWidget {
                 const SizedBox(width: 6),
                 Text(
                   'BACK TO CATEGORIES',
-                  style: TextStyle(
-                    fontFamily: 'MonumentExtended-Regular',
+                  style: AppTypography.openSans(
                     fontSize: 11,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.bold,
                     color: locker.textPrimary,
                     letterSpacing: 0.5,
                   ),
@@ -93,9 +93,9 @@ class CategoryDetailList extends StatelessWidget {
                   padding: const EdgeInsets.all(32.0),
                   child: Text(
                     'No transactions recorded',
-                    style: TextStyle(
-                      fontFamily: 'MonumentExtended-Regular',
+                    style: AppTypography.openSans(
                       fontSize: 12,
+                      fontWeight: FontWeight.bold,
                       color: locker.textTertiary,
                     ),
                   ),
@@ -154,10 +154,9 @@ class CategoryDetailList extends StatelessWidget {
                             children: [
                               Text(
                                 tx.title,
-                                style: TextStyle(
-                                  fontFamily: 'MonumentExtended-Regular',
+                                style: AppTypography.openSans(
                                   fontSize: 13,
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight: FontWeight.bold,
                                   color: locker.textPrimary,
                                 ),
                                 overflow: TextOverflow.ellipsis,
@@ -165,9 +164,9 @@ class CategoryDetailList extends StatelessWidget {
                               const SizedBox(height: 4),
                               Text(
                                 dateStr,
-                                style: TextStyle(
-                                  fontFamily: 'MonumentExtended-Regular',
+                                style: AppTypography.openSans(
                                   fontSize: 10,
+                                  fontWeight: FontWeight.bold,
                                   color: locker.textTertiary,
                                 ),
                               ),
@@ -182,10 +181,9 @@ class CategoryDetailList extends StatelessWidget {
                             alignment: Alignment.centerRight,
                             child: Text(
                               '-${CurrencyProvider.read(context).format(tx.amount)}',
-                              style: TextStyle(
-                                fontFamily: 'MonumentExtended-Regular',
+                              style: AppTypography.openSans(
                                 fontSize: 13,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w800,
                                 color: locker.expenseModelFg,
                               ),
                             ),
