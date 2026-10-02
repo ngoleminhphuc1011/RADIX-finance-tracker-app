@@ -2,11 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
-import 'screens/splash_screen.dart';
-import 'theme/app_theme.dart';
-import 'theme/theme_provider.dart';
-import 'theme/currency_provider.dart';
-import 'database/database_helper.dart';
+import 'screens/splash/splash_screen.dart';
+import 'core/theme/app_theme.dart';
+import 'core/theme/theme_provider.dart';
+import 'core/theme/currency_provider.dart';
+import 'core/database/database_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

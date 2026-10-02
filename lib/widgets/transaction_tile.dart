@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/transaction_model.dart';
-import '../theme/app_color_locker.dart';
-import '../theme/currency_provider.dart';
+import '../core/theme/app_color_locker.dart';
+import '../core/theme/currency_provider.dart';
 
 class TransactionTile extends StatelessWidget {
   final TransactionModel model;

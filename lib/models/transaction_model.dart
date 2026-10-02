@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/app_color_locker.dart';
+import '../core/theme/app_color_locker.dart';
 
 /// Represents a single financial transaction stored in the local SQLite DB.
 ///

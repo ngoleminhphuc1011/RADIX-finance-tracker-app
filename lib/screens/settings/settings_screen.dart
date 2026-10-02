@@ -1,9 +1,9 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import '../theme/app_color_locker.dart';
-import '../theme/theme_provider.dart';
-import '../theme/currency_provider.dart';
-import '../database/database_helper.dart';
+import '../../core/theme/app_color_locker.dart';
+import '../../core/theme/theme_provider.dart';
+import '../../core/theme/currency_provider.dart';
+import '../../core/database/database_helper.dart';
 
 enum ThemeOption { light, dark, system }
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'nav_wrapper.dart';
-import '../theme/app_color_locker.dart';
+import '../../nav_wrapper.dart';
+import '../../core/theme/app_color_locker.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

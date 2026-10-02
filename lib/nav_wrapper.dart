@@ -1,12 +1,12 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'graph_screen.dart';
-import 'home_screen.dart';
-import 'settings_screen.dart';
-import '../models/transaction_model.dart';
-import '../database/database_helper.dart';
-import '../theme/app_color_locker.dart';
-import '../theme/currency_provider.dart';
+import 'screens/graph/graph_screen.dart';
+import 'screens/home/home_screen.dart';
+import 'screens/settings/settings_screen.dart';
+import 'models/transaction_model.dart';
+import 'core/database/database_helper.dart';
+import 'core/theme/app_color_locker.dart';
+import 'core/theme/currency_provider.dart';
 
 class NavWrapper extends StatefulWidget {
   const NavWrapper({super.key});

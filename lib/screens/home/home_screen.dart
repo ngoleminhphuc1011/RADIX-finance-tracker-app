@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'instruction_screen.dart';
-import '../models/transaction_model.dart';
-import '../widgets/transaction_tile.dart';
-import '../theme/app_color_locker.dart';
-import '../theme/currency_provider.dart';
+import '../../models/transaction_model.dart';
+import '../../widgets/transaction_tile.dart';
+import '../../core/theme/app_color_locker.dart';
+import '../../core/theme/currency_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   final List<TransactionModel> transactions;

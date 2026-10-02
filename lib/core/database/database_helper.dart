@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart'; // for debugPrint
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
-import '../models/transaction_model.dart';
+import '../../models/transaction_model.dart';
 import '../theme/currency_provider.dart';
 
 /// A Singleton helper that owns the single SQLite connection for the app.
