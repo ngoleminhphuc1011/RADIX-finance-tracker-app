@@ -154,7 +154,7 @@ class LightColorLocker extends AppColorLocker {
   const LightColorLocker();
 
   @override
-  Color get scaffoldBackground => Colors.white;
+  Color get scaffoldBackground => const Color(0xFFF5F0EB);
 
   @override
   Color get navBarBackground => Colors.white;
@@ -250,7 +250,7 @@ class LightColorLocker extends AppColorLocker {
   Color get budgetCardBorderNormal => const Color(0xFFA3E4D7);
 
   @override
-  Color get settingsBackground => const Color(0xFFF0F0F0);
+  Color get settingsBackground => const Color(0xFFF5F0EB);
 
   @override
   Color get settingsTitle => const Color(0xFF1C1C1E);

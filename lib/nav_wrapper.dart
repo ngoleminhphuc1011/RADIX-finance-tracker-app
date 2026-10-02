@@ -7,6 +7,7 @@ import 'models/transaction_model.dart';
 import 'core/database/database_helper.dart';
 import 'core/theme/app_color_locker.dart';
 import 'core/theme/currency_provider.dart';
+import 'core/services/reset_interval_service.dart';
 
 class NavWrapper extends StatefulWidget {
   const NavWrapper({super.key});
@@ -66,12 +67,60 @@ class _NavWrapperState extends State<NavWrapper> {
     super.dispose();
   }
 
-  // ── DB load (single entry point for startup) ───────────────────────────────
+  // ── DB load & Interval Reset (Startup & Runtime) ─────────────────────────
+
+  /// Lazy-check reset verification:
+  /// Evaluates elapsed months between [DateTime.now()] and [last_reset_timestamp]:
+  ///   deltaMonths = (now.year - lastReset.year) * 12 + (now.month - lastReset.month)
+  /// If deltaMonths >= reset_interval_months:
+  ///   - Resets spent to 0.0 for the new cycle (clears previous transactions).
+  ///   - Updates last_reset_timestamp to the start of the current cycle.
+  ///   - Updates global state and refreshes UI.
+  Future<void> checkAndPerformIntervalReset() async {
+    try {
+      final now = DateTime.now();
+      final lastReset = await ResetIntervalService.getLastResetTimestamp();
+      final intervalMonths = await ResetIntervalService.getResetIntervalMonths();
+
+      if (ResetIntervalService.isResetDue(
+        now: now,
+        lastReset: lastReset,
+        intervalMonths: intervalMonths,
+      )) {
+        debugPrint(
+          '[Nav] Reset interval due (delta: ${ResetIntervalService.calculateDeltaMonths(now, lastReset)}, interval: ${intervalMonths}M). Resetting cycle spent...',
+        );
+
+        // 1. Delete all transactions for the new cycle
+        final db = await _db.database;
+        await db.delete('transactions');
+
+        // 2. Update last_reset_timestamp to the start of the current cycle
+        final currentCycleStart = DateTime(now.year, now.month, 1);
+        await ResetIntervalService.setLastResetTimestamp(currentCycleStart);
+
+        // 3. Update global state and refresh UI
+        if (mounted) {
+          setState(() {
+            _transactions.clear();
+            spent = 0.0;
+            budgetLeft = monthlyBudget;
+          });
+          recalculateGlobalBalances();
+        }
+      }
+    } catch (e) {
+      debugPrint('[Nav] ERROR in checkAndPerformIntervalReset: $e');
+    }
+  }
 
   /// Loads every piece of persistent state from SQLite.
   /// Called once in initState. After this, CRUD methods keep DB in sync.
   Future<void> _loadAllFromDB() async {
     try {
+      // 0. Perform lazy interval reset check before loading transactions
+      await checkAndPerformIntervalReset();
+
       // 1. Load transactions
       final rows = await _db.getTransactions();
 
@@ -273,6 +322,11 @@ class _NavWrapperState extends State<NavWrapper> {
   Future<void> _resetAllData() async {
     try {
       await _db.resetDataKeepSettings();
+      // Sync last reset timestamp to current month cycle
+      final now = DateTime.now();
+      await ResetIntervalService.setLastResetTimestamp(
+        DateTime(now.year, now.month, 1),
+      );
       if (!mounted) return;
       setState(() {
         _transactions.clear();
@@ -328,7 +382,10 @@ class _NavWrapperState extends State<NavWrapper> {
               onBudgetChanged: _setBudget,
               onSpentChanged: _setSpent,
             ),
-            SettingsScreen(onResetAll: _resetAllData),
+            SettingsScreen(
+              onResetAll: _resetAllData,
+              onIntervalChanged: (_) => checkAndPerformIntervalReset(),
+            ),
           ],
         ),
         bottomNavigationBar: Padding(

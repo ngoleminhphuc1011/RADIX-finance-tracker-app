@@ -3,15 +3,22 @@ import '../../core/theme/app_color_locker.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/theme/currency_provider.dart';
 import '../../core/database/database_helper.dart';
+import '../../core/services/reset_interval_service.dart';
 import 'widgets/theme_segmented_bar.dart';
 import 'widgets/currency_picker_section.dart';
+import 'widgets/reset_interval_selector.dart';
 import 'widgets/reset_button.dart';
 import 'widgets/reset_confirm_dialog.dart';
 
 class SettingsScreen extends StatefulWidget {
   final VoidCallback onResetAll;
+  final ValueChanged<int>? onIntervalChanged;
 
-  const SettingsScreen({super.key, required this.onResetAll});
+  const SettingsScreen({
+    super.key,
+    required this.onResetAll,
+    this.onIntervalChanged,
+  });
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -19,6 +26,30 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   ThemeOption _selectedTheme = ThemeOption.light;
+  int _selectedInterval = ResetIntervalService.defaultIntervalMonths;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInterval();
+  }
+
+  Future<void> _loadInterval() async {
+    final interval = await ResetIntervalService.getResetIntervalMonths();
+    if (mounted) {
+      setState(() {
+        _selectedInterval = interval;
+      });
+    }
+  }
+
+  Future<void> _onIntervalChanged(int months) async {
+    setState(() {
+      _selectedInterval = months;
+    });
+    await ResetIntervalService.setResetIntervalMonths(months);
+    widget.onIntervalChanged?.call(months);
+  }
 
   String get _selectedCurrencyCode {
     try {
@@ -147,6 +178,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 CurrencyPickerSection(
                   selectedCurrencyCode: _selectedCurrencyCode,
                   onSelectCurrency: _selectCurrency,
+                ),
+                const SizedBox(height: 40),
+                // Reset interval section
+                ResetIntervalSelector(
+                  selectedInterval: _selectedInterval,
+                  onIntervalChanged: _onIntervalChanged,
                 ),
                 const SizedBox(height: 40),
                 // Reset button with confirmation dialog
