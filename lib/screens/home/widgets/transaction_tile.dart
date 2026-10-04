@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/transaction_model.dart';
 import '../../../core/theme/app_color_locker.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/theme/currency_provider.dart';
+import '../../../core/widgets/radix_currency_text.dart';
 
 class TransactionTile extends StatelessWidget {
   final TransactionModel model;
@@ -11,10 +11,6 @@ class TransactionTile extends StatelessWidget {
   static final TextStyle _titleStyle = AppTypography.openSans(
     fontSize: 16,
     fontWeight: FontWeight.bold,
-  );
-  static final TextStyle _amountStyle = AppTypography.openSans(
-    fontSize: 16,
-    fontWeight: FontWeight.w800,
   );
 
   const TransactionTile({super.key, required this.model, this.onTap});
@@ -25,9 +21,6 @@ class TransactionTile extends StatelessWidget {
     final locker = AppColorLocker.of(context);
     final colors = model.getColors(context);
     final Color fgColor = isExpense ? locker.expenseFg : locker.incomeFg;
-    final currencyInfo = CurrencyProvider.watch(context);
-    final String amountText =
-        '${isExpense ? '-' : '+'} ${currencyInfo.format(model.amount)}';
     final IconData? resolvedIcon = iconOptions[model.category];
 
     return GestureDetector(
@@ -41,14 +34,10 @@ class TransactionTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Icon square — no redundant white overlay, icon sits directly on tinted bg
-            Container(
+            // Icon square — icon sits directly on tinted bg
+            SizedBox(
               width: 48,
               height: 48,
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
-              ),
               child: Icon(
                 resolvedIcon ?? Icons.widgets_outlined,
                 color: fgColor,
@@ -69,9 +58,12 @@ class TransactionTile extends StatelessWidget {
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerRight,
-                child: Text(
-                  amountText,
-                  style: _amountStyle.copyWith(color: fgColor),
+                child: RadixCurrencyText(
+                  isExpense: isExpense,
+                  amount: model.amount,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: fgColor,
                 ),
               ),
             ),

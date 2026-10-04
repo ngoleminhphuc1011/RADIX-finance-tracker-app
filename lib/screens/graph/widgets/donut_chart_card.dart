@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../core/theme/app_color_locker.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/theme/currency_provider.dart';
+import '../../../core/widgets/radix_currency_text.dart';
 import 'graph_models.dart';
 import 'category_badge.dart';
 
@@ -118,21 +118,14 @@ class DonutChartCard extends StatelessWidget {
         const SizedBox(height: 8),
         FittedBox(
           fit: BoxFit.scaleDown,
-          child: Builder(
-            builder: (context) {
-              final currencyInfo = CurrencyProvider.watch(context);
-              return Text(
-                touchedIdx != -1 && touchedIdx < categories.length
-                    ? currencyInfo.format(categories[touchedIdx].amount)
-                    : currencyInfo.format(totalSpent * swipeProgress),
-                style: TextStyle(
-                  fontFamily: 'MonumentExtended-Regular',
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                  color: locker.textPrimary,
-                ),
-              );
-            },
+          child: RadixCurrencyText(
+            amount: touchedIdx != -1 && touchedIdx < categories.length
+                ? categories[touchedIdx].amount
+                : totalSpent * swipeProgress,
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+            fontFamily: 'MonumentExtended-Regular',
+            color: locker.textPrimary,
           ),
         ),
       ],

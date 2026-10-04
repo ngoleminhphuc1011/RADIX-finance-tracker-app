@@ -31,8 +31,9 @@ class AppTypography {
     double? height,
     TextDecoration? decoration,
   }) {
-    final double? adjustedSize =
-        fontSize != null ? (fontSize + sizeBoost) : null;
+    final double? adjustedSize = fontSize != null
+        ? (fontSize + sizeBoost)
+        : null;
     return GoogleFonts.openSans(
       fontSize: adjustedSize,
       fontWeight: resolveBoldWeight(fontWeight, fallback: FontWeight.bold),

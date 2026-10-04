@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_color_locker.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/theme/currency_provider.dart';
+import '../../../core/widgets/radix_currency_text.dart';
 import 'graph_models.dart';
 
 /// Displays the vertical category breakdown list with percentages and icons.
@@ -42,94 +42,94 @@ class CategoryBreakdownList extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Column(
-          children: List.generate(categories.length, (index) {
-            final category = categories[index];
-            final percent = totalSpent > 0
-                ? (category.amount / totalSpent * 100).toStringAsFixed(1)
-                : '0.0';
+          children: [
+            for (final category in categories)
+              Builder(
+                builder: (context) {
+                  final percent = totalSpent > 0
+                      ? (category.amount / totalSpent * 100).toStringAsFixed(1)
+                      : '0.0';
 
-            return GestureDetector(
-              onTap: () => onCategorySelected(category.iconKey),
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.symmetric(
-                  vertical: 14,
-                  horizontal: 16,
-                ),
-                decoration: BoxDecoration(
-                  color: locker.cardBackground,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: locker.textPrimary.withValues(alpha: 0.04),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    // Flat Circle Badge matching segment color
-                    Container(
-                      width: 40,
-                      height: 40,
+                  return GestureDetector(
+                    onTap: () => onCategorySelected(category.iconKey),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 16,
+                      ),
                       decoration: BoxDecoration(
-                        color: category.color,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Icon(
-                          category.icon,
-                          size: 16,
-                          color: _getContrastIconColor(category.color),
+                        color: locker.cardBackground,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: locker.textPrimary.withValues(alpha: 0.04),
+                          width: 1,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Name & Percentage
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          category.name,
-                          style: AppTypography.openSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: locker.textPrimary,
+                      child: Row(
+                        children: [
+                          // Flat Circle Badge matching segment color
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: category.color,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Icon(
+                                category.icon,
+                                size: 16,
+                                color: _getContrastIconColor(category.color),
+                              ),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '$percent%',
-                          style: AppTypography.openSans(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: locker.textTertiary,
+                          const SizedBox(width: 12),
+                          // Name & Percentage
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                category.name,
+                                style: AppTypography.openSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: locker.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '$percent%',
+                                style: AppTypography.openSans(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: locker.textTertiary,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
-                    const Spacer(),
-                    // Amount
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 120),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          CurrencyProvider.read(
-                            context,
-                          ).format(category.amount),
-                          style: AppTypography.openSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: locker.textPrimary,
+                          const Spacer(),
+                          // Amount
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 120),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerRight,
+                              child: RadixCurrencyText(
+                                amount: category.amount,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: locker.textPrimary,
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
-            );
-          }),
+          ],
         ),
       ],
     );

@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import '../../../models/transaction_model.dart';
 import '../../../core/theme/app_color_locker.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/theme/currency_provider.dart';
+import '../../../core/widgets/radix_currency_text.dart';
 import 'graph_models.dart';
 
 /// Displays the drill-down list of transactions belonging to a selected category.
@@ -98,97 +98,103 @@ class CategoryDetailList extends StatelessWidget {
                 ),
               )
             : Column(
-                children: List.generate(transactions.length, (index) {
-                  final tx = transactions[index];
+                children: [
+                  for (final tx in transactions)
+                    Builder(
+                      builder: (context) {
+                        // Format date for display
+                        String dateStr;
+                        try {
+                          final parsed = DateTime.parse(tx.date);
+                          dateStr = _displayFormat.format(parsed);
+                        } catch (_) {
+                          dateStr = tx.date;
+                        }
 
-                  // Format date for display
-                  String dateStr;
-                  try {
-                    final parsed = DateTime.parse(tx.date);
-                    dateStr = _displayFormat.format(parsed);
-                  } catch (_) {
-                    dateStr = tx.date;
-                  }
-
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 14,
-                      horizontal: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      color: locker.cardBackground,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: locker.textPrimary.withValues(alpha: 0.04),
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        // Flat Circle Icon Badge matching segment color
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: category.color,
-                            shape: BoxShape.circle,
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                            horizontal: 16,
                           ),
-                          child: Center(
-                            child: Icon(
-                              category.icon,
-                              size: 16,
-                              color: _getContrastIconColor(category.color),
+                          decoration: BoxDecoration(
+                            color: locker.cardBackground,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: locker.textPrimary.withValues(alpha: 0.04),
+                              width: 1,
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Title & Date
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
                             children: [
-                              Text(
-                                tx.title,
-                                style: AppTypography.openSans(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: locker.textPrimary,
+                              // Flat Circle Icon Badge matching segment color
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: category.color,
+                                  shape: BoxShape.circle,
                                 ),
-                                overflow: TextOverflow.ellipsis,
+                                child: Center(
+                                  child: Icon(
+                                    category.icon,
+                                    size: 16,
+                                    color: _getContrastIconColor(
+                                      category.color,
+                                    ),
+                                  ),
+                                ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                dateStr,
-                                style: AppTypography.openSans(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: locker.textTertiary,
+                              const SizedBox(width: 12),
+                              // Title & Date
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      tx.title,
+                                      style: AppTypography.openSans(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: locker.textPrimary,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      dateStr,
+                                      style: AppTypography.openSans(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: locker.textTertiary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Amount
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 120,
+                                ),
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerRight,
+                                  child: RadixCurrencyText(
+                                    prefix: '-',
+                                    amount: tx.amount,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    color: locker.expenseModelFg,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                        // Amount
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 120),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerRight,
-                            child: Text(
-                              '-${CurrencyProvider.read(context).format(tx.amount)}',
-                              style: AppTypography.openSans(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
-                                color: locker.expenseModelFg,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                        );
+                      },
                     ),
-                  );
-                }),
+                ],
               ),
       ],
     );

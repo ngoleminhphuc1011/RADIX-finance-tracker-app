@@ -519,7 +519,18 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
                 fontWeight: FontWeight.bold,
                 color: locker.textTertiary,
               ),
-              prefixText: CurrencyProvider.read(context).symbol,
+              prefix: Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: Text(
+                  CurrencyProvider.read(context).symbol,
+                  style: TextStyle(
+                    fontFamily: null,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: locker.textPrimary,
+                  ),
+                ),
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
               ),

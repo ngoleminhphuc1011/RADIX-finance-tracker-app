@@ -81,13 +81,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final oldCode = _selectedCurrencyCode;
       if (oldCode.toUpperCase() == code.toUpperCase()) return;
 
-      // 1. Convert all transaction amounts and budget in database
-      await DatabaseHelper().convertAllTransactionsAndBudget(oldCode, code);
-
-      // 2. Save new currency setting to settings table
+      // 1. Save new currency setting to settings table
       await DatabaseHelper().setSetting('active_currency', code);
 
-      // 3. Update active currency in context
+      // 2. Update active currency in context
       if (mounted) {
         CurrencyProvider.of(context).value = CurrencyInfo.find(code);
       }

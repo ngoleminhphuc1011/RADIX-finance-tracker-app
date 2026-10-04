@@ -11,6 +11,7 @@ import 'widgets/transaction_tile.dart';
 import 'widgets/edit_morph_dialog.dart';
 import 'widgets/budget_input_dialog.dart';
 import 'widgets/add_transaction_dialog.dart';
+import '../../core/widgets/radix_currency_text.dart';
 
 class HomeScreen extends StatefulWidget {
   final List<TransactionModel> transactions;
@@ -51,17 +52,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // -- TextStyles --
   TextStyle get _styleLabelBlack18 => TextStyle(
-    fontFamily: 'MonumentExtended-Regular',
-    fontSize: 18,
-    color: AppColorLocker.of(context).textPrimary,
-  );
-  TextStyle get _styleBalance55 => TextStyle(
-    fontFamily: 'MonumentExtended-Bold',
-    fontSize: 55,
-    fontWeight: FontWeight.w900,
-    color: AppColorLocker.of(context).textPrimary,
-  );
-  TextStyle get _styleBudgetLeft18 => TextStyle(
     fontFamily: 'MonumentExtended-Regular',
     fontSize: 18,
     color: AppColorLocker.of(context).textPrimary,
@@ -302,8 +292,6 @@ class _HomeScreenState extends State<HomeScreen> {
     bool isOverBudget,
     bool isLandscape,
   ) {
-    final currencyInfo = CurrencyProvider.watch(context);
-
     return BounceCard(
       onAnimationComplete: () {
         showBudgetInputDialog(
@@ -334,40 +322,36 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 4),
             FittedBox(
               fit: BoxFit.scaleDown,
-              child: Text(
-                currencyInfo.format(widget.spent),
-                style: isLandscape
-                    ? _styleBalance55.copyWith(fontSize: 42)
-                    : _styleBalance55,
+              child: RadixCurrencyText(
+                amount: widget.spent,
+                fontSize: isLandscape ? 42 : 55,
+                fontWeight: FontWeight.w900,
+                fontFamily: 'MonumentExtended-Bold',
+                color: locker.textPrimary,
               ),
             ),
             const SizedBox(height: 6),
             FittedBox(
               fit: BoxFit.scaleDown,
-              child: Text(
-                'BUDGET LEFT: ${currencyInfo.format(widget.budgetLeft)}',
-                style:
-                    (isLandscape
-                            ? _styleBudgetLeft18.copyWith(fontSize: 15)
-                            : _styleBudgetLeft18)
-                        .copyWith(
-                          color: isOverBudget
-                              ? _premiumPastelRed
-                              : locker.textPrimary,
-                        ),
+              child: RadixCurrencyText(
+                prefix: 'BUDGET LEFT: ',
+                amount: widget.budgetLeft,
+                fontSize: isLandscape ? 15 : 18,
+                fontWeight: FontWeight.w400,
+                fontFamily: 'MonumentExtended-Regular',
+                color: isOverBudget ? _premiumPastelRed : locker.textPrimary,
               ),
             ),
             if (isOverBudget) ...[
               const SizedBox(height: 6),
               FittedBox(
                 fit: BoxFit.scaleDown,
-                child: Text(
-                  'Overspent by ${currencyInfo.format(widget.spent - widget.monthlyBudget)}',
-                  style: AppTypography.openSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: _premiumPastelRed,
-                  ),
+                child: RadixCurrencyText(
+                  prefix: 'Overspent by ',
+                  amount: widget.spent - widget.monthlyBudget,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: _premiumPastelRed,
                 ),
               ),
             ],
@@ -661,13 +645,8 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    final currencyInfo = CurrencyProvider.watch(context);
     final int roundedNet = netTotal.round();
     final String sign = roundedNet < 0 ? '-' : (roundedNet > 0 ? '+' : '');
-    final String formattedAmount = currencyInfo.format(
-      roundedNet.abs().toDouble(),
-    );
-    final String dailyTotalText = '$sign$formattedAmount';
 
     final locker = AppColorLocker.of(context);
 
@@ -685,14 +664,12 @@ class _HomeScreenState extends State<HomeScreen> {
               letterSpacing: 1.2,
             ),
           ),
-          Text(
-            dailyTotalText,
-            style: AppTypography.openSans(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: locker.textTertiary.withValues(alpha: 0.8),
-              letterSpacing: 0.5,
-            ),
+          RadixCurrencyText(
+            prefix: sign,
+            amount: roundedNet.abs().toDouble(),
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: locker.textTertiary.withValues(alpha: 0.8),
           ),
         ],
       ),

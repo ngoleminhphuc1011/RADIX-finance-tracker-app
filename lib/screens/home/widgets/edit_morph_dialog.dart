@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/transaction_model.dart';
 import '../../../core/theme/app_color_locker.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/currency_provider.dart';
 import 'transaction_tile.dart';
 import 'icon_picker_sheet.dart';
 import 'delete_confirm_dialog.dart';
@@ -223,6 +224,18 @@ void showEditMorphDialog(
                                   color: amountColor,
                                 ),
                                 decoration: InputDecoration(
+                                  prefix: Padding(
+                                    padding: const EdgeInsets.only(right: 6),
+                                    child: Text(
+                                      CurrencyProvider.read(context).symbol,
+                                      style: TextStyle(
+                                        fontFamily: null,
+                                        fontSize: isLandscape ? 36.0 : 50.0,
+                                        fontWeight: FontWeight.w800,
+                                        color: amountColor,
+                                      ),
+                                    ),
+                                  ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     borderSide: BorderSide.none,

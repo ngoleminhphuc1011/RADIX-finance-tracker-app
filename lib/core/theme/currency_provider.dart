@@ -41,12 +41,53 @@ class CurrencyInfo {
     );
   }
 
+  static final NumberFormat _formatter = NumberFormat('#,###');
+
   /// Formats double to a rounded whole integer with the currency symbol.
   /// Prevents any values below 0.
   String format(double amount) {
     if (amount < 0) amount = 0;
-    final formatter = NumberFormat('#,###');
-    return '$symbol${formatter.format(amount.round())}';
+    return '$symbol${_formatter.format(amount.round())}';
+  }
+
+  /// Formats double to a rounded whole integer without the currency symbol.
+  /// Prevents any values below 0.
+  String formatNumber(double amount) {
+    if (amount < 0) amount = 0;
+    return _formatter.format(amount.round());
+  }
+
+  /// Builds a refined TextSpan pairing the currency symbol and the primary number styling.
+  TextSpan buildSpan({
+    required double amount,
+    required TextStyle numberStyle,
+    TextStyle? symbolStyle,
+    double symbolRatio = 1.0,
+    FontWeight? symbolWeight,
+    String prefix = '',
+  }) {
+    final double baseFontSize = numberStyle.fontSize ?? 16.0;
+    final Color? color = numberStyle.color;
+
+    return TextSpan(
+      style: TextStyle(textBaseline: TextBaseline.alphabetic, color: color),
+      children: [
+        if (prefix.isNotEmpty) TextSpan(text: prefix, style: numberStyle),
+        TextSpan(
+          text: symbol,
+          style:
+              symbolStyle ??
+              TextStyle(
+                fontFamily: null,
+                fontSize: baseFontSize * symbolRatio,
+                fontWeight:
+                    symbolWeight ?? numberStyle.fontWeight ?? FontWeight.normal,
+                color: color,
+              ),
+        ),
+        TextSpan(text: formatNumber(amount), style: numberStyle),
+      ],
+    );
   }
 
   /// Static helper for currency conversion.

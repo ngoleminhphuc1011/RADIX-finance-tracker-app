@@ -68,8 +68,8 @@ class InstructionScreen extends StatelessWidget {
             icon: Icons.currency_exchange_outlined,
             body:
                 '- Change active currency in Settings (USD, EUR, CNY, VND, etc.).\n'
-                '- Note: Base values will convert and may update when returning.',
-            isWarning: true,
+                '- Note: Base values remain preserved; only the currency symbol changes.',
+            isWarning: false,
           ),
           const SizedBox(height: 28),
 
