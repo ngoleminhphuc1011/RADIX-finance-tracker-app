@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'screens/graph/graph_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -391,83 +392,102 @@ class _NavWrapperState extends State<NavWrapper> {
         ),
         bottomNavigationBar: Padding(
           padding: const EdgeInsets.only(bottom: 24, left: 20, right: 20),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(32),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 400),
-              curve: Curves.easeInOut,
-              height: 68,
-              decoration: BoxDecoration(
-                color: AppColorLocker.of(context).navBarBackground,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColorLocker.of(context).shadowLight,
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(32),
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.black.withValues(alpha: 0.30)
+                      : Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 20,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(32),
+              child: BackdropFilter(
+                filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeInOut,
+                  height: 68,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white.withValues(alpha: 0.18)
+                        : Colors.white.withValues(alpha: 0.50),
+                    borderRadius: BorderRadius.circular(32),
+                    border: Border.all(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white.withValues(alpha: 0.20)
+                          : Colors.black.withValues(alpha: 0.08),
+                      width: 1.0,
+                    ),
                   ),
-                ],
-              ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final double barWidth = constraints.maxWidth;
-                  final double itemWidth = barWidth / 3;
-                  final double indicatorWidth = itemWidth * 0.65;
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final double barWidth = constraints.maxWidth;
+                      final double itemWidth = barWidth / 3;
+                      final double indicatorWidth = itemWidth * 0.65;
 
-                  return Stack(
-                    children: [
-                      ValueListenableBuilder<double>(
-                        valueListenable: _pagePosition,
-                        builder: (context, pagePos, _) {
-                          final double indicatorCenterX =
-                              itemWidth * (0.5 + pagePos);
-                          final double indicatorLeft =
-                              (indicatorCenterX - indicatorWidth / 2).clamp(
-                                0.0,
-                                barWidth - indicatorWidth,
-                              );
-                          return Positioned(
-                            left: indicatorLeft,
-                            top: 6,
-                            bottom: 6,
-                            width: indicatorWidth,
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 400),
-                              curve: Curves.easeInOut,
-                              decoration: BoxDecoration(
-                                color: AppColorLocker.of(
-                                  context,
-                                ).navIndicatorBackground,
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      Row(
+                      return Stack(
                         children: [
-                          _buildNavItem(
-                            0,
-                            Icons.bar_chart_outlined,
-                            Icons.bar_chart,
-                            itemWidth,
+                          ValueListenableBuilder<double>(
+                            valueListenable: _pagePosition,
+                            builder: (context, pagePos, _) {
+                              final double indicatorCenterX =
+                                  itemWidth * (0.5 + pagePos);
+                              final double indicatorLeft =
+                                  (indicatorCenterX - indicatorWidth / 2).clamp(
+                                    0.0,
+                                    barWidth - indicatorWidth,
+                                  );
+                              return Positioned(
+                                left: indicatorLeft,
+                                top: 6,
+                                bottom: 6,
+                                width: indicatorWidth,
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 400),
+                                  curve: Curves.easeInOut,
+                                  decoration: BoxDecoration(
+                                    color: AppColorLocker.of(
+                                      context,
+                                    ).navIndicatorBackground,
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
-                          _buildNavItem(
-                            1,
-                            Icons.home_outlined,
-                            Icons.home,
-                            itemWidth,
-                          ),
-                          _buildNavItem(
-                            2,
-                            Icons.settings_outlined,
-                            Icons.settings,
-                            itemWidth,
+                          Row(
+                            children: [
+                              _buildNavItem(
+                                0,
+                                Icons.bar_chart_outlined,
+                                Icons.bar_chart,
+                                itemWidth,
+                              ),
+                              _buildNavItem(
+                                1,
+                                Icons.home_outlined,
+                                Icons.home,
+                                itemWidth,
+                              ),
+                              _buildNavItem(
+                                2,
+                                Icons.settings_outlined,
+                                Icons.settings,
+                                itemWidth,
+                              ),
+                            ],
                           ),
                         ],
-                      ),
-                    ],
-                  );
-                },
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
           ),

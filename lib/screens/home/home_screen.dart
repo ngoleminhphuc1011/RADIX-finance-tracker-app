@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'instruction_screen.dart';
@@ -503,7 +504,12 @@ class _HomeScreenState extends State<HomeScreen> {
           child: ListView.builder(
             controller: _scrollController,
             key: ValueKey<String>(currentSort),
-            padding: padding,
+            padding: EdgeInsets.fromLTRB(
+              padding.left,
+              padding.top,
+              padding.right,
+              padding.bottom < 110 ? 110 : padding.bottom,
+            ),
             physics: const BouncingScrollPhysics(),
             itemCount: groupedKeys.length,
             itemBuilder: (context, index) {
@@ -534,6 +540,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFab(AppColorLocker locker) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color fabBg = isDark
+        ? Colors.white.withValues(alpha: 0.18)
+        : Colors.white.withValues(alpha: 0.50);
+    final Color fabBorder = isDark
+        ? Colors.white.withValues(alpha: 0.20)
+        : Colors.black.withValues(alpha: 0.08);
+    final Color fabIconColor = isDark ? Colors.white : locker.textPrimary;
+
     return BounceCard(
       onAnimationComplete: () {
         setState(() {
@@ -544,16 +559,42 @@ class _HomeScreenState extends State<HomeScreen> {
           _showAddTransactionDialogDelayed,
         );
       },
-      child: FloatingActionButton(
-        backgroundColor: locker.textPrimary,
-        onPressed: null,
-        elevation: 0,
-        highlightElevation: 0,
-        child: AnimatedRotation(
-          turns: _isPlusRotated ? 0.5 : 0.0,
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeOutCubic,
-          child: Icon(Icons.add, color: locker.textOnDark, size: 28),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.30)
+                  : Colors.black.withValues(alpha: 0.06),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: FloatingActionButton(
+              backgroundColor: fabBg,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+                side: BorderSide(color: fabBorder, width: 1),
+              ),
+              onPressed: null,
+              elevation: 0,
+              highlightElevation: 0,
+              focusElevation: 0,
+              hoverElevation: 0,
+              child: AnimatedRotation(
+                turns: _isPlusRotated ? 0.5 : 0.0,
+                duration: const Duration(milliseconds: 350),
+                curve: Curves.easeOutCubic,
+                child: Icon(Icons.add, color: fabIconColor, size: 28),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -623,8 +664,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final currencyInfo = CurrencyProvider.watch(context);
     final int roundedNet = netTotal.round();
     final String sign = roundedNet < 0 ? '-' : (roundedNet > 0 ? '+' : '');
-    final String formattedAmount =
-        currencyInfo.format(roundedNet.abs().toDouble());
+    final String formattedAmount = currencyInfo.format(
+      roundedNet.abs().toDouble(),
+    );
     final String dailyTotalText = '$sign$formattedAmount';
 
     final locker = AppColorLocker.of(context);
