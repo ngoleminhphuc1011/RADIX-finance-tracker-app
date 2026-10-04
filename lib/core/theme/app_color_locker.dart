@@ -35,6 +35,12 @@ abstract class AppColorLocker {
 
   // Nav indicator
   Color get navIndicatorBackground;
+  Color get navActiveCapsuleBg;
+  Color get navActiveCapsuleBorder;
+  Color get navActiveFg;
+  Color get navInactiveFg;
+  Color get frostedGlassBg;
+  Color get frostedGlassBorder;
 
   // Transaction specific colors
   Color get expenseBg;
@@ -221,6 +227,26 @@ class LightColorLocker extends AppColorLocker {
 
   @override
   Color get navIndicatorBackground => const Color(0xFFCFE3FB);
+
+  @override
+  Color get navActiveCapsuleBg => const Color(0xFFE3F2FD);
+
+  @override
+  Color get navActiveCapsuleBorder =>
+      const Color(0xFF1976D2).withValues(alpha: 0.25);
+
+  @override
+  Color get navActiveFg => const Color(0xFF0D47A1);
+
+  @override
+  Color get navInactiveFg =>
+      const Color(0xFF090A0C).withValues(alpha: 0.45);
+
+  @override
+  Color get frostedGlassBg => Colors.white.withValues(alpha: 0.50);
+
+  @override
+  Color get frostedGlassBorder => Colors.black.withValues(alpha: 0.08);
 
   @override
   Color get expenseBg => const Color(0xFFFFEBEE);
@@ -449,6 +475,26 @@ class DarkColorLocker extends AppColorLocker {
 
   @override
   Color get navIndicatorBackground => const Color.fromARGB(255, 222, 236, 253);
+
+  @override
+  Color get navActiveCapsuleBg =>
+      const Color(0xFF2979FF).withValues(alpha: 0.24);
+
+  @override
+  Color get navActiveCapsuleBorder =>
+      const Color(0xFF2979FF).withValues(alpha: 0.40);
+
+  @override
+  Color get navActiveFg => const Color(0xFFE3F2FD);
+
+  @override
+  Color get navInactiveFg => Colors.white.withValues(alpha: 0.45);
+
+  @override
+  Color get frostedGlassBg => Colors.white.withValues(alpha: 0.18);
+
+  @override
+  Color get frostedGlassBorder => Colors.white.withValues(alpha: 0.20);
 
   @override
   Color get expenseBg => const Color(0xFF2A1C1C);

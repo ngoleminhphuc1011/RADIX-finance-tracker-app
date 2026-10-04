@@ -139,9 +139,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Text(
                   'SETTINGS',
                   style: TextStyle(
-                    fontFamily: 'MonumentExtended-Regular',
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
+                    fontFamily: 'MonumentExtended',
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
                     color: AppColorLocker.of(context).textPrimary,
                   ),
                 ),

@@ -24,7 +24,7 @@ class GraphScreen extends StatefulWidget {
 class _GraphScreenState extends State<GraphScreen> {
   String? _selectedIconKey;
   ScrollPosition? _scrollPosition;
-  double _swipeProgress = 0.0;
+  double _swipeProgress = 1.0;
   bool _scrollThrottled = false;
 
   // ── Memoization caches ────────────────────────────────────────────────────
@@ -113,6 +113,16 @@ class _GraphScreenState extends State<GraphScreen> {
       _categories.fold(0.0, (sum, item) => sum + item.amount);
 
   @override
+  void didUpdateWidget(covariant GraphScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive != oldWidget.isActive && widget.isActive) {
+      setState(() {
+        _swipeProgress = 1.0;
+      });
+    }
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _scrollPosition?.removeListener(_onScrollNotification);
@@ -121,7 +131,13 @@ class _GraphScreenState extends State<GraphScreen> {
       final scrollable = Scrollable.maybeOf(context);
       _scrollPosition = scrollable?.position;
       _scrollPosition?.addListener(_onScrollNotification);
-      _onScrollNotification();
+      if (_scrollPosition != null &&
+          _scrollPosition!.hasContentDimensions &&
+          _scrollPosition!.viewportDimension > 0) {
+        _onScrollNotification();
+      } else {
+        _swipeProgress = 1.0;
+      }
     } catch (e) {
       setState(() {
         _swipeProgress = 1.0;
@@ -142,7 +158,9 @@ class _GraphScreenState extends State<GraphScreen> {
     if (!pos.hasContentDimensions || pos.viewportDimension == 0) return;
 
     final double page = pos.pixels / pos.viewportDimension;
-    double progress = (1.0 - page).clamp(0.0, 1.0);
+    // GraphScreen is at index 1 in the 5-tab PageView:
+    // full progress (1.0) when on tab 1, tapering to 0.0 when scrolled away.
+    double progress = (1.0 - (page - 1.0).abs()).clamp(0.0, 1.0);
 
     if (progress > 0.99) progress = 1.0;
     if (progress < 0.01) progress = 0.0;
@@ -212,9 +230,9 @@ class _GraphScreenState extends State<GraphScreen> {
                           Text(
                             'ANALYTICS',
                             style: TextStyle(
-                              fontFamily: 'MonumentExtended-Regular',
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
+                              fontFamily: 'MonumentExtended',
+                              fontSize: 24,
+                              fontWeight: FontWeight.w900,
                               color: locker.textPrimary,
                             ),
                           ),

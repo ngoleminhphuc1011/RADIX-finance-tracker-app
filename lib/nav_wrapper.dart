@@ -3,12 +3,55 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'screens/graph/graph_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/profile/profile_screen.dart';
 import 'screens/settings/settings_screen.dart';
+import 'screens/social/social_screen.dart';
 import 'models/transaction_model.dart';
 import 'core/database/database_helper.dart';
 import 'core/theme/app_color_locker.dart';
+import 'core/theme/app_typography.dart';
 import 'core/theme/currency_provider.dart';
 import 'core/services/reset_interval_service.dart';
+
+class _NavTabItem {
+  final String label;
+  final IconData outlinedIcon;
+  final IconData filledIcon;
+
+  const _NavTabItem({
+    required this.label,
+    required this.outlinedIcon,
+    required this.filledIcon,
+  });
+}
+
+const List<_NavTabItem> _navTabs = [
+  _NavTabItem(
+    label: 'Social',
+    outlinedIcon: Icons.public_outlined,
+    filledIcon: Icons.public_rounded,
+  ),
+  _NavTabItem(
+    label: 'Analytics',
+    outlinedIcon: Icons.bar_chart_rounded,
+    filledIcon: Icons.bar_chart_rounded,
+  ),
+  _NavTabItem(
+    label: 'Home',
+    outlinedIcon: Icons.home_outlined,
+    filledIcon: Icons.home_rounded,
+  ),
+  _NavTabItem(
+    label: 'Profile',
+    outlinedIcon: Icons.person_outline_rounded,
+    filledIcon: Icons.person_rounded,
+  ),
+  _NavTabItem(
+    label: 'Settings',
+    outlinedIcon: Icons.settings_outlined,
+    filledIcon: Icons.settings_rounded,
+  ),
+];
 
 class NavWrapper extends StatefulWidget {
   const NavWrapper({super.key});
@@ -18,9 +61,9 @@ class NavWrapper extends StatefulWidget {
 }
 
 class _NavWrapperState extends State<NavWrapper> {
-  final PageController _pageController = PageController(initialPage: 1);
-  int _currentIndex = 1;
-  final ValueNotifier<double> _pagePosition = ValueNotifier<double>(1.0);
+  final PageController _pageController = PageController(initialPage: 2);
+  int _currentIndex = 2;
+  final ValueNotifier<double> _pagePosition = ValueNotifier<double>(2.0);
 
   // The single DatabaseHelper instance (Singleton — same object app-wide).
   final _db = DatabaseHelper();
@@ -157,20 +200,32 @@ class _NavWrapperState extends State<NavWrapper> {
     final double? page = _pageController.page;
     if (page != null) {
       _pagePosition.value = page;
+      final int target = page.round().clamp(0, _navTabs.length - 1);
+      if (target != _currentIndex) {
+        setState(() {
+          _currentIndex = target;
+        });
+      }
     }
   }
 
   void _onPageChanged(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+    if (_currentIndex != index) {
+      setState(() {
+        _currentIndex = index;
+      });
+    }
   }
 
   void _onNavTap(int index) {
+    if (_currentIndex == index) return;
+    setState(() {
+      _currentIndex = index;
+    });
     _pageController.animateToPage(
       index,
-      duration: const Duration(milliseconds: 800),
-      curve: Curves.fastLinearToSlowEaseIn,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.fastOutSlowIn,
     );
   }
 
@@ -346,11 +401,15 @@ class _NavWrapperState extends State<NavWrapper> {
     final locker = AppColorLocker.of(context);
     switch (_currentIndex) {
       case 0:
-        return locker.graphBackground;
+        return locker.scaffoldBackground; // Social
       case 1:
-        return locker.scaffoldBackground;
+        return locker.graphBackground; // Analytics
       case 2:
-        return locker.settingsBackground;
+        return locker.scaffoldBackground; // Home
+      case 3:
+        return locker.scaffoldBackground; // Profile
+      case 4:
+        return locker.settingsBackground; // Settings
       default:
         return locker.scaffoldBackground;
     }
@@ -358,6 +417,8 @@ class _NavWrapperState extends State<NavWrapper> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
@@ -369,8 +430,9 @@ class _NavWrapperState extends State<NavWrapper> {
           controller: _pageController,
           onPageChanged: _onPageChanged,
           children: [
+            const SocialScreen(),
             GraphScreen(
-              isActive: _currentIndex == 0,
+              isActive: _currentIndex == 1,
               transactions: _transactions,
             ),
             HomeScreen(
@@ -384,113 +446,132 @@ class _NavWrapperState extends State<NavWrapper> {
               onBudgetChanged: _setBudget,
               onSpentChanged: _setSpent,
             ),
+            const ProfileScreen(),
             SettingsScreen(
               onResetAll: _resetAllData,
               onIntervalChanged: (_) => checkAndPerformIntervalReset(),
             ),
           ],
         ),
-        bottomNavigationBar: Padding(
-          padding: const EdgeInsets.only(bottom: 24, left: 20, right: 20),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(32),
-              boxShadow: [
-                BoxShadow(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.black.withValues(alpha: 0.30)
-                      : Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 20,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(32),
-              child: BackdropFilter(
-                filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.easeInOut,
-                  height: 68,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white.withValues(alpha: 0.18)
-                        : Colors.white.withValues(alpha: 0.50),
-                    borderRadius: BorderRadius.circular(32),
-                    border: Border.all(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white.withValues(alpha: 0.20)
-                          : Colors.black.withValues(alpha: 0.08),
-                      width: 1.0,
-                    ),
-                  ),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final double barWidth = constraints.maxWidth;
-                      final double itemWidth = barWidth / 3;
-                      final double indicatorWidth = itemWidth * 0.65;
+        bottomNavigationBar: Builder(
+          builder: (context) {
+            final Size screenSize = MediaQuery.sizeOf(context);
+            final Orientation orientation = MediaQuery.orientationOf(context);
+            final bool isLandscape = orientation == Orientation.landscape;
+            final double shortestSide = screenSize.shortestSide;
+            final double screenWidth = screenSize.width;
 
-                      return Stack(
-                        children: [
-                          ValueListenableBuilder<double>(
-                            valueListenable: _pagePosition,
-                            builder: (context, pagePos, _) {
-                              final double indicatorCenterX =
-                                  itemWidth * (0.5 + pagePos);
-                              final double indicatorLeft =
-                                  (indicatorCenterX - indicatorWidth / 2).clamp(
-                                    0.0,
-                                    barWidth - indicatorWidth,
-                                  );
-                              return Positioned(
-                                left: indicatorLeft,
-                                top: 6,
-                                bottom: 6,
-                                width: indicatorWidth,
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 400),
-                                  curve: Curves.easeInOut,
-                                  decoration: BoxDecoration(
-                                    color: AppColorLocker.of(
-                                      context,
-                                    ).navIndicatorBackground,
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          Row(
-                            children: [
-                              _buildNavItem(
-                                0,
-                                Icons.bar_chart_outlined,
-                                Icons.bar_chart,
-                                itemWidth,
-                              ),
-                              _buildNavItem(
-                                1,
-                                Icons.home_outlined,
-                                Icons.home,
-                                itemWidth,
-                              ),
-                              _buildNavItem(
-                                2,
-                                Icons.settings_outlined,
-                                Icons.settings,
-                                itemWidth,
-                              ),
-                            ],
+            // Device / Screen tier detection
+            final bool isTablet = shortestSide >= 600 || screenWidth >= 768;
+            final bool isLargePhone = screenWidth >= 410;
+
+            // Adaptive bar sizing
+            final double navHeight = isTablet
+                ? 82.0
+                : (isLandscape ? 66.0 : (isLargePhone ? 74.0 : 70.0));
+
+            final double iconSize = isTablet
+                ? 28.0
+                : (isLandscape ? (isTablet ? 26.0 : 23.0) : (isLargePhone ? 25.0 : 23.0));
+
+            final double labelFontSize = isTablet
+                ? 15.0
+                : (isLandscape ? (isTablet ? 14.0 : 12.0) : (isLargePhone ? 13.0 : 12.0));
+
+            final double maxBarWidth = isTablet
+                ? 680.0
+                : (isLandscape ? 560.0 : double.infinity);
+
+            final double barBottomPadding = isLandscape
+                ? 12.0
+                : (isTablet ? 32.0 : 24.0);
+
+            final double barHorizontalPadding = isTablet
+                ? 18.0
+                : (isLandscape ? 12.0 : 10.0);
+
+            final double hActive = isTablet
+                ? 18.0
+                : (isLargePhone ? 16.0 : 15.0);
+            final double hInactive = isTablet
+                ? 14.0
+                : (isLargePhone ? 12.0 : 11.0);
+            final double vPadding = isTablet
+                ? 11.0
+                : (isLandscape ? 8.0 : 9.0);
+
+            final locker = AppColorLocker.of(context);
+
+            return SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  bottom: barBottomPadding,
+                  left: isLandscape ? 24 : 16,
+                  right: isLandscape ? 24 : 16,
+                ),
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: maxBarWidth),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(35),
+                        boxShadow: [
+                          BoxShadow(
+                            color: isDark
+                                ? Colors.black.withValues(alpha: 0.35)
+                                : Colors.black.withValues(alpha: 0.06),
+                            blurRadius: 20,
+                            offset: const Offset(0, 4),
                           ),
                         ],
-                      );
-                    },
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(35),
+                        child: BackdropFilter(
+                          filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            height: navHeight,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: barHorizontalPadding,
+                              vertical: isLandscape ? 6 : 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: locker.frostedGlassBg,
+                              borderRadius: BorderRadius.circular(35),
+                              border: Border.all(
+                                color: locker.frostedGlassBorder,
+                                width: 1.0,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                for (int i = 0; i < _navTabs.length; i++)
+                                  _buildNavItem(
+                                    i,
+                                    _navTabs[i],
+                                    locker,
+                                    iconSize: iconSize,
+                                    labelFontSize: labelFontSize,
+                                    hActive: hActive,
+                                    hInactive: hInactive,
+                                    vPadding: vPadding,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
@@ -498,35 +579,90 @@ class _NavWrapperState extends State<NavWrapper> {
 
   Widget _buildNavItem(
     int index,
-    IconData outlinedIcon,
-    IconData filledIcon,
-    double itemWidth,
-  ) {
+    _NavTabItem tab,
+    AppColorLocker locker, {
+    required double iconSize,
+    required double labelFontSize,
+    required double hActive,
+    required double hInactive,
+    required double vPadding,
+  }) {
     final bool isActive = _currentIndex == index;
-    final locker = AppColorLocker.of(context);
-    final Color targetColor = isActive
-        ? (locker.navIndicatorBackground.computeLuminance() > 0.5
-              ? const Color(0xFF090A0C)
-              : locker.textPrimary)
-        : locker.textTertiary;
 
-    return SizedBox(
-      width: itemWidth,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => _onNavTap(index),
-        child: Center(
-          child: TweenAnimationBuilder<Color?>(
-            tween: ColorTween(end: targetColor),
-            duration: const Duration(milliseconds: 400),
-            builder: (context, color, child) {
-              return Icon(
-                isActive ? filledIcon : outlinedIcon,
-                color: color,
-                size: 24,
-              );
-            },
+    final Color activeColor = locker.navActiveFg;
+    final Color inactiveColor = locker.navInactiveFg;
+    final Color activeCapsuleBg = locker.navActiveCapsuleBg;
+    final Color activeCapsuleBorder = locker.navActiveCapsuleBorder;
+
+    // Matching RGB with 0 alpha prevents any grey dip during transitions
+    final Color transparentBg = activeCapsuleBg.withValues(alpha: 0.0);
+    final Color transparentBorder = activeCapsuleBorder.withValues(alpha: 0.0);
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _onNavTap(index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeInOutCubic,
+        padding: EdgeInsets.symmetric(
+          horizontal: isActive ? hActive : hInactive,
+          vertical: vPadding,
+        ),
+        decoration: BoxDecoration(
+          color: isActive ? activeCapsuleBg : transparentBg,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(
+            color: isActive ? activeCapsuleBorder : transparentBorder,
+            width: 1.0,
           ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TweenAnimationBuilder<Color?>(
+              tween: ColorTween(
+                begin: inactiveColor,
+                end: isActive ? activeColor : inactiveColor,
+              ),
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeInOut,
+              builder: (context, color, child) {
+                return Icon(
+                  isActive ? tab.filledIcon : tab.outlinedIcon,
+                  color: color,
+                  size: iconSize,
+                );
+              },
+            ),
+            ClipRect(
+              child: AnimatedAlign(
+                duration: const Duration(milliseconds: 280),
+                curve: Curves.easeInOutCubic,
+                alignment: Alignment.centerLeft,
+                widthFactor: isActive ? 1.0 : 0.0,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 6),
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 220),
+                    opacity: isActive ? 1.0 : 0.0,
+                    curve: Curves.easeInOut,
+                    child: Text(
+                      tab.label,
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.clip,
+                      style: AppTypography.openSans(
+                        fontSize: labelFontSize,
+                        fontWeight: FontWeight.bold,
+                        color: activeColor,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

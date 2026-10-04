@@ -201,7 +201,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 groupedKeys,
                 grouped,
               ),
-        floatingActionButton: isLandscape ? null : _buildFab(locker),
+        floatingActionButton: isLandscape
+            ? null
+            : Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _buildFab(locker),
+              ),
       ),
     );
   }
@@ -525,12 +530,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildFab(AppColorLocker locker) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color fabBg = isDark
-        ? Colors.white.withValues(alpha: 0.18)
-        : Colors.white.withValues(alpha: 0.50);
-    final Color fabBorder = isDark
-        ? Colors.white.withValues(alpha: 0.20)
-        : Colors.black.withValues(alpha: 0.08);
+    final Color fabBg = locker.frostedGlassBg;
+    final Color fabBorder = locker.frostedGlassBorder;
     final Color fabIconColor = isDark ? Colors.white : locker.textPrimary;
 
     return BounceCard(

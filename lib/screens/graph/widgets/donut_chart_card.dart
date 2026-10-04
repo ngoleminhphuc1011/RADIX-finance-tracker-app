@@ -57,7 +57,10 @@ class DonutChartCard extends StatelessWidget {
   }
 
   List<PieChartSectionData> _buildSections() {
-    if (swipeProgress == 0.0 || categories.isEmpty) {
+    final effectiveProgress = (swipeProgress <= 0.0 && categories.isNotEmpty)
+        ? 1.0
+        : swipeProgress;
+    if (effectiveProgress == 0.0 || categories.isEmpty) {
       return [
         PieChartSectionData(
           color: Colors.transparent,
@@ -68,7 +71,7 @@ class DonutChartCard extends StatelessWidget {
       ];
     }
 
-    final animatedValues = _buildAnimatedValues(swipeProgress);
+    final animatedValues = _buildAnimatedValues(effectiveProgress);
     final touchedIdx = _touchedIndex;
 
     return List.generate(categories.length, (i) {
@@ -90,7 +93,7 @@ class DonutChartCard extends StatelessWidget {
           icon: category.icon,
           iconColor: darkenedIconColor,
           isTouched: isTouched,
-          progress: swipeProgress,
+          progress: effectiveProgress,
         ),
         badgePositionPercentageOffset: isTouched ? 0.65 : 0.55,
       );
@@ -100,6 +103,9 @@ class DonutChartCard extends StatelessWidget {
   Widget _buildDonutCenterText(BuildContext context) {
     final touchedIdx = _touchedIndex;
     final locker = AppColorLocker.of(context);
+    final effectiveProgress = (swipeProgress <= 0.0 && totalSpent > 0)
+        ? 1.0
+        : swipeProgress;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -121,7 +127,7 @@ class DonutChartCard extends StatelessWidget {
           child: RadixCurrencyText(
             amount: touchedIdx != -1 && touchedIdx < categories.length
                 ? categories[touchedIdx].amount
-                : totalSpent * swipeProgress,
+                : totalSpent * effectiveProgress,
             fontSize: 22,
             fontWeight: FontWeight.w600,
             fontFamily: 'MonumentExtended-Regular',
