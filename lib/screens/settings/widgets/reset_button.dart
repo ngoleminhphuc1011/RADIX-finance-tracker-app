@@ -41,7 +41,7 @@ class _ResetButtonState extends State<ResetButton>
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.only(top: 48, bottom: 40),
+        padding: const EdgeInsets.only(top: 16, bottom: 20),
         child: SizedBox(
           height: 48,
           child: Listener(
