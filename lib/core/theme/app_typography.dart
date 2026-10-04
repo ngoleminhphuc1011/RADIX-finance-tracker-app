@@ -18,6 +18,10 @@ class AppTypography {
     return requestedWeight;
   }
 
+  /// Global size increment for Open Sans text across RADIX
+  /// ensuring optimal legibility and balanced visual fit with the bold geometric UI.
+  static const double sizeBoost = 2.0;
+
   /// Returns an Open Sans [TextStyle] using only bold and very bold weights.
   static TextStyle openSans({
     double? fontSize,
@@ -27,8 +31,10 @@ class AppTypography {
     double? height,
     TextDecoration? decoration,
   }) {
+    final double? adjustedSize =
+        fontSize != null ? (fontSize + sizeBoost) : null;
     return GoogleFonts.openSans(
-      fontSize: fontSize,
+      fontSize: adjustedSize,
       fontWeight: resolveBoldWeight(fontWeight, fallback: FontWeight.bold),
       color: color,
       letterSpacing: letterSpacing,
