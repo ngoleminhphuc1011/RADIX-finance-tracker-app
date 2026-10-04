@@ -52,7 +52,10 @@ class ResetIntervalService {
       // Default: 1st day of the current month
       final now = DateTime.now();
       final defaultDate = DateTime(now.year, now.month, 1);
-      await prefs.setString(keyLastResetTimestamp, defaultDate.toIso8601String());
+      await prefs.setString(
+        keyLastResetTimestamp,
+        defaultDate.toIso8601String(),
+      );
       return defaultDate;
     } catch (e) {
       debugPrint('[ResetIntervalService] Error reading last reset: $e');
@@ -66,7 +69,9 @@ class ResetIntervalService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(keyLastResetTimestamp, timestamp.toIso8601String());
-      debugPrint('[ResetIntervalService] Updated last reset: ${timestamp.toIso8601String()}');
+      debugPrint(
+        '[ResetIntervalService] Updated last reset: ${timestamp.toIso8601String()}',
+      );
     } catch (e) {
       debugPrint('[ResetIntervalService] Error saving last reset: $e');
     }

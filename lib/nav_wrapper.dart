@@ -80,7 +80,8 @@ class _NavWrapperState extends State<NavWrapper> {
     try {
       final now = DateTime.now();
       final lastReset = await ResetIntervalService.getLastResetTimestamp();
-      final intervalMonths = await ResetIntervalService.getResetIntervalMonths();
+      final intervalMonths =
+          await ResetIntervalService.getResetIntervalMonths();
 
       if (ResetIntervalService.isResetDue(
         now: now,

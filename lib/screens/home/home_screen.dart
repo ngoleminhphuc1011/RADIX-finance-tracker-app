@@ -166,6 +166,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final grouped = _grouped;
     final groupedKeys = grouped.keys.toList(growable: false);
     final locker = AppColorLocker.of(context);
+    final orientation = MediaQuery.of(context).orientation;
+    final bool isLandscape = orientation == Orientation.landscape;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
@@ -173,10 +175,12 @@ class _HomeScreenState extends State<HomeScreen> {
       color: locker.scaffoldBackground,
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        floatingActionButtonLocation: const _CustomFloatingActionButtonLocation(
-          FloatingActionButtonLocation.endFloat,
-          offsetY: -92,
-        ),
+        floatingActionButtonLocation: isLandscape
+            ? null
+            : const _CustomFloatingActionButtonLocation(
+                FloatingActionButtonLocation.endFloat,
+                offsetY: -92,
+              ),
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -191,245 +195,365 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        body: Center(
-          child: RepaintBoundary(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 500),
-              child: Column(
-                children: [
-                  // Balance Card
-                  BounceCard(
-                    onAnimationComplete: () {
-                      showBudgetInputDialog(
-                        context,
-                        currentBudget: widget.monthlyBudget,
-                        onBudgetChanged: widget.onBudgetChanged,
-                      );
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                      ).add(const EdgeInsets.only(top: 8, bottom: 16)),
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: locker.cardBackground,
-                        border: Border.all(
-                          color: isOverBudget
-                              ? locker.accentRed.withValues(alpha: 0.7)
-                              : locker.budgetCardBorderNormal,
-                          width: 3,
-                        ),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Column(
-                        children: [
-                          Text('SPENT', style: _styleLabelBlack18),
-                          const SizedBox(height: 4),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Builder(
-                              builder: (context) {
-                                final currencyInfo = CurrencyProvider.watch(
-                                  context,
-                                );
-                                return Text(
-                                  currencyInfo.format(widget.spent),
-                                  style: _styleBalance55,
-                                );
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Builder(
-                              builder: (context) {
-                                final currencyInfo = CurrencyProvider.watch(
-                                  context,
-                                );
-                                return Text(
-                                  'BUDGET LEFT: ${currencyInfo.format(widget.budgetLeft)}',
-                                  style: _styleBudgetLeft18.copyWith(
-                                    color: isOverBudget
-                                        ? _premiumPastelRed
-                                        : locker.textPrimary,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                          if (isOverBudget) ...[
-                            const SizedBox(height: 6),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Builder(
-                                builder: (context) {
-                                  final currencyInfo = CurrencyProvider.watch(
-                                    context,
-                                  );
-                                  return Text(
-                                    'Overspent by ${currencyInfo.format(widget.spent - widget.monthlyBudget)}',
-                                    style: AppTypography.openSans(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: _premiumPastelRed,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Sort Row
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: _cycleSort,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Sort: $currentSort',
-                                style: AppTypography.openSans(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: locker.textSecondary,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              AnimatedRotation(
-                                turns: sortTurns,
-                                duration: const Duration(milliseconds: 350),
-                                curve: Curves.easeOutBack,
-                                child: Icon(
-                                  Icons.arrow_upward,
-                                  size: 16,
-                                  color: locker.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Spacer(),
-                        GestureDetector(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const InstructionScreen(),
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.info_outline,
-                            color: locker.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Transaction List or Empty State
-                  Expanded(
-                    child: widget.transactions.isEmpty
-                        ? Center(
-                            child: Text(
-                              "PRESS '+' TO ADD\nTRANSACTION",
-                              textAlign: TextAlign.center,
-                              style: _styleEmptyState,
-                            ),
-                          )
-                        : AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 350),
-                            switchInCurve: Curves.easeOutCubic,
-                            switchOutCurve: Curves.easeInCubic,
-                            transitionBuilder:
-                                (Widget child, Animation<double> animation) {
-                                  return FadeTransition(
-                                    opacity: animation,
-                                    child: SlideTransition(
-                                      position: Tween<Offset>(
-                                        begin: const Offset(0, 0.1),
-                                        end: Offset.zero,
-                                      ).animate(animation),
-                                      child: child,
-                                    ),
-                                  );
-                                },
-                            child: RepaintBoundary(
-                              child: ScrollConfiguration(
-                                behavior: const ScrollBehavior().copyWith(
-                                  scrollbars: false,
-                                ),
-                                child: ListView.builder(
-                                  controller: _scrollController,
-                                  key: ValueKey<String>(currentSort),
-                                  padding: const EdgeInsets.only(bottom: 110),
-                                  physics: const BouncingScrollPhysics(),
-                                  itemCount: groupedKeys.length,
-                                  itemBuilder: (context, index) {
-                                    final String dateStr = groupedKeys[index];
-                                    final List<TransactionModel> groupTxs =
-                                        grouped[dateStr]!;
-                                    return Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        _buildDateHeader(dateStr),
-                                        ...groupTxs.map(
-                                          (tx) => TransactionTile(
-                                            model: tx,
-                                            onTap: () => showEditMorphDialog(
-                                              context,
-                                              model: tx,
-                                              onUpdateTransaction:
-                                                  widget.onUpdateTransaction,
-                                              onDeleteTransaction:
-                                                  widget.onDeleteTransaction,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          ),
-                  ),
-                ],
+        body: isLandscape
+            ? _buildLandscapeBody(
+                context,
+                locker,
+                isOverBudget,
+                groupedKeys,
+                grouped,
+              )
+            : _buildPortraitBody(
+                context,
+                locker,
+                isOverBudget,
+                groupedKeys,
+                grouped,
               ),
+        floatingActionButton: isLandscape ? null : _buildFab(locker),
+      ),
+    );
+  }
+
+  Widget _buildPortraitBody(
+    BuildContext context,
+    AppColorLocker locker,
+    bool isOverBudget,
+    List<String> groupedKeys,
+    Map<String, List<TransactionModel>> grouped,
+  ) {
+    return Center(
+      child: RepaintBoundary(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: Column(
+            children: [
+              _buildBalanceCard(context, locker, isOverBudget, false),
+              _buildSortRow(locker),
+              const SizedBox(height: 8),
+              Expanded(
+                child: _buildTransactionList(
+                  locker,
+                  groupedKeys,
+                  grouped,
+                  padding: const EdgeInsets.only(bottom: 110),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLandscapeBody(
+    BuildContext context,
+    AppColorLocker locker,
+    bool isOverBudget,
+    List<String> groupedKeys,
+    Map<String, List<TransactionModel>> grouped,
+  ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // LEFT COLUMN (Expanded flex: 4): Wrap BalanceCard, quick summary stats, and Add Action in a non-overflowing container
+        Expanded(
+          flex: 4,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.only(bottom: 110, left: 16, right: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildBalanceCard(context, locker, isOverBudget, true),
+                const SizedBox(height: 8),
+                _buildSortRow(locker),
+                const SizedBox(height: 12),
+                _buildAddActionButton(locker),
+              ],
             ),
           ),
         ),
-        floatingActionButton: BounceCard(
-          onAnimationComplete: () {
-            setState(() {
-              _isPlusRotated = true;
-            });
-            Future.delayed(
-              const Duration(milliseconds: 150),
-              _showAddTransactionDialogDelayed,
-            );
-          },
-          child: FloatingActionButton(
-            backgroundColor: locker.textPrimary,
-            onPressed: null,
-            elevation: 0,
-            highlightElevation: 0,
-            child: AnimatedRotation(
-              turns: _isPlusRotated ? 0.5 : 0.0,
-              duration: const Duration(milliseconds: 350),
-              curve: Curves.easeOutCubic,
-              child: Icon(Icons.add, color: locker.textOnDark, size: 28),
+        // Subtle vertical separator
+        Container(
+          width: 1,
+          margin: const EdgeInsets.only(bottom: 110),
+          color: locker.textPrimary.withValues(alpha: 0.05),
+        ),
+        // RIGHT COLUMN (Expanded flex: 6): Dedicated scrollable area for transaction list
+        Expanded(
+          flex: 6,
+          child: _buildTransactionList(
+            locker,
+            groupedKeys,
+            grouped,
+            padding: const EdgeInsets.only(bottom: 110, left: 8, right: 16),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBalanceCard(
+    BuildContext context,
+    AppColorLocker locker,
+    bool isOverBudget,
+    bool isLandscape,
+  ) {
+    final currencyInfo = CurrencyProvider.watch(context);
+
+    return BounceCard(
+      onAnimationComplete: () {
+        showBudgetInputDialog(
+          context,
+          currentBudget: widget.monthlyBudget,
+          onBudgetChanged: widget.onBudgetChanged,
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        margin: isLandscape
+            ? const EdgeInsets.symmetric(horizontal: 4, vertical: 4)
+            : const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        padding: EdgeInsets.all(isLandscape ? 16 : 24),
+        decoration: BoxDecoration(
+          color: locker.cardBackground,
+          border: Border.all(
+            color: isOverBudget
+                ? locker.accentRed.withValues(alpha: 0.7)
+                : locker.budgetCardBorderNormal,
+            width: 3,
+          ),
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          children: [
+            Text('SPENT', style: _styleLabelBlack18),
+            const SizedBox(height: 4),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                currencyInfo.format(widget.spent),
+                style: isLandscape
+                    ? _styleBalance55.copyWith(fontSize: 42)
+                    : _styleBalance55,
+              ),
+            ),
+            const SizedBox(height: 6),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                'BUDGET LEFT: ${currencyInfo.format(widget.budgetLeft)}',
+                style:
+                    (isLandscape
+                            ? _styleBudgetLeft18.copyWith(fontSize: 15)
+                            : _styleBudgetLeft18)
+                        .copyWith(
+                          color: isOverBudget
+                              ? _premiumPastelRed
+                              : locker.textPrimary,
+                        ),
+              ),
+            ),
+            if (isOverBudget) ...[
+              const SizedBox(height: 6),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  'Overspent by ${currencyInfo.format(widget.spent - widget.monthlyBudget)}',
+                  style: AppTypography.openSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: _premiumPastelRed,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSortRow(AppColorLocker locker) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: _cycleSort,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Sort: $currentSort',
+                  style: AppTypography.openSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: locker.textSecondary,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                AnimatedRotation(
+                  turns: sortTurns,
+                  duration: const Duration(milliseconds: 350),
+                  curve: Curves.easeOutBack,
+                  child: Icon(
+                    Icons.arrow_upward,
+                    size: 16,
+                    color: locker.textSecondary,
+                  ),
+                ),
+              ],
             ),
           ),
+          const Spacer(),
+          GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const InstructionScreen(),
+              ),
+            ),
+            child: Icon(Icons.info_outline, color: locker.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddActionButton(AppColorLocker locker) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: BounceCard(
+        onAnimationComplete: () {
+          _showAddTransactionDialogDelayed();
+        },
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: locker.textPrimary,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: locker.textPrimary.withValues(alpha: 0.12),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.add, color: locker.textOnDark, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'ADD TRANSACTION',
+                style: AppTypography.openSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: locker.textOnDark,
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTransactionList(
+    AppColorLocker locker,
+    List<String> groupedKeys,
+    Map<String, List<TransactionModel>> grouped, {
+    required EdgeInsets padding,
+  }) {
+    if (widget.transactions.isEmpty) {
+      return Center(
+        child: Text(
+          "PRESS '+' TO ADD\nTRANSACTION",
+          textAlign: TextAlign.center,
+          style: _styleEmptyState,
+        ),
+      );
+    }
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 350),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.1),
+              end: Offset.zero,
+            ).animate(animation),
+            child: child,
+          ),
+        );
+      },
+      child: RepaintBoundary(
+        child: ScrollConfiguration(
+          behavior: const ScrollBehavior().copyWith(scrollbars: false),
+          child: ListView.builder(
+            controller: _scrollController,
+            key: ValueKey<String>(currentSort),
+            padding: padding,
+            physics: const BouncingScrollPhysics(),
+            itemCount: groupedKeys.length,
+            itemBuilder: (context, index) {
+              final String dateStr = groupedKeys[index];
+              final List<TransactionModel> groupTxs = grouped[dateStr]!;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDateHeader(dateStr),
+                  ...groupTxs.map(
+                    (tx) => TransactionTile(
+                      model: tx,
+                      onTap: () => showEditMorphDialog(
+                        context,
+                        model: tx,
+                        onUpdateTransaction: widget.onUpdateTransaction,
+                        onDeleteTransaction: widget.onDeleteTransaction,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFab(AppColorLocker locker) {
+    return BounceCard(
+      onAnimationComplete: () {
+        setState(() {
+          _isPlusRotated = true;
+        });
+        Future.delayed(
+          const Duration(milliseconds: 150),
+          _showAddTransactionDialogDelayed,
+        );
+      },
+      child: FloatingActionButton(
+        backgroundColor: locker.textPrimary,
+        onPressed: null,
+        elevation: 0,
+        highlightElevation: 0,
+        child: AnimatedRotation(
+          turns: _isPlusRotated ? 0.5 : 0.0,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOutCubic,
+          child: Icon(Icons.add, color: locker.textOnDark, size: 28),
         ),
       ),
     );

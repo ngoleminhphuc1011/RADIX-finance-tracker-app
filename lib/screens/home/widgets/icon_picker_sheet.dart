@@ -99,90 +99,112 @@ void showIconPickerSheet(
     backgroundColor: Colors.transparent,
     barrierColor: locker.barrierColorLight,
     builder: (BuildContext ctx) {
-      return Padding(
-        padding: const EdgeInsets.only(
-          top: 20,
-          left: 20,
-          right: 20,
-          bottom: 20,
-        ),
-        child: Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(ctx).size.height * 0.35,
+      final mediaQuery = MediaQuery.of(ctx);
+      final isLandscape = mediaQuery.orientation == Orientation.landscape;
+      final double maxHeight = isLandscape
+          ? mediaQuery.size.height * 0.70
+          : mediaQuery.size.height * 0.38;
+
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.pop(ctx),
+        child: Padding(
+          padding: const EdgeInsets.only(
+            top: 20,
+            left: 20,
+            right: 20,
+            bottom: 20,
           ),
-          decoration: BoxDecoration(
-            color: locker.dialogBackground,
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
-                child: Row(
-                  children: [
-                    Text(
-                      'SELECT ICON',
-                      style: TextStyle(
-                        fontFamily: 'MonumentExtended-Regular',
-                        fontSize: 13,
-                        fontWeight: FontWeight.w400,
-                        color: locker.textSecondary,
-                      ),
-                    ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () {
-                        onIconSelected?.call(null);
-                        Navigator.pop(ctx);
-                      },
-                      child: Text(
-                        'None',
-                        style: AppTypography.openSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: locker.textTertiary,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ),
-                  ],
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {}, // Prevent taps inside sheet from closing
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 500,
+                  maxHeight: maxHeight,
                 ),
-              ),
-              const Divider(height: 1),
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                  child: GridView.builder(
-                    shrinkWrap: true,
-                    physics: const BouncingScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 4,
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: locker.dialogBackground,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+                        child: Row(
+                          children: [
+                            Text(
+                              'SELECT ICON',
+                              style: TextStyle(
+                                fontFamily: 'MonumentExtended-Regular',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w400,
+                                color: locker.textSecondary,
+                              ),
+                            ),
+                            const Spacer(),
+                            GestureDetector(
+                              onTap: () {
+                                onIconSelected?.call(null);
+                                Navigator.pop(ctx);
+                              },
+                              child: Text(
+                                'None',
+                                style: AppTypography.openSans(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: locker.textTertiary,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                    itemCount: iconOptions.length,
-                    itemBuilder: (context, index) {
-                      final entry = iconOptions.entries.elementAt(index);
-                      final String key = entry.key;
-                      final IconData icon = entry.value;
-                      final bool isSelected = selectedIconKey == key;
-                      return IconTile(
-                        icon: icon,
-                        isSelected: isSelected,
-                        selectedBgColor: selectedBgColor,
-                        selectedBorderColor: selectedBorderColor,
-                        onTap: () {
-                          onIconSelected?.call(key);
-                          Navigator.pop(ctx);
-                        },
-                      );
-                    },
+                      ),
+                      const Divider(height: 1),
+                      Flexible(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                          child: GridView.builder(
+                            shrinkWrap: true,
+                            physics: const BouncingScrollPhysics(),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 4,
+                                  mainAxisSpacing: 12,
+                                  crossAxisSpacing: 12,
+                                ),
+                            itemCount: iconOptions.length,
+                            itemBuilder: (context, index) {
+                              final entry = iconOptions.entries.elementAt(
+                                index,
+                              );
+                              final String key = entry.key;
+                              final IconData icon = entry.value;
+                              final bool isSelected = selectedIconKey == key;
+                              return IconTile(
+                                icon: icon,
+                                isSelected: isSelected,
+                                selectedBgColor: selectedBgColor,
+                                selectedBorderColor: selectedBorderColor,
+                                onTap: () {
+                                  onIconSelected?.call(key);
+                                  Navigator.pop(ctx);
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ],
+            ),
           ),
         ),
       );

@@ -103,8 +103,7 @@ class _GraphScreenState extends State<GraphScreen> {
           )
         : expenses.where((tx) => tx.category == iconKey);
 
-    final sorted = matching.toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
+    final sorted = matching.toList()..sort((a, b) => b.date.compareTo(a.date));
 
     _detailCache[iconKey] = sorted;
     return sorted;

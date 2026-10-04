@@ -18,21 +18,23 @@ Widget createTestWrapper(Widget child) {
       notifier: ValueNotifier<CurrencyInfo>(CurrencyInfo.find('USD')),
       child: MaterialApp(
         theme: ThemeData.light(),
-        home: Scaffold(
-          body: child,
-        ),
+        home: Scaffold(body: child),
       ),
     ),
   );
 }
 
 void main() {
-  testWidgets('MoneyLoopAnimation renders dollar symbol', (WidgetTester tester) async {
+  testWidgets('MoneyLoopAnimation renders dollar symbol', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(createTestWrapper(const MoneyLoopAnimation()));
     expect(find.text('\$'), findsOneWidget);
   });
 
-  testWidgets('ThemeSegmentedBar displays all theme options', (WidgetTester tester) async {
+  testWidgets('ThemeSegmentedBar displays all theme options', (
+    WidgetTester tester,
+  ) async {
     ThemeOption selected = ThemeOption.light;
     await tester.pumpWidget(
       createTestWrapper(
@@ -56,10 +58,7 @@ void main() {
     bool tapped = false;
     await tester.pumpWidget(
       createTestWrapper(
-        BounceCard(
-          onTap: () => tapped = true,
-          child: const Text('Tap Me'),
-        ),
+        BounceCard(onTap: () => tapped = true, child: const Text('Tap Me')),
       ),
     );
 
@@ -69,12 +68,12 @@ void main() {
     expect(tapped, isTrue);
   });
 
-  testWidgets('ResetButton renders and triggers callback', (WidgetTester tester) async {
+  testWidgets('ResetButton renders and triggers callback', (
+    WidgetTester tester,
+  ) async {
     bool pressed = false;
     await tester.pumpWidget(
-      createTestWrapper(
-        ResetButton(onPressed: () => pressed = true),
-      ),
+      createTestWrapper(ResetButton(onPressed: () => pressed = true)),
     );
 
     expect(find.text('Reset'), findsOneWidget);
@@ -83,7 +82,9 @@ void main() {
     expect(pressed, isTrue);
   });
 
-  testWidgets('TransactionTile renders transaction data', (WidgetTester tester) async {
+  testWidgets('TransactionTile renders transaction data', (
+    WidgetTester tester,
+  ) async {
     final tx = TransactionModel(
       id: 1,
       title: 'Groceries',
@@ -93,17 +94,15 @@ void main() {
       type: 'expense',
     );
 
-    await tester.pumpWidget(
-      createTestWrapper(
-        TransactionTile(model: tx),
-      ),
-    );
+    await tester.pumpWidget(createTestWrapper(TransactionTile(model: tx)));
 
     expect(find.text('Groceries'), findsOneWidget);
     expect(find.text('- \$46'), findsOneWidget);
   });
 
-  testWidgets('CategoryBreakdownList renders category items and percentages', (WidgetTester tester) async {
+  testWidgets('CategoryBreakdownList renders category items and percentages', (
+    WidgetTester tester,
+  ) async {
     final categories = [
       const AggregatedCategory(
         iconKey: 'fastfood',
@@ -142,4 +141,3 @@ void main() {
     expect(selectedKey, 'fastfood');
   });
 }
-

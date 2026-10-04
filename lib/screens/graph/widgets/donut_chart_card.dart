@@ -190,10 +190,7 @@ class DonutChartCard extends StatelessWidget {
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        vertical: 40,
-        horizontal: 24,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
       decoration: BoxDecoration(
         color: locker.cardBackground,
         borderRadius: BorderRadius.circular(32),
@@ -212,26 +209,27 @@ class DonutChartCard extends StatelessWidget {
                       PieChartData(
                         startDegreeOffset: -90,
                         pieTouchData: PieTouchData(
-                          touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                            if (event is FlTapUpEvent) {
-                              if (pieTouchResponse == null ||
-                                  pieTouchResponse.touchedSection == null) {
-                                onCategoryTapped(null);
-                                return;
-                              }
-                              final index = pieTouchResponse
-                                  .touchedSection!
-                                  .touchedSectionIndex;
-                              if (index >= 0 && index < categories.length) {
-                                final targetKey = categories[index].iconKey;
-                                if (selectedIconKey == targetKey) {
-                                  onCategoryTapped(null);
-                                } else {
-                                  onCategoryTapped(targetKey);
+                          touchCallback:
+                              (FlTouchEvent event, pieTouchResponse) {
+                                if (event is FlTapUpEvent) {
+                                  if (pieTouchResponse == null ||
+                                      pieTouchResponse.touchedSection == null) {
+                                    onCategoryTapped(null);
+                                    return;
+                                  }
+                                  final index = pieTouchResponse
+                                      .touchedSection!
+                                      .touchedSectionIndex;
+                                  if (index >= 0 && index < categories.length) {
+                                    final targetKey = categories[index].iconKey;
+                                    if (selectedIconKey == targetKey) {
+                                      onCategoryTapped(null);
+                                    } else {
+                                      onCategoryTapped(targetKey);
+                                    }
+                                  }
                                 }
-                              }
-                            }
-                          },
+                              },
                         ),
                         borderData: FlBorderData(show: false),
                         sectionsSpace: 4,

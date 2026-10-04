@@ -32,105 +32,120 @@ void showDeleteConfirmDialog(
       );
     },
     pageBuilder: (context, animation, secondaryAnimation) {
-      return Center(
-        child: Material(
-          type: MaterialType.transparency,
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 48),
-            constraints: const BoxConstraints(maxWidth: 360),
-            decoration: BoxDecoration(
-              color: locker.dialogBackground,
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(
-                color: locker.textPrimary.withValues(alpha: 0.06),
-                width: 1,
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(28),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Delete Transaction?',
-                    style: TextStyle(
-                      fontFamily: 'MonumentExtended-Regular',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: locker.textPrimary,
-                    ),
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.pop(context),
+        child: Center(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {}, // Prevent taps inside dialog from closing
+            child: Material(
+              type: MaterialType.transparency,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 48),
+                constraints: const BoxConstraints(maxWidth: 360),
+                decoration: BoxDecoration(
+                  color: locker.dialogBackground,
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(
+                    color: locker.textPrimary.withValues(alpha: 0.06),
+                    width: 1,
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Are you sure you want to delete this?'
-                    ' This action cannot be undone.',
-                    style: AppTypography.openSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: locker.textSecondary,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  Row(
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(28),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: locker.textPrimary.withValues(alpha: 0.15),
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'Cancel',
-                                style: AppTypography.openSans(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: locker.textSecondary,
-                                ),
-                              ),
-                            ),
-                          ),
+                      Text(
+                        'Delete Transaction?',
+                        style: TextStyle(
+                          fontFamily: 'MonumentExtended-Regular',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: locker.textPrimary,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            final int? txId = model.id;
-                            if (txId == null) return;
-                            onDeleteTransaction(txId);
-                            Navigator.pop(context); // pop confirm dialog
-                            onConfirmed?.call(); // callback to pop parent dialog if needed
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            decoration: BoxDecoration(
-                              color: locker.deleteButtonBg,
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'Delete',
-                                style: TextStyle(
-                                  fontFamily: 'MonumentExtended-Regular',
-                                  fontSize: 13,
-                                  color: locker.textOnDark,
+                      const SizedBox(height: 12),
+                      Text(
+                        'Are you sure you want to delete this?'
+                        ' This action cannot be undone.',
+                        style: AppTypography.openSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: locker.textSecondary,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => Navigator.pop(context),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: locker.textPrimary.withValues(
+                                      alpha: 0.15,
+                                    ),
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    'Cancel',
+                                    style: AppTypography.openSans(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: locker.textSecondary,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                final int? txId = model.id;
+                                if (txId == null) return;
+                                onDeleteTransaction(txId);
+                                Navigator.pop(context); // pop confirm dialog
+                                onConfirmed
+                                    ?.call(); // callback to pop parent dialog if needed
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: locker.deleteButtonBg,
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    'Delete',
+                                    style: TextStyle(
+                                      fontFamily: 'MonumentExtended-Regular',
+                                      fontSize: 13,
+                                      color: locker.textOnDark,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
             ),
           ),

@@ -55,11 +55,7 @@ class CategoryDetailList extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.arrow_back,
-                  size: 14,
-                  color: locker.textPrimary,
-                ),
+                Icon(Icons.arrow_back, size: 14, color: locker.textPrimary),
                 const SizedBox(width: 6),
                 Text(
                   'BACK TO CATEGORIES',
