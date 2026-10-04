@@ -88,4 +88,66 @@ void main() {
     // Floating action button is omitted in landscape in favor of the left column Add Action
     expect(find.byType(FloatingActionButton), findsNothing);
   });
+
+  testWidgets(
+    'HomeScreen correctly calculates and displays daily group header totals',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final transactions = [
+        // Day 1: October 2, 2026 - Multiple expenses: 45 + 25 = 70 -> -$70
+        TransactionModel(
+          id: 1,
+          title: 'Lunch',
+          amount: 45.0,
+          date: '2026-10-02',
+          category: 'fastfood',
+          type: 'expense',
+        ),
+        TransactionModel(
+          id: 2,
+          title: 'Coffee',
+          amount: 25.0,
+          date: '2026-10-02',
+          category: 'fastfood',
+          type: 'expense',
+        ),
+        // Day 2: October 1, 2026 - Income 100 + Expense 30 = +70 -> +$70
+        TransactionModel(
+          id: 3,
+          title: 'Bonus',
+          amount: 100.0,
+          date: '2026-10-01',
+          category: 'payments',
+          type: 'income',
+        ),
+        TransactionModel(
+          id: 4,
+          title: 'Transport',
+          amount: 30.0,
+          date: '2026-10-01',
+          category: 'directions_car',
+          type: 'expense',
+        ),
+      ];
+
+      await tester.pumpWidget(
+        createTestHomeScreen(
+          screenSize: const Size(400, 800),
+          transactions: transactions,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify Day 1 header: OCTOBER 2, 2026 and total -$70
+      expect(find.text('OCTOBER 2, 2026'), findsOneWidget);
+      expect(find.text('-\$70'), findsOneWidget);
+
+      // Verify Day 2 header: OCTOBER 1, 2026 and total +$70
+      expect(find.text('OCTOBER 1, 2026'), findsOneWidget);
+      expect(find.text('+\$70'), findsOneWidget);
+    },
+  );
 }

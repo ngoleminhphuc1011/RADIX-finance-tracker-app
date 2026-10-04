@@ -512,7 +512,7 @@ class _HomeScreenState extends State<HomeScreen> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildDateHeader(dateStr),
+                  _buildDateHeader(dateStr, groupTxs),
                   ...groupTxs.map(
                     (tx) => TransactionTile(
                       model: tx,
@@ -602,7 +602,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return sortedGroups;
   }
 
-  Widget _buildDateHeader(String dateStr) {
+  Widget _buildDateHeader(String dateStr, List<TransactionModel> groupTxs) {
     String displayDate;
     try {
       final parsed = DateTime.parse(dateStr);
@@ -611,16 +611,48 @@ class _HomeScreenState extends State<HomeScreen> {
       displayDate = dateStr.toUpperCase();
     }
 
+    double netTotal = 0.0;
+    for (final tx in groupTxs) {
+      if (tx.isExpense) {
+        netTotal -= tx.amount;
+      } else {
+        netTotal += tx.amount;
+      }
+    }
+
+    final currencyInfo = CurrencyProvider.watch(context);
+    final int roundedNet = netTotal.round();
+    final String sign = roundedNet < 0 ? '-' : (roundedNet > 0 ? '+' : '');
+    final String formattedAmount =
+        currencyInfo.format(roundedNet.abs().toDouble());
+    final String dailyTotalText = '$sign$formattedAmount';
+
+    final locker = AppColorLocker.of(context);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-      child: Text(
-        displayDate,
-        style: AppTypography.openSans(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: AppColorLocker.of(context).textTertiary,
-          letterSpacing: 1.2,
-        ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            displayDate,
+            style: AppTypography.openSans(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: locker.textTertiary,
+              letterSpacing: 1.2,
+            ),
+          ),
+          Text(
+            dailyTotalText,
+            style: AppTypography.openSans(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: locker.textTertiary.withValues(alpha: 0.8),
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
       ),
     );
   }
