@@ -418,6 +418,9 @@ class _NavWrapperState extends State<NavWrapper> {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Orientation orientation = MediaQuery.orientationOf(context);
+    final bool isLandscape = orientation == Orientation.landscape;
+    final locker = AppColorLocker.of(context);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
@@ -426,154 +429,277 @@ class _NavWrapperState extends State<NavWrapper> {
       child: Scaffold(
         extendBody: true,
         backgroundColor: Colors.transparent,
-        body: PageView(
-          controller: _pageController,
-          onPageChanged: _onPageChanged,
-          children: [
-            const SocialScreen(),
-            GraphScreen(
-              isActive: _currentIndex == 1,
-              transactions: _transactions,
-            ),
-            HomeScreen(
-              transactions: _transactions,
-              onAddTransaction: _addTransaction,
-              onUpdateTransaction: updateTransaction,
-              onDeleteTransaction: deleteTransaction,
-              monthlyBudget: monthlyBudget,
-              spent: spent,
-              budgetLeft: budgetLeft,
-              onBudgetChanged: _setBudget,
-              onSpentChanged: _setSpent,
-            ),
-            const ProfileScreen(),
-            SettingsScreen(
-              onResetAll: _resetAllData,
-              onIntervalChanged: (_) => checkAndPerformIntervalReset(),
-            ),
-          ],
+        body: isLandscape
+            ? Stack(
+                children: [
+                  _buildPageView(),
+                  Positioned(
+                    top: 0,
+                    bottom: 0,
+                    right: 8,
+                    child: Center(
+                      child: _buildLandscapeNavRail(context, locker, isDark),
+                    ),
+                  ),
+                ],
+              )
+            : _buildPageView(),
+        bottomNavigationBar: isLandscape
+            ? null
+            : _buildBottomNavBar(context, isDark, locker),
+      ),
+    );
+  }
+
+  Widget _buildPageView() {
+    return PageView(
+      controller: _pageController,
+      onPageChanged: _onPageChanged,
+      children: [
+        const SocialScreen(),
+        GraphScreen(
+          isActive: _currentIndex == 1,
+          transactions: _transactions,
         ),
-        bottomNavigationBar: Builder(
-          builder: (context) {
-            final Size screenSize = MediaQuery.sizeOf(context);
-            final Orientation orientation = MediaQuery.orientationOf(context);
-            final bool isLandscape = orientation == Orientation.landscape;
-            final double shortestSide = screenSize.shortestSide;
-            final double screenWidth = screenSize.width;
+        HomeScreen(
+          transactions: _transactions,
+          onAddTransaction: _addTransaction,
+          onUpdateTransaction: updateTransaction,
+          onDeleteTransaction: deleteTransaction,
+          monthlyBudget: monthlyBudget,
+          spent: spent,
+          budgetLeft: budgetLeft,
+          onBudgetChanged: _setBudget,
+          onSpentChanged: _setSpent,
+        ),
+        const ProfileScreen(),
+        SettingsScreen(
+          onResetAll: _resetAllData,
+          onIntervalChanged: (_) => checkAndPerformIntervalReset(),
+        ),
+      ],
+    );
+  }
 
-            // Device / Screen tier detection
-            final bool isTablet = shortestSide >= 600 || screenWidth >= 768;
-            final bool isLargePhone = screenWidth >= 410;
+  Widget _buildLandscapeNavRail(
+    BuildContext context,
+    AppColorLocker locker,
+    bool isDark,
+  ) {
+    const double railWidth = 68.0;
+    const double verticalPadding = 12.0;
+    const double itemHeight = 48.0;
+    const double contentHeight = itemHeight * 5; // 240.0
 
-            // Adaptive bar sizing
-            final double navHeight = isTablet
-                ? 82.0
-                : (isLandscape ? 66.0 : (isLargePhone ? 74.0 : 70.0));
-
-            final double iconSize = isTablet
-                ? 28.0
-                : (isLandscape ? (isTablet ? 26.0 : 23.0) : (isLargePhone ? 25.0 : 23.0));
-
-            final double labelFontSize = isTablet
-                ? 15.0
-                : (isLandscape ? (isTablet ? 14.0 : 12.0) : (isLargePhone ? 13.0 : 12.0));
-
-            final double maxBarWidth = isTablet
-                ? 680.0
-                : (isLandscape ? 560.0 : double.infinity);
-
-            final double barBottomPadding = isLandscape
-                ? 12.0
-                : (isTablet ? 32.0 : 24.0);
-
-            final double barHorizontalPadding = isTablet
-                ? 18.0
-                : (isLandscape ? 12.0 : 10.0);
-
-            final double hActive = isTablet
-                ? 18.0
-                : (isLargePhone ? 16.0 : 15.0);
-            final double hInactive = isTablet
-                ? 14.0
-                : (isLargePhone ? 12.0 : 11.0);
-            final double vPadding = isTablet
-                ? 11.0
-                : (isLandscape ? 8.0 : 9.0);
-
-            final locker = AppColorLocker.of(context);
-
-            return SafeArea(
-              top: false,
-              child: Padding(
-                padding: EdgeInsets.only(
-                  bottom: barBottomPadding,
-                  left: isLandscape ? 24 : 16,
-                  right: isLandscape ? 24 : 16,
-                ),
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: maxBarWidth),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(35),
-                        boxShadow: [
-                          BoxShadow(
-                            color: isDark
-                                ? Colors.black.withValues(alpha: 0.35)
-                                : Colors.black.withValues(alpha: 0.06),
-                            blurRadius: 20,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(35),
-                        child: BackdropFilter(
-                          filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                            height: navHeight,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: barHorizontalPadding,
-                              vertical: isLandscape ? 6 : 8,
+    return Container(
+      width: railWidth,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(34),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.35)
+                : Colors.black.withValues(alpha: 0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(34),
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            width: railWidth,
+            padding: const EdgeInsets.symmetric(vertical: verticalPadding),
+            decoration: BoxDecoration(
+              color: locker.frostedGlassBg,
+              borderRadius: BorderRadius.circular(34),
+              border: Border.all(
+                color: locker.frostedGlassBorder,
+                width: 1.0,
+              ),
+            ),
+            child: SizedBox(
+              width: railWidth,
+              height: contentHeight,
+              child: Stack(
+                children: [
+                  // Vertical Sliding Indicator
+                  ValueListenableBuilder<double>(
+                    valueListenable: _pagePosition,
+                    builder: (context, pos, _) {
+                      final double clampedPos = pos.clamp(
+                        0.0,
+                        (_navTabs.length - 1).toDouble(),
+                      );
+                      return Positioned(
+                        top: clampedPos * itemHeight + 2.0,
+                        left: 8.0,
+                        right: 8.0,
+                        height: itemHeight - 4.0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: locker.navActiveCapsuleBg,
+                            borderRadius: BorderRadius.circular(
+                              (itemHeight - 4.0) / 2,
                             ),
-                            decoration: BoxDecoration(
-                              color: locker.frostedGlassBg,
-                              borderRadius: BorderRadius.circular(35),
-                              border: Border.all(
-                                color: locker.frostedGlassBorder,
-                                width: 1.0,
+                            border: Border.all(
+                              color: locker.navActiveCapsuleBorder,
+                              width: 1.0,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  // Tab Icons Column
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (int i = 0; i < _navTabs.length; i++)
+                        SizedBox(
+                          height: itemHeight,
+                          width: railWidth,
+                          child: Material(
+                            type: MaterialType.transparency,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(
+                                (itemHeight - 4.0) / 2,
+                              ),
+                              onTap: () => _onNavTap(i),
+                              child: Center(
+                                child: ValueListenableBuilder<double>(
+                                  valueListenable: _pagePosition,
+                                  builder: (context, pos, _) {
+                                    final double dist = (pos - i).abs();
+                                    final bool isItemActive = dist < 0.5;
+                                    final Color iconColor = Color.lerp(
+                                      locker.navActiveFg,
+                                      locker.navInactiveFg,
+                                      dist.clamp(0.0, 1.0),
+                                    )!;
+                                    return Icon(
+                                      isItemActive
+                                          ? _navTabs[i].filledIcon
+                                          : _navTabs[i].outlinedIcon,
+                                      color: iconColor,
+                                      size: 24.0,
+                                    );
+                                  },
+                                ),
                               ),
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                for (int i = 0; i < _navTabs.length; i++)
-                                  _buildNavItem(
-                                    i,
-                                    _navTabs[i],
-                                    locker,
-                                    iconSize: iconSize,
-                                    labelFontSize: labelFontSize,
-                                    hActive: hActive,
-                                    hInactive: hInactive,
-                                    vPadding: vPadding,
-                                  ),
-                              ],
-                            ),
                           ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNavBar(
+    BuildContext context,
+    bool isDark,
+    AppColorLocker locker,
+  ) {
+    return Builder(
+      builder: (context) {
+        final Size screenSize = MediaQuery.sizeOf(context);
+        final double shortestSide = screenSize.shortestSide;
+        final double screenWidth = screenSize.width;
+
+        // Device / Screen tier detection
+        final bool isTablet = shortestSide >= 600 || screenWidth >= 768;
+        final bool isLargePhone = screenWidth >= 410;
+
+        // Adaptive bar sizing
+        final double navHeight = isTablet ? 82.0 : (isLargePhone ? 74.0 : 70.0);
+        final double iconSize = isTablet ? 28.0 : (isLargePhone ? 25.0 : 23.0);
+        final double labelFontSize =
+            isTablet ? 15.0 : (isLargePhone ? 13.0 : 12.0);
+        final double maxBarWidth = isTablet ? 680.0 : double.infinity;
+        final double barBottomPadding = isTablet ? 32.0 : 24.0;
+        final double barHorizontalPadding = isTablet ? 18.0 : 10.0;
+        final double hActive = isTablet ? 18.0 : (isLargePhone ? 16.0 : 15.0);
+        final double hInactive = isTablet ? 14.0 : (isLargePhone ? 12.0 : 11.0);
+        final double vPadding = isTablet ? 11.0 : 9.0;
+
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: barBottomPadding,
+              left: 16,
+              right: 16,
+            ),
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxBarWidth),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(35),
+                    boxShadow: [
+                      BoxShadow(
+                        color: isDark
+                            ? Colors.black.withValues(alpha: 0.35)
+                            : Colors.black.withValues(alpha: 0.06),
+                        blurRadius: 20,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(35),
+                    child: BackdropFilter(
+                      filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        height: navHeight,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: barHorizontalPadding,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: locker.frostedGlassBg,
+                          borderRadius: BorderRadius.circular(35),
+                          border: Border.all(
+                            color: locker.frostedGlassBorder,
+                            width: 1.0,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            for (int i = 0; i < _navTabs.length; i++)
+                              _buildNavItem(
+                                i,
+                                _navTabs[i],
+                                locker,
+                                iconSize: iconSize,
+                                labelFontSize: labelFontSize,
+                                hActive: hActive,
+                                hInactive: hInactive,
+                                vPadding: vPadding,
+                              ),
+                          ],
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
-            );
-          },
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 

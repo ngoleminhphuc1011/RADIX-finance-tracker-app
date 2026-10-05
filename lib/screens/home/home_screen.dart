@@ -51,9 +51,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Color get _premiumPastelRed => AppColorLocker.of(context).accentRed;
 
   // -- TextStyles --
-  TextStyle get _styleLabelBlack18 => TextStyle(
-    fontFamily: 'MonumentExtended-Regular',
-    fontSize: 18,
+  TextStyle get _styleSpentLabel => TextStyle(
+    fontFamily: 'MonumentExtended',
+    fontSize: 16,
+    fontWeight: FontWeight.w900,
+    letterSpacing: 2.0,
     color: AppColorLocker.of(context).textPrimary,
   );
   TextStyle get _styleEmptyState => AppTypography.openSans(
@@ -249,45 +251,48 @@ class _HomeScreenState extends State<HomeScreen> {
     List<String> groupedKeys,
     Map<String, List<TransactionModel>> grouped,
   ) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // LEFT COLUMN (Expanded flex: 4): Wrap BalanceCard, quick summary stats, and Add Action in a non-overflowing container
-        Expanded(
-          flex: 4,
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.only(bottom: 110, left: 16, right: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildBalanceCard(context, locker, isOverBudget, true),
-                const SizedBox(height: 8),
-                _buildSortRow(locker),
-                const SizedBox(height: 12),
-                _buildAddActionButton(locker),
-              ],
+    return Padding(
+      padding: const EdgeInsets.only(right: 76),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // LEFT COLUMN (Expanded flex: 4): Wrap BalanceCard, quick summary stats, and Add Action in a non-overflowing container
+          Expanded(
+            flex: 4,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.only(bottom: 24, left: 16, right: 8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildBalanceCard(context, locker, isOverBudget, true),
+                  const SizedBox(height: 8),
+                  _buildSortRow(locker),
+                  const SizedBox(height: 12),
+                  _buildAddActionButton(locker),
+                ],
+              ),
             ),
           ),
-        ),
-        // Subtle vertical separator
-        Container(
-          width: 1,
-          margin: const EdgeInsets.only(bottom: 110),
-          color: locker.textPrimary.withValues(alpha: 0.05),
-        ),
-        // RIGHT COLUMN (Expanded flex: 6): Dedicated scrollable area for transaction list
-        Expanded(
-          flex: 6,
-          child: _buildTransactionList(
-            locker,
-            groupedKeys,
-            grouped,
-            padding: const EdgeInsets.only(bottom: 110, left: 8, right: 16),
+          // Subtle vertical separator
+          Container(
+            width: 1,
+            margin: const EdgeInsets.only(bottom: 24),
+            color: locker.textPrimary.withValues(alpha: 0.05),
           ),
-        ),
-      ],
+          // RIGHT COLUMN (Expanded flex: 6): Dedicated scrollable area for transaction list
+          Expanded(
+            flex: 6,
+            child: _buildTransactionList(
+              locker,
+              groupedKeys,
+              grouped,
+              padding: const EdgeInsets.only(bottom: 24, left: 8, right: 16),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -323,7 +328,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Column(
           children: [
-            Text('SPENT', style: _styleLabelBlack18),
+            Text('SPENT', style: _styleSpentLabel),
             const SizedBox(height: 4),
             FittedBox(
               fit: BoxFit.scaleDown,
@@ -434,21 +439,24 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.add, color: locker.textOnDark, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                'ADD TRANSACTION',
-                style: AppTypography.openSans(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: locker.textOnDark,
-                  letterSpacing: 0.8,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add, color: locker.textOnDark, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'ADD TRANSACTION',
+                  style: AppTypography.openSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: locker.textOnDark,
+                    letterSpacing: 0.8,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -497,7 +505,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding.left,
               padding.top,
               padding.right,
-              padding.bottom < 110 ? 110 : padding.bottom,
+              padding.bottom,
             ),
             physics: const BouncingScrollPhysics(),
             itemCount: groupedKeys.length,
