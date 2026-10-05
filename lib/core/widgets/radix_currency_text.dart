@@ -56,7 +56,7 @@ class RadixCurrencyText extends StatelessWidget {
         formattedAmount ?? currencyInfo.formatNumber(amount);
 
     final TextStyle numberStyle = TextStyle(
-      fontFamily: fontFamily,
+      fontFamily: fontFamily ?? 'MonumentExtended',
       fontSize: fontSize,
       fontWeight: fontWeight,
       color: effectiveColor,

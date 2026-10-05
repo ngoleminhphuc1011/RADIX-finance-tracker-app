@@ -508,14 +508,17 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
             controller: amountController,
             keyboardType: TextInputType.number,
             autofocus: true,
-            style: AppTypography.openSans(
+            style: TextStyle(
+              fontFamily: 'MonumentExtended',
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: locker.textPrimary,
             ),
             decoration: InputDecoration(
               hintText: '0',
-              hintStyle: AppTypography.openSans(
+              hintStyle: TextStyle(
+                fontFamily: 'MonumentExtended',
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: locker.textTertiary,
               ),

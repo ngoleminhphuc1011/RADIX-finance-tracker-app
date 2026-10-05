@@ -100,9 +100,10 @@ class CategoryBreakdownList extends StatelessWidget {
                               const SizedBox(height: 4),
                               Text(
                                 '$percent%',
-                                style: AppTypography.openSans(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
+                                style: TextStyle(
+                                  fontFamily: 'MonumentExtended',
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
                                   color: locker.textTertiary,
                                 ),
                               ),

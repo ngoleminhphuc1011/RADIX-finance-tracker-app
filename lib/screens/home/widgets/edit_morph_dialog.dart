@@ -218,7 +218,7 @@ void showEditMorphDialog(
                                     ),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontFamily: 'MonumentExtended-Regular',
+                                  fontFamily: 'MonumentExtended',
                                   fontSize: isLandscape ? 36 : 50,
                                   fontWeight: FontWeight.w800,
                                   color: amountColor,

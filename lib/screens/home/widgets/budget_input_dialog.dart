@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_color_locker.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/currency_provider.dart';
 
 /// Shows the bottom sheet modal to set or edit the monthly budget.
@@ -77,14 +76,17 @@ void showBudgetInputDialog(
                           controller: budgetController,
                           keyboardType: TextInputType.number,
                           autofocus: true,
-                          style: AppTypography.openSans(
+                          style: TextStyle(
+                            fontFamily: 'MonumentExtended',
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: locker.textPrimary,
                           ),
                           decoration: InputDecoration(
                             hintText: 'e.g. 500',
-                            hintStyle: AppTypography.openSans(
+                            hintStyle: TextStyle(
+                              fontFamily: 'MonumentExtended',
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: locker.textTertiary,
                             ),

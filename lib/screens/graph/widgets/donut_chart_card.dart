@@ -129,8 +129,8 @@ class DonutChartCard extends StatelessWidget {
                 ? categories[touchedIdx].amount
                 : totalSpent * effectiveProgress,
             fontSize: 22,
-            fontWeight: FontWeight.w600,
-            fontFamily: 'MonumentExtended-Regular',
+            fontWeight: FontWeight.w700,
+            fontFamily: 'MonumentExtended',
             color: locker.textPrimary,
           ),
         ),
