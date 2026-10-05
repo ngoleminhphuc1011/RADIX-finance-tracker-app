@@ -96,8 +96,10 @@ void showEditMorphDialog(
                         color: colors.bg,
                         borderRadius: BorderRadius.circular(28),
                         border: Border.all(
-                          color: locker.textPrimary.withValues(alpha: 0.06),
-                          width: 1.5,
+                          color: model.isExpense
+                              ? locker.expenseBorder
+                              : locker.incomeBorder,
+                          width: 1.0,
                         ),
                       ),
                       child: SingleChildScrollView(

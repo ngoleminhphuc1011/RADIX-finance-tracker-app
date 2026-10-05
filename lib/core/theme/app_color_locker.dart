@@ -46,10 +46,15 @@ abstract class AppColorLocker {
   Color get expenseBg;
   Color get expenseFg;
   Color get expenseBadge;
+  Color get expenseBorder;
 
   Color get incomeBg;
   Color get incomeFg;
   Color get incomeBadge;
+  Color get incomeBorder;
+
+  Color getTransactionBorder({required bool isExpense}) =>
+      isExpense ? expenseBorder : incomeBorder;
 
   Color get incomeStrategyDeductBg;
   Color get incomeStrategyDeductFg;
@@ -258,6 +263,9 @@ class LightColorLocker extends AppColorLocker {
   Color get expenseBadge => const Color(0xFFC62828);
 
   @override
+  Color get expenseBorder => const Color(0xFFD32F2F).withValues(alpha: 0.18);
+
+  @override
   Color get incomeBg => const Color(0xFFE8F5E9);
 
   @override
@@ -265,6 +273,9 @@ class LightColorLocker extends AppColorLocker {
 
   @override
   Color get incomeBadge => const Color(0xFF2E7D32);
+
+  @override
+  Color get incomeBorder => const Color(0xFF2E7D32).withValues(alpha: 0.18);
 
   @override
   Color get incomeStrategyDeductBg => const Color(0xFFD8E0F7);
@@ -506,6 +517,9 @@ class DarkColorLocker extends AppColorLocker {
   Color get expenseBadge => const Color(0xFFE57373);
 
   @override
+  Color get expenseBorder => const Color(0xFFFF5252).withValues(alpha: 0.28);
+
+  @override
   Color get incomeBg => const Color(0xFF14241E);
 
   @override
@@ -513,6 +527,9 @@ class DarkColorLocker extends AppColorLocker {
 
   @override
   Color get incomeBadge => const Color(0xFF81C784);
+
+  @override
+  Color get incomeBorder => const Color(0xFF00E676).withValues(alpha: 0.28);
 
   @override
   Color get incomeStrategyDeductBg => const Color(0xFF20272F);

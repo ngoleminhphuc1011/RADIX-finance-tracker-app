@@ -31,6 +31,10 @@ class TransactionTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: colors.bg,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isExpense ? locker.expenseBorder : locker.incomeBorder,
+            width: 0.9,
+          ),
         ),
         child: Row(
           children: [
