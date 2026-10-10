@@ -56,6 +56,23 @@ abstract class AppColorLocker {
   Color getTransactionBorder({required bool isExpense}) =>
       isExpense ? expenseBorder : incomeBorder;
 
+  // Icon picker tokens (synchronized with app accents)
+  Color get iconPickerExpenseAccent;
+  Color get iconPickerIncomeAccent;
+  Color get iconPickerExpenseBg;
+  Color get iconPickerIncomeBg;
+  Color get iconPickerExpenseBorder;
+  Color get iconPickerIncomeBorder;
+
+  Color getIconPickerAccent({required bool isExpense}) =>
+      isExpense ? iconPickerExpenseAccent : iconPickerIncomeAccent;
+
+  Color getIconPickerBg({required bool isExpense}) =>
+      isExpense ? iconPickerExpenseBg : iconPickerIncomeBg;
+
+  Color getIconPickerBorder({required bool isExpense}) =>
+      isExpense ? iconPickerExpenseBorder : iconPickerIncomeBorder;
+
   Color get incomeStrategyDeductBg;
   Color get incomeStrategyDeductFg;
   Color get budgetCardBorderNormal;
@@ -276,6 +293,28 @@ class LightColorLocker extends AppColorLocker {
 
   @override
   Color get incomeBorder => const Color(0xFF2E7D32).withValues(alpha: 0.18);
+
+  @override
+  Color get iconPickerExpenseAccent => const Color(0xFFE57373);
+
+  @override
+  Color get iconPickerIncomeAccent => const Color(0xFF81C784);
+
+  @override
+  Color get iconPickerExpenseBg =>
+      const Color(0xFFE57373).withValues(alpha: 0.15);
+
+  @override
+  Color get iconPickerIncomeBg =>
+      const Color(0xFF81C784).withValues(alpha: 0.15);
+
+  @override
+  Color get iconPickerExpenseBorder =>
+      const Color(0xFFE57373).withValues(alpha: 0.35);
+
+  @override
+  Color get iconPickerIncomeBorder =>
+      const Color(0xFF81C784).withValues(alpha: 0.35);
 
   @override
   Color get incomeStrategyDeductBg => const Color(0xFFD8E0F7);
@@ -530,6 +569,28 @@ class DarkColorLocker extends AppColorLocker {
 
   @override
   Color get incomeBorder => const Color(0xFF00E676).withValues(alpha: 0.28);
+
+  @override
+  Color get iconPickerExpenseAccent => const Color(0xFFE57373);
+
+  @override
+  Color get iconPickerIncomeAccent => const Color(0xFF81C784);
+
+  @override
+  Color get iconPickerExpenseBg =>
+      const Color(0xFFE57373).withValues(alpha: 0.16);
+
+  @override
+  Color get iconPickerIncomeBg =>
+      const Color(0xFF81C784).withValues(alpha: 0.16);
+
+  @override
+  Color get iconPickerExpenseBorder =>
+      const Color(0xFFE57373).withValues(alpha: 0.40);
+
+  @override
+  Color get iconPickerIncomeBorder =>
+      const Color(0xFF81C784).withValues(alpha: 0.40);
 
   @override
   Color get incomeStrategyDeductBg => const Color(0xFF20272F);

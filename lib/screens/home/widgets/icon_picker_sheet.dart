@@ -87,11 +87,14 @@ void showIconPickerSheet(
   BuildContext context, {
   String? selectedIconKey,
   ValueChanged<String?>? onIconSelected,
-  Color accentColor = const Color(0xFFE57373),
+  Color? accentColor,
+  bool isExpense = true,
 }) {
-  final Color selectedBgColor = accentColor.withValues(alpha: 0.15);
-  final Color selectedBorderColor = accentColor;
   final locker = AppColorLocker.of(context);
+  final Color resolvedAccent =
+      accentColor ?? locker.getIconPickerAccent(isExpense: isExpense);
+  final Color selectedBgColor = resolvedAccent.withValues(alpha: 0.15);
+  final Color selectedBorderColor = resolvedAccent;
 
   showModalBottomSheet(
     context: context,

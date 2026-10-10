@@ -90,15 +90,6 @@ class CurrencyPickerSection extends StatelessWidget {
                         : const Color(0xFFE5E5EA),
                     width: 1.0,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: isDark
-                          ? Colors.black.withValues(alpha: 0.25)
-                          : Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 14,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
                 ),
                 child: Row(
                   children: [

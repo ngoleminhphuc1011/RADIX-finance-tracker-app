@@ -140,4 +140,60 @@ void main() {
     await tester.pump();
     expect(selectedKey, 'fastfood');
   });
+
+  testWidgets(
+    'TransactionTile reveals inline edit controls when expanded and triggers onUpdateTransaction',
+    (WidgetTester tester) async {
+      final tx = TransactionModel(
+        id: 42,
+        title: 'Coffee',
+        amount: 5.0,
+        date: '2026-10-02',
+        category: 'fastfood',
+        type: 'expense',
+      );
+
+      int? updatedId;
+      String? updatedIcon;
+      String? updatedDesc;
+      double? updatedAmount;
+      bool collapsed = false;
+
+      await tester.pumpWidget(
+        createTestWrapper(
+          TransactionTile(
+            model: tx,
+            isExpanded: true,
+            onUpdateTransaction: (id, icon, desc, amt) {
+              updatedId = id;
+              updatedIcon = icon;
+              updatedDesc = desc;
+              updatedAmount = amt;
+            },
+            onCollapse: () => collapsed = true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Edit controls are visible
+      expect(find.text('SAVE'), findsOneWidget);
+      expect(find.byIcon(Icons.delete_outline_rounded), findsOneWidget);
+
+      // Edit description
+      await tester.enterText(find.byType(TextField).first, 'Latte');
+      await tester.enterText(find.byType(TextField).last, '6.5');
+      await tester.pump();
+
+      // Tap SAVE
+      await tester.tap(find.text('SAVE'));
+      await tester.pumpAndSettle();
+
+      expect(updatedId, 42);
+      expect(updatedIcon, 'fastfood');
+      expect(updatedDesc, 'Latte');
+      expect(updatedAmount, 6.5);
+      expect(collapsed, isTrue);
+    },
+  );
 }

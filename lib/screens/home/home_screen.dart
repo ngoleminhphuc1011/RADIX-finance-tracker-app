@@ -8,7 +8,6 @@ import '../../core/theme/app_typography.dart';
 import '../../core/theme/currency_provider.dart';
 import 'widgets/bounce_card.dart';
 import 'widgets/transaction_tile.dart';
-import 'widgets/edit_morph_dialog.dart';
 import 'widgets/budget_input_dialog.dart';
 import 'widgets/add_transaction_dialog.dart';
 import '../../core/widgets/radix_currency_text.dart';
@@ -69,6 +68,8 @@ class _HomeScreenState extends State<HomeScreen> {
   int _cachedGroupedHash = -1;
   String _cachedGroupedSort = '';
 
+  int? _expandedTransactionId;
+
   @override
   void didUpdateWidget(covariant HomeScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -77,6 +78,10 @@ class _HomeScreenState extends State<HomeScreen> {
         oldWidget.spent != widget.spent) {
       _cachedGrouped = null;
       _cachedGroupedHash = -1;
+      if (_expandedTransactionId != null &&
+          !widget.transactions.any((t) => t.id == _expandedTransactionId)) {
+        _expandedTransactionId = null;
+      }
     }
   }
 
@@ -121,6 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _cycleSort() {
     setState(() {
+      _expandedTransactionId = null;
       if (currentSort == 'Date') {
         currentSort = 'Highest';
         sortTurns = 0.25;
@@ -519,12 +525,23 @@ class _HomeScreenState extends State<HomeScreen> {
                   ...groupTxs.map(
                     (tx) => TransactionTile(
                       model: tx,
-                      onTap: () => showEditMorphDialog(
-                        context,
-                        model: tx,
-                        onUpdateTransaction: widget.onUpdateTransaction,
-                        onDeleteTransaction: widget.onDeleteTransaction,
-                      ),
+                      isExpanded: _expandedTransactionId == tx.id,
+                      onTap: () {
+                        setState(() {
+                          if (_expandedTransactionId == tx.id) {
+                            _expandedTransactionId = null;
+                          } else {
+                            _expandedTransactionId = tx.id;
+                          }
+                        });
+                      },
+                      onCollapse: () {
+                        setState(() {
+                          _expandedTransactionId = null;
+                        });
+                      },
+                      onUpdateTransaction: widget.onUpdateTransaction,
+                      onDeleteTransaction: widget.onDeleteTransaction,
                     ),
                   ),
                 ],
