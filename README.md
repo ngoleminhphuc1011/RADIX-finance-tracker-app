@@ -1,7 +1,7 @@
 # RADIX — Premium Personal Finance Tracker
 
 <p align="center">
-  <img src="assets/images/logo/LOGORADIXNEW.png" alt="RADIX Logo" width="120" height="120" style="border-radius: 20%;" />
+  <img src="assets/images/logo/LOGORADIXNEW.png" alt="RADIX Logo" width="220" style="border-radius: 20%;" />
 </p>
 
 <p align="center">
