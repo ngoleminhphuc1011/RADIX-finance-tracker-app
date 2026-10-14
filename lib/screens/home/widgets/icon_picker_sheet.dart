@@ -48,6 +48,7 @@ class _IconTileState extends State<IconTile>
 
   @override
   Widget build(BuildContext context) {
+    final locker = AppColorLocker.of(context);
     return GestureDetector(
       onTapDown: (_) => _scaleController.forward(),
       onTapUp: (_) {
@@ -63,7 +64,7 @@ class _IconTileState extends State<IconTile>
           decoration: BoxDecoration(
             color: widget.isSelected
                 ? widget.selectedBgColor
-                : AppColorLocker.of(context).gridItemBackground,
+                : locker.gridItemBackground,
             borderRadius: BorderRadius.circular(12),
             border: widget.isSelected
                 ? Border.all(color: widget.selectedBorderColor, width: 1.5)
@@ -73,7 +74,7 @@ class _IconTileState extends State<IconTile>
             widget.icon,
             color: widget.isSelected
                 ? widget.selectedBorderColor
-                : AppColorLocker.of(context).textSecondary,
+                : locker.textSecondary,
             size: 26,
           ),
         ),

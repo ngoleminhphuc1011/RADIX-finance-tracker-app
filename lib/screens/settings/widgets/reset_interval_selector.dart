@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../../core/theme/app_color_locker.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/services/haptic_helper.dart';
 
 /// A luxury minimalist segmented capsule selector for setting the budget reset interval (1M to 6M).
 class ResetIntervalSelector extends StatelessWidget {
@@ -17,9 +17,8 @@ class ResetIntervalSelector extends StatelessWidget {
   static const List<int> intervals = [1, 2, 3, 4, 5, 6];
 
   Color _getCapsuleColor(BuildContext context) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final locker = AppColorLocker.of(context);
-    return isDark ? locker.settingsActiveCapsuleDark : Colors.white;
+    return locker.settingsActiveCapsuleLight;
   }
 
   @override
@@ -117,7 +116,7 @@ class ResetIntervalSelector extends StatelessWidget {
                           return Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                HapticFeedback.selectionClick();
+                                HapticHelper.selectionClick();
                                 onIntervalChanged(months);
                               },
                               behavior: HitTestBehavior.opaque,

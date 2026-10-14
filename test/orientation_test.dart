@@ -84,6 +84,8 @@ void main() {
     expect(find.text('RADIX'), findsOneWidget);
     expect(find.text('SPENT'), findsOneWidget);
     expect(find.text('ADD TRANSACTION'), findsOneWidget);
+    expect(find.text('Sort: Date'), findsOneWidget);
+    expect(find.byIcon(Icons.info_outline), findsOneWidget);
     expect(find.text('Dinner'), findsOneWidget);
     // Floating action button is omitted in landscape in favor of the left column Add Action
     expect(find.byType(FloatingActionButton), findsNothing);
@@ -148,6 +150,159 @@ void main() {
       // Verify Day 2 header: OCTOBER 1, 2026 and total +$70
       expect(find.text('OCTOBER 1, 2026'), findsOneWidget);
       expect(find.text('+\$70'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Demonstrates orientation rotation issue when PageView is unmounted vs preserved in Stack',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final controller = PageController(initialPage: 2);
+      int currentIndex = 2;
+
+      Widget buildTree({required bool isLandscape, required bool preserveInStack}) {
+        final pageView = PageView(
+          controller: controller,
+          onPageChanged: (i) => currentIndex = i,
+          children: List.generate(5, (i) => Center(child: Text('Screen $i'))),
+        );
+
+        return MaterialApp(
+          home: Scaffold(
+            body: preserveInStack
+                ? Stack(
+                    children: [
+                      pageView,
+                      if (isLandscape) const Positioned(top: 0, child: Text('Landscape Nav')),
+                    ],
+                  )
+                : (isLandscape
+                    ? Stack(
+                        children: [
+                          pageView,
+                          const Positioned(top: 0, child: Text('Landscape Nav')),
+                        ],
+                      )
+                    : pageView),
+          ),
+        );
+      }
+
+      // 1. Initial portrait render:
+      await tester.pumpWidget(buildTree(isLandscape: false, preserveInStack: false));
+      await tester.pumpAndSettle();
+      expect(find.text('Screen 2'), findsOneWidget);
+
+      // Navigate to Settings (screen 4)
+      controller.jumpToPage(4);
+      await tester.pumpAndSettle();
+      expect(find.text('Screen 4'), findsOneWidget);
+      expect(currentIndex, 4);
+
+      // 2. Rotate to landscape WITH unmounting (preserveInStack: false)
+      tester.view.physicalSize = const Size(800, 400);
+      await tester.pumpWidget(buildTree(isLandscape: true, preserveInStack: false));
+      await tester.pumpAndSettle();
+
+      // Confirms the root cause: without unified Stack, PageView unmounts and resets to screen 2
+      expect(find.text('Screen 2'), findsOneWidget);
+      expect(find.text('Screen 4'), findsNothing);
+
+      // 3. Now test WITH preserveInStack: true
+      tester.view.physicalSize = const Size(400, 800);
+      final preservedController = PageController(initialPage: 2);
+      int preservedIndex = 2;
+
+      Widget buildPreservedTree({required bool isLandscape}) {
+        return MaterialApp(
+          home: Scaffold(
+            body: Stack(
+              children: [
+                PageView(
+                  key: const PageStorageKey('preserved_pv'),
+                  controller: preservedController,
+                  onPageChanged: (i) => preservedIndex = i,
+                  children: List.generate(5, (i) => Center(child: Text('Preserved Screen $i'))),
+                ),
+                if (isLandscape) const Positioned(top: 0, child: Text('Landscape Nav')),
+              ],
+            ),
+          ),
+        );
+      }
+
+      await tester.pumpWidget(buildPreservedTree(isLandscape: false));
+      await tester.pumpAndSettle();
+      preservedController.jumpToPage(4);
+      await tester.pumpAndSettle();
+      expect(find.text('Preserved Screen 4'), findsOneWidget);
+
+      // Rotate to landscape
+      tester.view.physicalSize = const Size(800, 400);
+      await tester.pumpWidget(buildPreservedTree(isLandscape: true));
+      await tester.pumpAndSettle();
+      expect(find.text('Preserved Screen 4'), findsOneWidget);
+      expect(preservedIndex, 4);
+
+      // Rotate back to portrait
+      tester.view.physicalSize = const Size(400, 800);
+      await tester.pumpWidget(buildPreservedTree(isLandscape: false));
+      await tester.pumpAndSettle();
+      expect(find.text('Preserved Screen 4'), findsOneWidget);
+      expect(preservedIndex, 4);
+    },
+  );
+
+  testWidgets(
+    'Tapping balance card opens budget dialog and saves',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      double? newBudget;
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(size: Size(400, 800)),
+          child: ThemeProvider(
+            notifier: ValueNotifier<ThemeMode>(ThemeMode.light),
+            child: CurrencyProvider(
+              notifier: ValueNotifier<CurrencyInfo>(CurrencyInfo.find('USD')),
+              child: MaterialApp(
+                home: Scaffold(
+                  body: HomeScreen(
+                    transactions: const [],
+                    onAddTransaction: (_) {},
+                    onDeleteTransaction: (_) {},
+                    monthlyBudget: 500,
+                    spent: 150,
+                    budgetLeft: 350,
+                    onBudgetChanged: (b) => newBudget = b,
+                    onSpentChanged: (_) {},
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('SPENT'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('ENTER MONTHLY BUDGET'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), '1200');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('SAVE BUDGET'));
+      await tester.pumpAndSettle();
+
+      expect(newBudget, 1200.0);
     },
   );
 }

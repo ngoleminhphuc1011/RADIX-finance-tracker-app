@@ -76,8 +76,8 @@ void main() {
       createTestWrapper(ResetButton(onPressed: () => pressed = true)),
     );
 
-    expect(find.text('Reset'), findsOneWidget);
-    await tester.tap(find.text('Reset'));
+    expect(find.text('Hold to Reset'), findsOneWidget);
+    await tester.tap(find.text('Hold to Reset'));
     await tester.pump();
     expect(pressed, isTrue);
   });

@@ -38,22 +38,22 @@ class _GraphScreenState extends State<GraphScreen> {
 
     final Map<String, double> sums = {};
     for (final tx in expenses) {
-      final key = tx.category.isEmpty ? '' : tx.category;
-      sums[key] = (sums[key] ?? 0.0) + tx.amount;
+      final rawKey = tx.category;
+      final resolvedKey =
+          categoryRegistry.containsKey(rawKey) ? rawKey : '_other';
+      sums[resolvedKey] = (sums[resolvedKey] ?? 0.0) + tx.amount;
     }
 
     final List<AggregatedCategory> result = [];
+    final locker = AppColorLocker.of(context);
     for (final entry in sums.entries) {
       final info = categoryRegistry[entry.key] ?? otherCategory;
-      final iconKey = categoryRegistry.containsKey(entry.key)
-          ? entry.key
-          : '_other';
       result.add(
         AggregatedCategory(
-          iconKey: iconKey,
+          iconKey: entry.key,
           name: info.name,
           icon: info.icon,
-          color: AppColorLocker.of(context).getCategoryColor(iconKey),
+          color: locker.getCategoryColor(entry.key),
           amount: entry.value,
         ),
       );
@@ -73,6 +73,8 @@ class _GraphScreenState extends State<GraphScreen> {
       hash = hash * 31 + tx.amount.hashCode;
       hash = hash * 31 + tx.title.hashCode;
       hash = hash * 31 + tx.category.hashCode;
+      hash = hash * 31 + tx.date.hashCode;
+      hash = hash * 31 + tx.type.hashCode;
     }
     return hash;
   }

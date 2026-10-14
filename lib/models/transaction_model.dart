@@ -81,14 +81,19 @@ class TransactionModel {
 
   /// Reconstructs a [TransactionModel] from a sqflite row Map.
   factory TransactionModel.fromMap(Map<String, dynamic> map) {
+    final double rawAmount = (map['amount'] as num?)?.toDouble() ?? 0.0;
+    final double cleanAmount =
+        (rawAmount < 0 || rawAmount.isNaN || rawAmount.isInfinite)
+            ? 0.0
+            : rawAmount;
     return TransactionModel(
       id: map['id'] as int?,
-      title: map['title'] as String,
-      amount: (map['amount'] as num).toDouble(), // handles int/double from DB
-      type: map['type'] as String,
+      title: map['title'] as String? ?? 'Untitled',
+      amount: cleanAmount,
+      type: map['type'] as String? ?? 'expense',
       incomeStrategy: map['income_strategy'] as String?,
-      category: map['category'] as String,
-      date: map['date'] as String,
+      category: map['category'] as String? ?? '',
+      date: map['date'] as String? ?? '',
     );
   }
 
@@ -120,6 +125,30 @@ class TransactionModel {
         'type: $type, incomeStrategy: $incomeStrategy, '
         'category: $category, date: $date)';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is TransactionModel &&
+        other.id == id &&
+        other.title == title &&
+        other.amount == amount &&
+        other.type == type &&
+        other.incomeStrategy == incomeStrategy &&
+        other.category == category &&
+        other.date == date;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        id,
+        title,
+        amount,
+        type,
+        incomeStrategy,
+        category,
+        date,
+      );
 }
 
 String _formatDate(DateTime dt) {

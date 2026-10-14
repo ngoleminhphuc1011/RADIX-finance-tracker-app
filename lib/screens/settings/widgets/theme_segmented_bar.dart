@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_color_locker.dart';
+import '../../../core/services/haptic_helper.dart';
 
 enum ThemeOption { light, dark, system }
 
@@ -139,7 +140,10 @@ class ThemeSegmentedBar extends StatelessWidget {
 
     return Expanded(
       child: GestureDetector(
-        onTap: () => onThemeChanged(option),
+        onTap: () {
+          HapticHelper.selectionClick();
+          onThemeChanged(option);
+        },
         behavior: HitTestBehavior.opaque,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -254,6 +254,80 @@ class DatabaseHelper {
     }
   }
 
+  /// Reads all settings into a key-value Map.
+  Future<Map<String, String>> getAllSettings() async {
+    try {
+      final Database db = await database;
+      final List<Map<String, dynamic>> rows = await db.query('settings');
+      final Map<String, String> result = {};
+      for (final row in rows) {
+        final key = row['key'] as String?;
+        final val = row['value'] as String?;
+        if (key != null && val != null) {
+          result[key] = val;
+        }
+      }
+      return result;
+    } catch (e, stackTrace) {
+      debugPrint('[DB] ERROR — getAllSettings: $e');
+      debugPrint('[DB] StackTrace: $stackTrace');
+      return {};
+    }
+  }
+
+  /// Restores all transactions and settings atomically inside a single transaction.
+  Future<void> restoreFromBackupData(Map<String, dynamic> backupData) async {
+    try {
+      final db = await database;
+      await db.transaction((txn) async {
+        // 1. Wipe old transactions
+        await txn.delete('transactions');
+
+        // 2. Insert transactions
+        final dynamic rawTxs = backupData['transactions'];
+        if (rawTxs is List) {
+          for (final item in rawTxs) {
+            if (item is Map) {
+              final title = item['title']?.toString() ?? 'Untitled';
+              final amount = (item['amount'] as num?)?.toDouble() ?? 0.0;
+              final type = item['type']?.toString() ?? 'expense';
+              final incomeStrategy = item['income_strategy']?.toString();
+              final category = item['category']?.toString() ?? 'fastfood';
+              final date = item['date']?.toString() ??
+                  DateTime.now().toIso8601String().substring(0, 10);
+
+              await txn.insert('transactions', {
+                'title': title,
+                'amount': amount,
+                'type': type,
+                'income_strategy': incomeStrategy,
+                'category': category,
+                'date': date,
+              });
+            }
+          }
+        }
+
+        // 3. Restore settings
+        final dynamic rawSettings = backupData['settings'];
+        if (rawSettings is Map) {
+          for (final entry in rawSettings.entries) {
+            await txn.insert(
+              'settings',
+              {'key': entry.key.toString(), 'value': entry.value.toString()},
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+          }
+        }
+      });
+      debugPrint('[DB] Atomically restored database from backup data.');
+    } catch (e, stackTrace) {
+      debugPrint('[DB] ERROR — restoreFromBackupData: $e');
+      debugPrint('[DB] StackTrace: $stackTrace');
+      rethrow;
+    }
+  }
+
   /// Converts all transactions and the monthly budget from one currency to another.
   /// Runs inside a database transaction to ensure safety and atomicity.
   Future<void> convertAllTransactionsAndBudget(
@@ -264,9 +338,11 @@ class DatabaseHelper {
 
     try {
       final db = await database;
-      final double fromRate = CurrencyInfo.exchangeRates[fromCode] ?? 1.0;
-      final double toRate = CurrencyInfo.exchangeRates[toCode] ?? 1.0;
-      final double factor = toRate / fromRate;
+      final double fromRate =
+          CurrencyInfo.exchangeRates[fromCode.toUpperCase()] ?? 1.0;
+      final double toRate =
+          CurrencyInfo.exchangeRates[toCode.toUpperCase()] ?? 1.0;
+      final double factor = fromRate > 0 ? (toRate / fromRate) : 1.0;
 
       debugPrint(
         '[DB] convertAllTransactionsAndBudget: $fromCode -> $toCode (factor: $factor)',
@@ -277,9 +353,13 @@ class DatabaseHelper {
         final List<Map<String, dynamic>> rows = await txn.query('transactions');
         for (final row in rows) {
           final int id = row['id'] as int;
-          final double originalAmount = row['amount'] as double;
-          double convertedAmount = originalAmount * factor;
-          if (convertedAmount < 0) convertedAmount = 0.0;
+          final double originalAmount = (row['amount'] as num).toDouble();
+          double convertedAmount = (originalAmount * factor).roundToDouble();
+          if (convertedAmount < 0 ||
+              convertedAmount.isNaN ||
+              convertedAmount.isInfinite) {
+            convertedAmount = 0.0;
+          }
           await txn.update(
             'transactions',
             {'amount': convertedAmount},
@@ -297,8 +377,12 @@ class DatabaseHelper {
         if (budgetRows.isNotEmpty) {
           final double originalBudget =
               double.tryParse(budgetRows.first['value'] as String) ?? 0.0;
-          double convertedBudget = originalBudget * factor;
-          if (convertedBudget < 0) convertedBudget = 0.0;
+          double convertedBudget = (originalBudget * factor).roundToDouble();
+          if (convertedBudget < 0 ||
+              convertedBudget.isNaN ||
+              convertedBudget.isInfinite) {
+            convertedBudget = 0.0;
+          }
           await txn.update(
             'settings',
             {'value': convertedBudget.toString()},

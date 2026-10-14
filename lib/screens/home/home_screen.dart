@@ -11,6 +11,7 @@ import 'widgets/transaction_tile.dart';
 import 'widgets/budget_input_dialog.dart';
 import 'widgets/add_transaction_dialog.dart';
 import '../../core/widgets/radix_currency_text.dart';
+import '../../core/services/haptic_helper.dart';
 
 class HomeScreen extends StatefulWidget {
   final List<TransactionModel> transactions;
@@ -47,20 +48,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  Color get _premiumPastelRed => AppColorLocker.of(context).accentRed;
-
-  // -- TextStyles --
-  TextStyle get _styleSpentLabel => TextStyle(
+  // -- Base TextStyles (colors applied via locker in build) --
+  static const TextStyle _styleSpentLabelBase = TextStyle(
     fontFamily: 'MonumentExtended',
     fontSize: 16,
     fontWeight: FontWeight.w900,
     letterSpacing: 2.0,
-    color: AppColorLocker.of(context).textPrimary,
   );
-  TextStyle get _styleEmptyState => AppTypography.openSans(
+  static final TextStyle _styleEmptyStateBase = AppTypography.openSans(
     fontSize: 14,
     fontWeight: FontWeight.bold,
-    color: AppColorLocker.of(context).textTertiary,
   );
 
   // ── Memoization cache for grouped transactions ──────────────────────────
@@ -68,7 +65,12 @@ class _HomeScreenState extends State<HomeScreen> {
   int _cachedGroupedHash = -1;
   String _cachedGroupedSort = '';
 
-  int? _expandedTransactionId;
+  String? _expandedTransactionKey;
+
+  String _getTxKey(TransactionModel tx) {
+    if (tx.id != null) return 'id_${tx.id}';
+    return 'tx_${tx.date}_${tx.category}_${tx.title}_${tx.amount}_${tx.hashCode}';
+  }
 
   @override
   void didUpdateWidget(covariant HomeScreen oldWidget) {
@@ -78,9 +80,9 @@ class _HomeScreenState extends State<HomeScreen> {
         oldWidget.spent != widget.spent) {
       _cachedGrouped = null;
       _cachedGroupedHash = -1;
-      if (_expandedTransactionId != null &&
-          !widget.transactions.any((t) => t.id == _expandedTransactionId)) {
-        _expandedTransactionId = null;
+      if (_expandedTransactionKey != null &&
+          !widget.transactions.any((t) => _getTxKey(t) == _expandedTransactionKey)) {
+        _expandedTransactionKey = null;
       }
     }
   }
@@ -95,6 +97,8 @@ class _HomeScreenState extends State<HomeScreen> {
       hash = hash * 31 + tx.amount.hashCode;
       hash = hash * 31 + tx.title.hashCode;
       hash = hash * 31 + tx.category.hashCode;
+      hash = hash * 31 + tx.date.hashCode;
+      hash = hash * 31 + tx.type.hashCode;
     }
     return hash;
   }
@@ -125,8 +129,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _cycleSort() {
+    HapticHelper.lightImpact();
     setState(() {
-      _expandedTransactionId = null;
+      _expandedTransactionKey = null;
       if (currentSort == 'Date') {
         currentSort = 'Highest';
         sortTurns = 0.25;
@@ -141,7 +146,6 @@ class _HomeScreenState extends State<HomeScreen> {
         sortTurns = 0.0;
       }
     });
-    debugPrint('Sort changed to: $currentSort');
   }
 
   void _showAddTransactionDialogDelayed() {
@@ -174,6 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
       color: locker.scaffoldBackground,
       child: Scaffold(
         backgroundColor: Colors.transparent,
+        resizeToAvoidBottomInset: false,
         floatingActionButtonLocation: isLandscape
             ? null
             : const _CustomFloatingActionButtonLocation(
@@ -184,6 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           scrolledUnderElevation: 0,
+          centerTitle: false,
           title: Text(
             'RADIX',
             style: TextStyle(
@@ -258,24 +264,22 @@ class _HomeScreenState extends State<HomeScreen> {
     Map<String, List<TransactionModel>> grouped,
   ) {
     return Padding(
-      padding: const EdgeInsets.only(right: 76),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // LEFT COLUMN (Expanded flex: 4): Wrap BalanceCard, quick summary stats, and Add Action in a non-overflowing container
+          // LEFT COLUMN (Expanded flex: 4): Wrap BalanceCard and Add Action in a non-overflowing container
           Expanded(
             flex: 4,
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.only(bottom: 24, left: 16, right: 8),
+              padding: const EdgeInsets.only(bottom: 24, left: 8, right: 8),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _buildBalanceCard(context, locker, isOverBudget, true),
-                  const SizedBox(height: 8),
-                  _buildSortRow(locker),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   _buildAddActionButton(locker),
                 ],
               ),
@@ -287,14 +291,32 @@ class _HomeScreenState extends State<HomeScreen> {
             margin: const EdgeInsets.only(bottom: 24),
             color: locker.textPrimary.withValues(alpha: 0.05),
           ),
-          // RIGHT COLUMN (Expanded flex: 6): Dedicated scrollable area for transaction list
+          // RIGHT COLUMN (Expanded flex: 6): Sort header row and dedicated scrollable area for transaction list
           Expanded(
             flex: 6,
-            child: _buildTransactionList(
-              locker,
-              groupedKeys,
-              grouped,
-              padding: const EdgeInsets.only(bottom: 24, left: 8, right: 16),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                if (constraints.maxHeight < 50.0) {
+                  return const SizedBox.shrink();
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: _buildSortRow(locker, isLandscape: true),
+                    ),
+                    Expanded(
+                      child: _buildTransactionList(
+                        locker,
+                        groupedKeys,
+                        grouped,
+                        padding: const EdgeInsets.only(bottom: 24, left: 8, right: 8),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ],
@@ -334,7 +356,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Column(
           children: [
-            Text('SPENT', style: _styleSpentLabel),
+            Text(
+              'SPENT',
+              style: _styleSpentLabelBase.copyWith(color: locker.textPrimary),
+            ),
             const SizedBox(height: 4),
             FittedBox(
               fit: BoxFit.scaleDown,
@@ -355,7 +380,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 fontSize: isLandscape ? 15 : 18,
                 fontWeight: FontWeight.w700,
                 fontFamily: 'MonumentExtended',
-                color: isOverBudget ? _premiumPastelRed : locker.textPrimary,
+                color: isOverBudget ? locker.accentRed : locker.textPrimary,
               ),
             ),
             if (isOverBudget) ...[
@@ -367,7 +392,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   amount: widget.spent - widget.monthlyBudget,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: _premiumPastelRed,
+                  color: locker.accentRed,
                 ),
               ),
             ],
@@ -377,13 +402,18 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSortRow(AppColorLocker locker) {
+  Widget _buildSortRow(AppColorLocker locker, {bool isLandscape = false}) {
+    final double infoIconSize = isLandscape ? 25.0 : 20.0;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(
+        horizontal: isLandscape ? 12 : 16,
+        vertical: isLandscape ? 6 : 8,
+      ),
       child: Row(
         children: [
           GestureDetector(
             onTap: _cycleSort,
+            behavior: HitTestBehavior.opaque,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -410,14 +440,24 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const Spacer(),
-          GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const InstructionScreen(),
+          BounceCard(
+            onTap: () {
+              HapticHelper.lightImpact();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const InstructionScreen(),
+                ),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(6.0),
+              child: Icon(
+                Icons.info_outline,
+                color: locker.textSecondary,
+                size: infoIconSize,
               ),
             ),
-            child: Icon(Icons.info_outline, color: locker.textSecondary),
           ),
         ],
       ),
@@ -429,6 +469,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: BounceCard(
         onAnimationComplete: () {
+          HapticHelper.lightImpact();
           _showAddTransactionDialogDelayed();
         },
         child: Container(
@@ -480,7 +521,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Text(
           "PRESS '+' TO ADD\nTRANSACTION",
           textAlign: TextAlign.center,
-          style: _styleEmptyState,
+          style: _styleEmptyStateBase.copyWith(color: locker.textTertiary),
         ),
       );
     }
@@ -523,26 +564,31 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   _buildDateHeader(dateStr, groupTxs),
                   ...groupTxs.map(
-                    (tx) => TransactionTile(
-                      model: tx,
-                      isExpanded: _expandedTransactionId == tx.id,
-                      onTap: () {
-                        setState(() {
-                          if (_expandedTransactionId == tx.id) {
-                            _expandedTransactionId = null;
-                          } else {
-                            _expandedTransactionId = tx.id;
-                          }
-                        });
-                      },
-                      onCollapse: () {
-                        setState(() {
-                          _expandedTransactionId = null;
-                        });
-                      },
-                      onUpdateTransaction: widget.onUpdateTransaction,
-                      onDeleteTransaction: widget.onDeleteTransaction,
-                    ),
+                    (tx) {
+                      final String tileKey = _getTxKey(tx);
+                      return TransactionTile(
+                        key: ValueKey('tx_tile_$tileKey'),
+                        model: tx,
+                        isExpanded: _expandedTransactionKey == tileKey,
+                        onTap: () {
+                          HapticHelper.selectionClick();
+                          setState(() {
+                            if (_expandedTransactionKey == tileKey) {
+                              _expandedTransactionKey = null;
+                            } else {
+                              _expandedTransactionKey = tileKey;
+                            }
+                          });
+                        },
+                        onCollapse: () {
+                          setState(() {
+                            _expandedTransactionKey = null;
+                          });
+                        },
+                        onUpdateTransaction: widget.onUpdateTransaction,
+                        onDeleteTransaction: widget.onDeleteTransaction,
+                      );
+                    },
                   ),
                 ],
               );
@@ -561,6 +607,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return BounceCard(
       onAnimationComplete: () {
+        HapticHelper.lightImpact();
         setState(() {
           _isPlusRotated = true;
         });
@@ -693,7 +740,7 @@ class _HomeScreenState extends State<HomeScreen> {
           RadixCurrencyText(
             prefix: sign,
             amount: roundedNet.abs().toDouble(),
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: FontWeight.bold,
             color: locker.textTertiary.withValues(alpha: 0.8),
           ),

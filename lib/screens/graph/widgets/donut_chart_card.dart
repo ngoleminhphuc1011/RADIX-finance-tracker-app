@@ -48,7 +48,8 @@ class DonutChartCard extends StatelessWidget {
       } else if (progress >= sliceEnd) {
         animatedValues.add(targetVal);
       } else {
-        final sliceFraction = (progress - sliceStart) / targetPct;
+        final sliceFraction =
+            targetPct > 0 ? (progress - sliceStart) / targetPct : 0.0;
         animatedValues.add(targetVal * sliceFraction);
       }
       accumulatedProgress = sliceEnd;
@@ -89,12 +90,14 @@ class DonutChartCard extends StatelessWidget {
         value: animatedValues[i],
         radius: radius,
         showTitle: false,
-        badgeWidget: CategoryBadge(
-          icon: category.icon,
-          iconColor: darkenedIconColor,
-          isTouched: isTouched,
-          progress: effectiveProgress,
-        ),
+        badgeWidget: effectiveProgress > 0.85
+            ? CategoryBadge(
+                icon: category.icon,
+                iconColor: darkenedIconColor,
+                isTouched: isTouched,
+                progress: effectiveProgress,
+              )
+            : null,
         badgePositionPercentageOffset: isTouched ? 0.65 : 0.55,
       );
     });
@@ -117,7 +120,7 @@ class DonutChartCard extends StatelessWidget {
           style: TextStyle(
             fontFamily: 'MonumentExtended-Regular',
             fontSize: 11,
-            color: Colors.grey[500],
+            color: locker.textTertiary,
             letterSpacing: 1.0,
           ),
         ),
@@ -138,14 +141,14 @@ class DonutChartCard extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyChart() {
+  Widget _buildEmptyChart(AppColorLocker locker) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.pie_chart_outline, size: 64, color: Colors.grey[400]),
+            Icon(Icons.pie_chart_outline, size: 64, color: locker.textTertiary),
             const SizedBox(height: 16),
             FittedBox(
               fit: BoxFit.scaleDown,
@@ -156,7 +159,7 @@ class DonutChartCard extends StatelessWidget {
                 style: AppTypography.openSans(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey[500],
+                  color: locker.textSecondary,
                 ),
               ),
             ),
@@ -170,7 +173,7 @@ class DonutChartCard extends StatelessWidget {
                 style: AppTypography.openSans(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey[400],
+                  color: locker.textTertiary,
                 ),
               ),
             ),
@@ -205,6 +208,7 @@ class DonutChartCard extends StatelessWidget {
                 children: [
                   RepaintBoundary(
                     child: PieChart(
+                      key: ValueKey('donut_pie_${categories.length}'),
                       PieChartData(
                         startDegreeOffset: -90,
                         pieTouchData: PieTouchData(
@@ -244,7 +248,7 @@ class DonutChartCard extends StatelessWidget {
                   Center(child: _buildDonutCenterText(context)),
                 ],
               )
-            : _buildEmptyChart(),
+            : _buildEmptyChart(locker),
       ),
     );
   }

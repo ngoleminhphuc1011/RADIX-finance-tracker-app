@@ -159,9 +159,13 @@ class _NavWrapperState extends State<NavWrapper> {
     }
   }
 
+  bool _isLoadingDB = false;
+
   /// Loads every piece of persistent state from SQLite.
   /// Called once in initState. After this, CRUD methods keep DB in sync.
   Future<void> _loadAllFromDB() async {
+    if (_isLoadingDB) return;
+    _isLoadingDB = true;
     try {
       // 0. Perform lazy interval reset check before loading transactions
       await checkAndPerformIntervalReset();
@@ -176,6 +180,7 @@ class _NavWrapperState extends State<NavWrapper> {
           : 0.0;
 
       // 3. Apply to state in a single setState to avoid extra rebuilds
+      if (!mounted) return;
       setState(() {
         _transactions
           ..clear()
@@ -191,6 +196,8 @@ class _NavWrapperState extends State<NavWrapper> {
       debugPrint('[Nav]   budget = $loadedBudget');
     } catch (e) {
       debugPrint('[Nav] ERROR during startup load: $e');
+    } finally {
+      _isLoadingDB = false;
     }
   }
 
@@ -250,6 +257,7 @@ class _NavWrapperState extends State<NavWrapper> {
       }
     }
 
+    if (!mounted) return;
     setState(() {
       monthlyBudget = max(0.0, _userSetBudget + totalIncomeToBudget);
       spent = max(0.0, totalExpenses - totalDeductions);
@@ -273,6 +281,7 @@ class _NavWrapperState extends State<NavWrapper> {
       // 2. Stamp the real id onto the model before adding to RAM.
       final TransactionModel txWithId = sanitizedTx.copyWith(id: newId);
 
+      if (!mounted) return;
       setState(() {
         _transactions = List.from(_transactions)..insert(0, txWithId);
       });
@@ -307,6 +316,7 @@ class _NavWrapperState extends State<NavWrapper> {
       final index = _transactions.indexWhere((t) => t.id == id);
       if (index == -1) return;
 
+      if (!mounted) return;
       setState(() {
         final newList = List<TransactionModel>.from(_transactions);
         newList[index] = newList[index].copyWith(
@@ -332,6 +342,7 @@ class _NavWrapperState extends State<NavWrapper> {
       await _db.deleteTransaction(id);
 
       // 2. Remove from RAM.
+      if (!mounted) return;
       setState(() {
         final newList = List<TransactionModel>.from(_transactions);
         newList.removeWhere((t) => t.id == id);
@@ -357,6 +368,7 @@ class _NavWrapperState extends State<NavWrapper> {
       await _db.setSetting('monthly_budget', roundedBudget.toString());
 
       // 2. Update RAM.
+      if (!mounted) return;
       setState(() {
         _userSetBudget = roundedBudget;
       });
@@ -429,21 +441,24 @@ class _NavWrapperState extends State<NavWrapper> {
       child: Scaffold(
         extendBody: true,
         backgroundColor: Colors.transparent,
-        body: isLandscape
-            ? Stack(
-                children: [
-                  _buildPageView(),
-                  Positioned(
-                    top: 0,
-                    bottom: 0,
-                    right: 8,
-                    child: Center(
-                      child: _buildLandscapeNavRail(context, locker, isDark),
-                    ),
+        resizeToAvoidBottomInset: false,
+        body: Stack(
+          children: [
+            _buildPageView(),
+            if (isLandscape)
+              Positioned(
+                top: 4,
+                left: 0,
+                right: 0,
+                child: SafeArea(
+                  bottom: false,
+                  child: Center(
+                    child: _buildLandscapeTopNav(context, locker, isDark),
                   ),
-                ],
-              )
-            : _buildPageView(),
+                ),
+              ),
+          ],
+        ),
         bottomNavigationBar: isLandscape
             ? null
             : _buildBottomNavBar(context, isDark, locker),
@@ -453,6 +468,7 @@ class _NavWrapperState extends State<NavWrapper> {
 
   Widget _buildPageView() {
     return PageView(
+      key: const PageStorageKey<String>('nav_page_view'),
       controller: _pageController,
       onPageChanged: _onPageChanged,
       children: [
@@ -476,56 +492,60 @@ class _NavWrapperState extends State<NavWrapper> {
         SettingsScreen(
           onResetAll: _resetAllData,
           onIntervalChanged: (_) => checkAndPerformIntervalReset(),
+          onDataRestored: _loadAllFromDB,
         ),
       ],
     );
   }
 
-  Widget _buildLandscapeNavRail(
+  Widget _buildLandscapeTopNav(
     BuildContext context,
     AppColorLocker locker,
     bool isDark,
   ) {
-    const double railWidth = 68.0;
-    const double verticalPadding = 12.0;
-    const double itemHeight = 48.0;
-    const double contentHeight = itemHeight * 5; // 240.0
+    const double tabWidth = 50.0;
+    const double tabHeight = 40.0;
+    const double iconSize = 23.0;
+    final double contentWidth = tabWidth * _navTabs.length; // 250.0
+    const double horizontalPadding = 3.5;
+    const double verticalPadding = 3.0;
+    const double outerRadius = (tabHeight + verticalPadding * 2 + 2.0) / 2; // 24.0
 
-    return Container(
-      width: railWidth,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(34),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.35)
-                : Colors.black.withValues(alpha: 0.06),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(34),
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Container(
-            width: railWidth,
-            padding: const EdgeInsets.symmetric(vertical: verticalPadding),
+    return RepaintBoundary(
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(outerRadius),
+          boxShadow: [
+            BoxShadow(
+              color: locker.navBarShadow,
+              blurRadius: 16,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(outerRadius),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: horizontalPadding,
+              vertical: verticalPadding,
+            ),
             decoration: BoxDecoration(
               color: locker.frostedGlassBg,
-              borderRadius: BorderRadius.circular(34),
+              borderRadius: BorderRadius.circular(outerRadius),
               border: Border.all(
                 color: locker.frostedGlassBorder,
                 width: 1.0,
               ),
             ),
             child: SizedBox(
-              width: railWidth,
-              height: contentHeight,
+              width: contentWidth,
+              height: tabHeight,
               child: Stack(
                 children: [
-                  // Vertical Sliding Indicator
+                  // Horizontal Sliding Indicator
                   ValueListenableBuilder<double>(
                     valueListenable: _pagePosition,
                     builder: (context, pos, _) {
@@ -534,15 +554,15 @@ class _NavWrapperState extends State<NavWrapper> {
                         (_navTabs.length - 1).toDouble(),
                       );
                       return Positioned(
-                        top: clampedPos * itemHeight + 2.0,
-                        left: 8.0,
-                        right: 8.0,
-                        height: itemHeight - 4.0,
+                        left: clampedPos * tabWidth + 1.5,
+                        top: 1.5,
+                        bottom: 1.5,
+                        width: tabWidth - 3.0,
                         child: Container(
                           decoration: BoxDecoration(
                             color: locker.navActiveCapsuleBg,
                             borderRadius: BorderRadius.circular(
-                              (itemHeight - 4.0) / 2,
+                              (tabHeight - 3.0) / 2,
                             ),
                             border: Border.all(
                               color: locker.navActiveCapsuleBorder,
@@ -553,19 +573,19 @@ class _NavWrapperState extends State<NavWrapper> {
                       );
                     },
                   ),
-                  // Tab Icons Column
-                  Column(
+                  // Tab Icons Row (Only icons appear)
+                  Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       for (int i = 0; i < _navTabs.length; i++)
                         SizedBox(
-                          height: itemHeight,
-                          width: railWidth,
+                          width: tabWidth,
+                          height: tabHeight,
                           child: Material(
                             type: MaterialType.transparency,
                             child: InkWell(
                               borderRadius: BorderRadius.circular(
-                                (itemHeight - 4.0) / 2,
+                                tabHeight / 2,
                               ),
                               onTap: () => _onNavTap(i),
                               child: Center(
@@ -584,7 +604,7 @@ class _NavWrapperState extends State<NavWrapper> {
                                           ? _navTabs[i].filledIcon
                                           : _navTabs[i].outlinedIcon,
                                       color: iconColor,
-                                      size: 24.0,
+                                      size: iconSize,
                                     );
                                   },
                                 ),
@@ -600,8 +620,9 @@ class _NavWrapperState extends State<NavWrapper> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildBottomNavBar(
     BuildContext context,
@@ -647,9 +668,7 @@ class _NavWrapperState extends State<NavWrapper> {
                     borderRadius: BorderRadius.circular(35),
                     boxShadow: [
                       BoxShadow(
-                        color: isDark
-                            ? Colors.black.withValues(alpha: 0.35)
-                            : Colors.black.withValues(alpha: 0.06),
+                        color: locker.navBarShadow,
                         blurRadius: 20,
                         offset: const Offset(0, 4),
                       ),
@@ -768,21 +787,16 @@ class _NavWrapperState extends State<NavWrapper> {
                 widthFactor: isActive ? 1.0 : 0.0,
                 child: Padding(
                   padding: const EdgeInsets.only(left: 6),
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 220),
-                    opacity: isActive ? 1.0 : 0.0,
-                    curve: Curves.easeInOut,
-                    child: Text(
-                      tab.label,
-                      maxLines: 1,
-                      softWrap: false,
-                      overflow: TextOverflow.clip,
-                      style: AppTypography.openSans(
-                        fontSize: labelFontSize,
-                        fontWeight: FontWeight.bold,
-                        color: activeColor,
-                        letterSpacing: 0.2,
-                      ),
+                  child: Text(
+                    tab.label,
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.clip,
+                    style: AppTypography.openSans(
+                      fontSize: labelFontSize,
+                      fontWeight: FontWeight.bold,
+                      color: activeColor,
+                      letterSpacing: 0.2,
                     ),
                   ),
                 ),

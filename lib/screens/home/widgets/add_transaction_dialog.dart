@@ -6,6 +6,7 @@ import '../../../core/theme/currency_provider.dart';
 import 'transaction_tile.dart';
 import 'icon_picker_sheet.dart';
 import 'bounce_card.dart';
+import '../../../core/services/haptic_helper.dart';
 
 enum TransactionMode { expense, income }
 
@@ -60,22 +61,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
     height: 1.3,
   );
 
-  static const Set<String> _validIconKeys = <String>{
-    'fastfood',
-    'shopping_bag',
-    'directions_car',
-    'home',
-    'payments',
-    'work',
-    'school',
-    'flight',
-    'fitness_center',
-    'health_and_safety',
-    'pets',
-    'celebration',
-    'local_gas_station',
-    'train',
-  };
+  static final Set<String> _validIconKeys = iconOptions.keys.toSet();
 
   final PageController _pageController = PageController(initialPage: 0);
   TransactionMode _transactionMode = TransactionMode.expense;
@@ -119,18 +105,21 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
         : locker.incomeDialogText;
 
     final mediaQuery = MediaQuery.of(context);
-    final double maxHeight = mediaQuery.size.height * 0.9;
+    final bool isLandscape = mediaQuery.orientation == Orientation.landscape;
     final double keyboardInset = mediaQuery.viewInsets.bottom;
-    final double bottomOffset = keyboardInset > 0 ? 8 : 20;
+    final bool isKeyboardOpen = keyboardInset > 0;
+    final double maxHeight = mediaQuery.size.height * (isLandscape && isKeyboardOpen ? 0.98 : 0.9);
+    final double topPadding = (isLandscape && isKeyboardOpen) ? 4.0 : 20.0;
+    final double bottomOffset = isKeyboardOpen ? (isLandscape ? 4.0 : 8.0) : 20.0;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => Navigator.of(context).pop(),
       child: Padding(
         padding: EdgeInsets.only(
-          top: 20,
-          left: 20,
-          right: 20,
+          top: topPadding,
+          left: isLandscape ? 16 : 20,
+          right: isLandscape ? 16 : 20,
           bottom: keyboardInset + bottomOffset,
         ),
         child: Align(
@@ -173,16 +162,16 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
                                 });
                               },
                               onSelected: (String selection) {
-                                debugPrint('Selected: $selection');
                                 final double amount =
                                     _pendingIncomeAmount ?? 0.0;
                                 final String incomeStrategy =
                                     selection == 'Add to Budget'
                                     ? 'add_to_budget'
                                     : 'deduct_from_spent';
+                                HapticHelper.mediumImpact();
                                 widget.onAddTransaction(
                                   TransactionModel(
-                                    title: _incomeTitleController.text,
+                                    title: _incomeTitleController.text.trim(),
                                     amount: amount,
                                     type: 'income',
                                     incomeStrategy: incomeStrategy,
@@ -373,15 +362,19 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
                                   ),
                                   onPressed: () {
                                     final String iconKey = _sanitizeIconKey();
-                                    debugPrint('Selected icon key: $iconKey');
 
                                     if (isExpense) {
                                       final String title =
-                                          _expenseTitleController.text;
+                                          _expenseTitleController.text.trim();
                                       final double? amount = double.tryParse(
-                                        _expenseAmountController.text,
+                                        _expenseAmountController.text
+                                            .replaceAll(',', '')
+                                            .trim(),
                                       );
-                                      if (title.isNotEmpty && amount != null) {
+                                      if (title.isNotEmpty &&
+                                          amount != null &&
+                                          amount > 0) {
+                                        HapticHelper.mediumImpact();
                                         widget.onAddTransaction(
                                           TransactionModel(
                                             title: title,
@@ -394,11 +387,15 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
                                       }
                                     } else {
                                       final String title =
-                                          _incomeTitleController.text;
+                                          _incomeTitleController.text.trim();
                                       final double? amount = double.tryParse(
-                                        _incomeAmountController.text,
+                                        _incomeAmountController.text
+                                            .replaceAll(',', '')
+                                            .trim(),
                                       );
-                                      if (title.isNotEmpty && amount != null) {
+                                      if (title.isNotEmpty &&
+                                          amount != null &&
+                                          amount > 0) {
                                         _pendingIncomeIconKey = iconKey;
                                         setState(() {
                                           _pendingIncomeAmount = amount;

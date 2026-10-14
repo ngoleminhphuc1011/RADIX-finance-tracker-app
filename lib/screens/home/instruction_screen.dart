@@ -68,7 +68,7 @@ class InstructionScreen extends StatelessWidget {
             icon: Icons.currency_exchange_outlined,
             body:
                 '- Change active currency in Settings (USD, EUR, CNY, VND, etc.).\n'
-                '- Note: Base values remain preserved; only the currency symbol changes.',
+                '- Note: All transaction amounts and budgets convert automatically based on exchange rates.',
             isWarning: false,
           ),
           const SizedBox(height: 28),
@@ -80,7 +80,7 @@ class InstructionScreen extends StatelessWidget {
             icon: Icons.restart_alt_outlined,
             body:
                 '- Wipe all transaction records and settings to start fresh.\n'
-                '- Go to Settings and hold the reset button for 3 seconds.',
+                '- Go to Settings and hold the reset button for 5 seconds.',
           ),
         ],
       ),

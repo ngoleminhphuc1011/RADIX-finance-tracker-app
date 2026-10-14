@@ -35,8 +35,24 @@ class TransactionTile extends StatefulWidget {
   State<TransactionTile> createState() => _TransactionTileState();
 }
 
+/// Dedicated ScrollController for TransactionTile edit fields that disables
+/// horizontal slide animations (e.g. from EditableText showCaretOnScreen).
+class _NoAnimationScrollController extends ScrollController {
+  @override
+  Future<void> animateTo(
+    double offset, {
+    required Duration duration,
+    required Curve curve,
+  }) {
+    if (hasClients) {
+      jumpTo(offset);
+    }
+    return Future.value();
+  }
+}
+
 class _TransactionTileState extends State<TransactionTile>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   static final TextStyle _titleStyle = AppTypography.openSans(
     fontSize: 16,
     fontWeight: FontWeight.bold,
@@ -44,10 +60,18 @@ class _TransactionTileState extends State<TransactionTile>
 
   late TextEditingController _descController;
   late TextEditingController _amountController;
+  final ScrollController _descScrollController = _NoAnimationScrollController();
+  final ScrollController _amountScrollController = _NoAnimationScrollController();
+  final FocusNode _descFocusNode = FocusNode();
+  final FocusNode _amountFocusNode = FocusNode();
   late String _selectedCategory;
 
   late AnimationController _beamController;
   late Animation<double> _beamAnimation;
+
+  late AnimationController _expandController;
+  late Animation<double> _expandAnimation;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
@@ -59,13 +83,36 @@ class _TransactionTileState extends State<TransactionTile>
     _selectedCategory = widget.model.category;
 
     _beamController = AnimationController(
-      duration: const Duration(milliseconds: 1100),
+      duration: const Duration(milliseconds: 900),
       vsync: this,
     );
     _beamAnimation = CurvedAnimation(
       parent: _beamController,
       curve: Curves.easeInOutCubic,
     );
+
+    _expandController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      reverseDuration: const Duration(milliseconds: 220),
+      vsync: this,
+      value: widget.isExpanded ? 1.0 : 0.0,
+    );
+    _expandAnimation = CurvedAnimation(
+      parent: _expandController,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _expandController,
+      curve: const Interval(0.0, 0.75, curve: Curves.easeOut),
+      reverseCurve: const Interval(0.2, 1.0, curve: Curves.easeIn),
+    );
+
+    _expandController.addStatusListener((status) {
+      if (status == AnimationStatus.completed && mounted && widget.isExpanded) {
+        _beamController.forward(from: 0.0);
+      }
+    });
 
     if (widget.isExpanded) {
       _beamController.forward(from: 0.0);
@@ -79,9 +126,20 @@ class _TransactionTileState extends State<TransactionTile>
   }
 
   void _resetFields() {
-    _descController.text = widget.model.title;
-    _amountController.text = _formatInitialAmount(widget.model.amount);
+    final String formattedAmount = _formatInitialAmount(widget.model.amount);
+    if (_descController.text != widget.model.title) {
+      _descController.text = widget.model.title;
+    }
+    if (_amountController.text != formattedAmount) {
+      _amountController.text = formattedAmount;
+    }
     _selectedCategory = widget.model.category;
+    if (_descScrollController.hasClients) {
+      _descScrollController.jumpTo(0.0);
+    }
+    if (_amountScrollController.hasClients) {
+      _amountScrollController.jumpTo(0.0);
+    }
   }
 
   @override
@@ -93,20 +151,38 @@ class _TransactionTileState extends State<TransactionTile>
       _resetFields();
     }
 
-    // Trigger Google border-beam trace when expanding
+    // Trigger accordion expansion and reset border-beam trace if interrupted
     if (widget.isExpanded && !oldWidget.isExpanded) {
-      _beamController.forward(from: 0.0);
+      if (_descScrollController.hasClients) {
+        _descScrollController.jumpTo(0.0);
+      }
+      if (_amountScrollController.hasClients) {
+        _amountScrollController.jumpTo(0.0);
+      }
+      if (_beamController.isAnimating || _beamController.value > 0.0) {
+        _beamController.stop();
+        _beamController.reset();
+      }
+      _expandController.forward(from: 0.0);
     } else if (!widget.isExpanded && oldWidget.isExpanded) {
-      _beamController.stop();
-      _beamController.reset();
+      if (_beamController.isAnimating || _beamController.value > 0.0) {
+        _beamController.stop();
+        _beamController.reset();
+      }
+      _expandController.reverse();
     }
   }
 
   @override
   void dispose() {
+    _expandController.dispose();
     _beamController.dispose();
     _descController.dispose();
     _amountController.dispose();
+    _descScrollController.dispose();
+    _amountScrollController.dispose();
+    _descFocusNode.dispose();
+    _amountFocusNode.dispose();
     super.dispose();
   }
 
@@ -116,14 +192,17 @@ class _TransactionTileState extends State<TransactionTile>
         .replaceAll(' ', '')
         .trim();
     final double? parsedAmount = double.tryParse(cleanAmount);
-    if (_descController.text.trim().isNotEmpty &&
+    final String cleanTitle = _descController.text.trim();
+    if (cleanTitle.isNotEmpty &&
         parsedAmount != null &&
         parsedAmount > 0 &&
+        !parsedAmount.isNaN &&
+        !parsedAmount.isInfinite &&
         widget.model.id != null) {
       widget.onUpdateTransaction?.call(
         widget.model.id!,
         _selectedCategory,
-        _descController.text.trim(),
+        cleanTitle,
         parsedAmount,
       );
       widget.onCollapse?.call();
@@ -171,9 +250,7 @@ class _TransactionTileState extends State<TransactionTile>
               child: child,
             );
           },
-          child: AnimatedContainer(
-          duration: const Duration(milliseconds: 460),
-          curve: Curves.easeInOutCubicEmphasized,
+          child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: colors.bg,
@@ -226,10 +303,9 @@ class _TransactionTileState extends State<TransactionTile>
                       ),
                     ),
                     const SizedBox(width: 6),
-                    AnimatedRotation(
-                      turns: widget.isExpanded ? 0.5 : 0.0,
-                      duration: const Duration(milliseconds: 460),
-                      curve: Curves.easeInOutCubicEmphasized,
+                    RotationTransition(
+                      turns: Tween<double>(begin: 0.0, end: 0.5)
+                          .animate(_expandAnimation),
                       child: Icon(
                         Icons.keyboard_arrow_down_rounded,
                         size: 20,
@@ -239,24 +315,30 @@ class _TransactionTileState extends State<TransactionTile>
                   ],
                 ),
               ),
-              // Inline Expandable Accordion Panel
-              AnimatedSize(
-                duration: const Duration(milliseconds: 460),
-                curve: Curves.easeInOutCubicEmphasized,
-                alignment: Alignment.topCenter,
-                child: widget.isExpanded
-                    ? AnimatedOpacity(
-                        opacity: widget.isExpanded ? 1.0 : 0.0,
-                        duration: const Duration(milliseconds: 320),
-                        curve: Curves.easeOutCubic,
-                        child: _buildExpandedContent(
-                          context,
-                          locker,
-                          colors,
-                          fgColor,
-                        ),
-                      )
-                    : const SizedBox.shrink(),
+              // Inline Expandable Accordion Panel with smooth size and fade expansion
+              AnimatedBuilder(
+                animation: _expandAnimation,
+                builder: (context, child) {
+                  if (_expandAnimation.value == 0.0 && !widget.isExpanded) {
+                    return const SizedBox.shrink();
+                  }
+                  return ClipRect(
+                    child: SizeTransition(
+                      sizeFactor: _expandAnimation,
+                      alignment: Alignment.topLeft,
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: child,
+                      ),
+                    ),
+                  );
+                },
+                child: _buildExpandedContent(
+                  context,
+                  locker,
+                  colors,
+                  fgColor,
+                ),
               ),
             ],
           ),
@@ -354,6 +436,9 @@ class _TransactionTileState extends State<TransactionTile>
               Expanded(
                 child: TextField(
                   controller: _descController,
+                  focusNode: _descFocusNode,
+                  scrollController: _descScrollController,
+                  scrollPhysics: const ClampingScrollPhysics(),
                   style: AppTypography.openSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -423,6 +508,9 @@ class _TransactionTileState extends State<TransactionTile>
                 Expanded(
                   child: TextField(
                     controller: _amountController,
+                    focusNode: _amountFocusNode,
+                    scrollController: _amountScrollController,
+                    scrollPhysics: const ClampingScrollPhysics(),
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
                     style: TextStyle(

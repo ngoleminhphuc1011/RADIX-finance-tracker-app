@@ -90,6 +90,20 @@ abstract class AppColorLocker {
   Color get settingsCurrencySymbol;
   Color get graphBackground;
 
+  // Cards, sheets, toasts & surfaces
+  Color get settingsCardBackground;
+  Color get settingsCardBorder;
+  Color get settingsModalTileBackground;
+  Color get settingsBadgeBackground;
+  Color get settingsBadgeBorder;
+  Color get sheetBackground;
+  Color get sheetBorder;
+  Color get navBarShadow;
+  Color get toastBackground;
+  Color get toastText;
+  Color get toastShadow;
+  Color get dividerColor;
+
   // Currency tile specific colors
   Color get settingsCurrencySelectedStart;
   Color get settingsCurrencySelectedEnd;
@@ -383,6 +397,42 @@ class LightColorLocker extends AppColorLocker {
   Color get graphBackground => const Color(0xFFF5F0EB);
 
   @override
+  Color get settingsCardBackground => Colors.white;
+
+  @override
+  Color get settingsCardBorder => const Color(0xFFE5E5EA);
+
+  @override
+  Color get settingsModalTileBackground => const Color(0xFFF7F7FA);
+
+  @override
+  Color get settingsBadgeBackground => const Color(0xFFF2F2F7);
+
+  @override
+  Color get settingsBadgeBorder => const Color(0xFFE5E5EA);
+
+  @override
+  Color get sheetBackground => Colors.white.withValues(alpha: 0.96);
+
+  @override
+  Color get sheetBorder => Colors.black.withValues(alpha: 0.08);
+
+  @override
+  Color get navBarShadow => Colors.black.withValues(alpha: 0.08);
+
+  @override
+  Color get toastBackground => Colors.white.withValues(alpha: 0.98);
+
+  @override
+  Color get toastText => const Color(0xFF131518);
+
+  @override
+  Color get toastShadow => Colors.black.withValues(alpha: 0.08);
+
+  @override
+  Color get dividerColor => Colors.black.withValues(alpha: 0.06);
+
+  @override
   Color get deleteButtonBg => const Color(0xFFC62828);
 
   @override
@@ -657,6 +707,42 @@ class DarkColorLocker extends AppColorLocker {
 
   @override
   Color get graphBackground => const Color(0xFF090A0C);
+
+  @override
+  Color get settingsCardBackground => const Color(0xFF131518);
+
+  @override
+  Color get settingsCardBorder => const Color(0xFF22262B);
+
+  @override
+  Color get settingsModalTileBackground => const Color(0xFF131518);
+
+  @override
+  Color get settingsBadgeBackground => const Color(0xFF1E2126);
+
+  @override
+  Color get settingsBadgeBorder => const Color(0xFF2B2F36);
+
+  @override
+  Color get sheetBackground => const Color(0xFF131518).withValues(alpha: 0.95);
+
+  @override
+  Color get sheetBorder => Colors.white.withValues(alpha: 0.12);
+
+  @override
+  Color get navBarShadow => Colors.black.withValues(alpha: 0.35);
+
+  @override
+  Color get toastBackground => const Color(0xFF1E2024).withValues(alpha: 0.96);
+
+  @override
+  Color get toastText => const Color(0xFFECEFF1);
+
+  @override
+  Color get toastShadow => Colors.black.withValues(alpha: 0.28);
+
+  @override
+  Color get dividerColor => Colors.white.withValues(alpha: 0.08);
 
   @override
   Color get deleteButtonBg => const Color(0xFFC62828);

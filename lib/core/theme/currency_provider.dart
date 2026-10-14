@@ -44,16 +44,16 @@ class CurrencyInfo {
   static final NumberFormat _formatter = NumberFormat('#,###');
 
   /// Formats double to a rounded whole integer with the currency symbol.
-  /// Prevents any values below 0.
+  /// Prevents any values below 0 or invalid numbers.
   String format(double amount) {
-    if (amount < 0) amount = 0;
+    if (amount < 0 || amount.isNaN || amount.isInfinite) amount = 0;
     return '$symbol${_formatter.format(amount.round())}';
   }
 
   /// Formats double to a rounded whole integer without the currency symbol.
-  /// Prevents any values below 0.
+  /// Prevents any values below 0 or invalid numbers.
   String formatNumber(double amount) {
-    if (amount < 0) amount = 0;
+    if (amount < 0 || amount.isNaN || amount.isInfinite) amount = 0;
     return _formatter.format(amount.round());
   }
 
@@ -91,15 +91,16 @@ class CurrencyInfo {
   }
 
   /// Static helper for currency conversion.
-  /// Rounds to whole integer, guarantees no values below 0.
+  /// Rounds to whole integer, guarantees no values below 0 or NaN.
   static double convert(double amount, String fromCode, String toCode) {
-    if (amount < 0) amount = 0;
-    final double fromRate = exchangeRates[fromCode] ?? 1.0;
-    final double toRate = exchangeRates[toCode] ?? 1.0;
+    if (amount <= 0 || amount.isNaN || amount.isInfinite) return 0.0;
+    final double fromRate = exchangeRates[fromCode.toUpperCase()] ?? 1.0;
+    final double toRate = exchangeRates[toCode.toUpperCase()] ?? 1.0;
+    if (fromRate <= 0) return 0.0;
     final double factor = toRate / fromRate;
     final double converted = amount * factor;
     final double rounded = converted.roundToDouble();
-    return rounded < 0 ? 0.0 : rounded;
+    return (rounded < 0 || rounded.isNaN || rounded.isInfinite) ? 0.0 : rounded;
   }
 }
 

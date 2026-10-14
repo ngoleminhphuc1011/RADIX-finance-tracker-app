@@ -1,8 +1,8 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../../core/theme/app_color_locker.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/services/haptic_helper.dart';
 import '../../home/widgets/bounce_card.dart';
 import 'currency_tile.dart';
 
@@ -17,7 +17,7 @@ class CurrencyPickerSection extends StatelessWidget {
   });
 
   void _showCurrencyBottomSheet(BuildContext context) {
-    HapticFeedback.lightImpact();
+    HapticHelper.lightImpact();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -37,7 +37,6 @@ class CurrencyPickerSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locker = AppColorLocker.of(context);
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     final activeCurrency = allCurrencies.firstWhere(
       (c) => c.code == selectedCurrencyCode,
@@ -80,14 +79,10 @@ class CurrencyPickerSection extends StatelessWidget {
                   vertical: 14,
                 ),
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? locker.settingsCapsuleBarBackground
-                      : Colors.white,
+                  color: locker.settingsCardBackground,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.08)
-                        : const Color(0xFFE5E5EA),
+                    color: locker.settingsCardBorder,
                     width: 1.0,
                   ),
                 ),
@@ -129,14 +124,10 @@ class CurrencyPickerSection extends StatelessWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.06)
-                            : const Color(0xFFF2F2F7),
+                        color: locker.settingsBadgeBackground,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.10)
-                              : Colors.black.withValues(alpha: 0.06),
+                          color: locker.settingsBadgeBorder,
                           width: 1.0,
                         ),
                       ),
@@ -208,7 +199,6 @@ class _CurrencyPickerModalSheetState extends State<_CurrencyPickerModalSheet> {
   @override
   Widget build(BuildContext context) {
     final locker = AppColorLocker.of(context);
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final mediaQuery = MediaQuery.of(context);
 
     return ClipRRect(
@@ -216,17 +206,16 @@ class _CurrencyPickerModalSheetState extends State<_CurrencyPickerModalSheet> {
       child: BackdropFilter(
         filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
-          constraints: BoxConstraints(maxHeight: mediaQuery.size.height * 0.75),
+          constraints: BoxConstraints(
+            maxHeight: mediaQuery.size.height *
+                (mediaQuery.orientation == Orientation.landscape ? 0.92 : 0.75),
+          ),
           decoration: BoxDecoration(
-            color: isDark
-                ? const Color(0xFF131518).withValues(alpha: 0.94)
-                : Colors.white.withValues(alpha: 0.95),
+            color: locker.sheetBackground,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             border: Border(
               top: BorderSide(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.15)
-                    : Colors.black.withValues(alpha: 0.08),
+                color: locker.sheetBorder,
                 width: 1.0,
               ),
             ),
@@ -270,9 +259,7 @@ class _CurrencyPickerModalSheetState extends State<_CurrencyPickerModalSheet> {
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.06)
-                              : Colors.black.withValues(alpha: 0.04),
+                          color: locker.settingsBadgeBackground,
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -376,7 +363,7 @@ class _CurrencyPickerModalSheetState extends State<_CurrencyPickerModalSheet> {
                             currency: currency,
                             isSelected: isSelected,
                             onTap: () {
-                              HapticFeedback.selectionClick();
+                              HapticHelper.selectionClick();
                               widget.onSelectCurrency(currency.code);
                               Navigator.pop(context);
                             },

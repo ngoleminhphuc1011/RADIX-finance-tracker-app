@@ -47,7 +47,9 @@ class _BounceCardState extends State<BounceCard>
 
   void _handlePointerUp(PointerUpEvent event) {
     _controller.reverse().whenComplete(() {
-      widget.onAnimationComplete?.call();
+      if (mounted) {
+        widget.onAnimationComplete?.call();
+      }
     });
   }
 

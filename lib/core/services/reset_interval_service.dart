@@ -78,8 +78,11 @@ class ResetIntervalService {
   }
 
   /// Calculates elapsed whole months between [now] and [lastReset].
+  /// Guarantees non-negative result even if device clock was adjusted.
   static int calculateDeltaMonths(DateTime now, DateTime lastReset) {
-    return (now.year - lastReset.year) * 12 + (now.month - lastReset.month);
+    final delta =
+        (now.year - lastReset.year) * 12 + (now.month - lastReset.month);
+    return delta < 0 ? 0 : delta;
   }
 
   /// Determines if an automatic reset is due based on elapsed months.
