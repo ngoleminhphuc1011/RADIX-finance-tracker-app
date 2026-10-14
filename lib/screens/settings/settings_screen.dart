@@ -53,7 +53,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   String get _selectedCurrencyCode {
     try {
-      return CurrencyProvider.read(context).code;
+      return CurrencyProvider.watch(context).code;
     } catch (_) {
       return 'USD';
     }
@@ -78,15 +78,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _selectCurrency(String code) async {
     try {
-      final oldCode = _selectedCurrencyCode;
+      final oldCode = CurrencyProvider.read(context).code;
       if (oldCode.toUpperCase() == code.toUpperCase()) return;
 
-      // 1. Save new currency setting to settings table
+      // 1. Convert all transaction amounts and budget in database
+      await DatabaseHelper().convertAllTransactionsAndBudget(oldCode, code);
+
+      // 2. Save new currency setting to settings table
       await DatabaseHelper().setSetting('active_currency', code);
 
-      // 2. Update active currency in context
+      // 3. Update active currency in context
       if (mounted) {
         CurrencyProvider.of(context).value = CurrencyInfo.find(code);
+        setState(() {});
       }
     } catch (e) {
       debugPrint('[Settings] Error saving currency: $e');

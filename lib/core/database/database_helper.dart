@@ -277,8 +277,8 @@ class DatabaseHelper {
         final List<Map<String, dynamic>> rows = await txn.query('transactions');
         for (final row in rows) {
           final int id = row['id'] as int;
-          final double originalAmount = row['amount'] as double;
-          double convertedAmount = originalAmount * factor;
+          final double originalAmount = (row['amount'] as num).toDouble();
+          double convertedAmount = (originalAmount * factor).roundToDouble();
           if (convertedAmount < 0) convertedAmount = 0.0;
           await txn.update(
             'transactions',
@@ -297,7 +297,7 @@ class DatabaseHelper {
         if (budgetRows.isNotEmpty) {
           final double originalBudget =
               double.tryParse(budgetRows.first['value'] as String) ?? 0.0;
-          double convertedBudget = originalBudget * factor;
+          double convertedBudget = (originalBudget * factor).roundToDouble();
           if (convertedBudget < 0) convertedBudget = 0.0;
           await txn.update(
             'settings',
