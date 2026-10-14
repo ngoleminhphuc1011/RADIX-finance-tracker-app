@@ -157,20 +157,21 @@ class _TransactionTileState extends State<TransactionTile>
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-      child: AnimatedBuilder(
-        animation: _beamAnimation,
-        builder: (context, child) {
-          return CustomPaint(
-            foregroundPainter: _GoogleBorderBeamPainter(
-              progress: _beamAnimation.value,
-              beamColor: fgColor,
-              borderRadius: 16.0,
-              strokeWidth: 1.8,
-            ),
-            child: child,
-          );
-        },
-        child: AnimatedContainer(
+      child: RepaintBoundary(
+        child: AnimatedBuilder(
+          animation: _beamAnimation,
+          builder: (context, child) {
+            return CustomPaint(
+              foregroundPainter: _GoogleBorderBeamPainter(
+                progress: _beamAnimation.value,
+                beamColor: fgColor,
+                borderRadius: 16.0,
+                strokeWidth: 1.8,
+              ),
+              child: child,
+            );
+          },
+          child: AnimatedContainer(
           duration: const Duration(milliseconds: 460),
           curve: Curves.easeInOutCubicEmphasized,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -261,8 +262,9 @@ class _TransactionTileState extends State<TransactionTile>
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildExpandedContent(
     BuildContext context,

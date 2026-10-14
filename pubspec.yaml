@@ -63,6 +63,7 @@ flutter:
 
   assets:
     - assets/images/logo/LOGORADIX.png
+    - assets/images/logo/LOGORADIXNEW.png
 
   # Configure custom Monument Extended and Ultra fonts
   fonts:
@@ -79,6 +80,12 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/images/logo/LOGORADIX.png"
+  web:
+    generate: true
+    image_path: "assets/images/logo/LOGORADIXNEW.png"
+  windows:
+    generate: true
+    image_path: "assets/images/logo/LOGORADIXNEW.png"
+  image_path: "assets/images/logo/LOGORADIXNEW.png"
   adaptive_icon_background: "#121212"
-  adaptive_icon_foreground: "assets/images/logo/LOGORADIX.png"
+  adaptive_icon_foreground: "assets/images/logo/LOGORADIXNEW.png"
