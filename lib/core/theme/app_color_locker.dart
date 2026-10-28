@@ -275,8 +275,7 @@ class LightColorLocker extends AppColorLocker {
   Color get navActiveFg => const Color(0xFF0D47A1);
 
   @override
-  Color get navInactiveFg =>
-      const Color(0xFF090A0C).withValues(alpha: 0.45);
+  Color get navInactiveFg => const Color(0xFF090A0C).withValues(alpha: 0.45);
 
   @override
   Color get frostedGlassBg => Colors.white.withValues(alpha: 0.50);

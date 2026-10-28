@@ -30,9 +30,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(800, 1200));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await tester.pumpWidget(
-        createTestWrapper(const PrivacyPolicyScreen()),
-      );
+      await tester.pumpWidget(createTestWrapper(const PrivacyPolicyScreen()));
       await tester.pumpAndSettle();
 
       expect(find.text('PRIVACY POLICY'), findsOneWidget);
@@ -44,25 +42,22 @@ void main() {
     },
   );
 
-  testWidgets(
-    'TermsOfServiceScreen renders AppBar and all 4 terms sections',
-    (WidgetTester tester) async {
-      await tester.binding.setSurfaceSize(const Size(800, 1200));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+  testWidgets('TermsOfServiceScreen renders AppBar and all 4 terms sections', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await tester.pumpWidget(
-        createTestWrapper(const TermsOfServiceScreen()),
-      );
-      await tester.pumpAndSettle();
+    await tester.pumpWidget(createTestWrapper(const TermsOfServiceScreen()));
+    await tester.pumpAndSettle();
 
-      expect(find.text('TERMS OF SERVICE'), findsOneWidget);
-      expect(find.text('1. AGREEMENT & PURPOSE'), findsOneWidget);
-      expect(find.text('2. LICENSE & OWNERSHIP'), findsOneWidget);
-      expect(find.text('3. LOCAL DATA RESPONSIBILITY'), findsOneWidget);
-      expect(find.text('4. DISCLAIMER OF FINANCIAL ADVICE'), findsOneWidget);
-      expect(find.text('Fulton Ngo Corporation'), findsOneWidget);
-    },
-  );
+    expect(find.text('TERMS OF SERVICE'), findsOneWidget);
+    expect(find.text('1. AGREEMENT & PURPOSE'), findsOneWidget);
+    expect(find.text('2. LICENSE & OWNERSHIP'), findsOneWidget);
+    expect(find.text('3. LOCAL DATA RESPONSIBILITY'), findsOneWidget);
+    expect(find.text('4. DISCLAIMER OF FINANCIAL ADVICE'), findsOneWidget);
+    expect(find.text('Fulton Ngo Corporation'), findsOneWidget);
+  });
 
   testWidgets(
     'AboutScreen renders brand info, version badge, developer credit, and packages',

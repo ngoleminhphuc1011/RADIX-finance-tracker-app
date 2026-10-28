@@ -207,17 +207,15 @@ class _CurrencyPickerModalSheetState extends State<_CurrencyPickerModalSheet> {
         filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
           constraints: BoxConstraints(
-            maxHeight: mediaQuery.size.height *
+            maxHeight:
+                mediaQuery.size.height *
                 (mediaQuery.orientation == Orientation.landscape ? 0.92 : 0.75),
           ),
           decoration: BoxDecoration(
             color: locker.sheetBackground,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             border: Border(
-              top: BorderSide(
-                color: locker.sheetBorder,
-                width: 1.0,
-              ),
+              top: BorderSide(color: locker.sheetBorder, width: 1.0),
             ),
           ),
           padding: EdgeInsets.only(bottom: mediaQuery.viewInsets.bottom + 20),

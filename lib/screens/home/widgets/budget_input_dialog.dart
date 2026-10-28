@@ -44,7 +44,9 @@ class _BudgetInputSheetState extends State<_BudgetInputSheet> {
   void initState() {
     super.initState();
     _budgetController = TextEditingController(
-      text: widget.currentBudget == 0 ? '' : widget.currentBudget.toStringAsFixed(0),
+      text: widget.currentBudget == 0
+          ? ''
+          : widget.currentBudget.toStringAsFixed(0),
     );
   }
 
@@ -56,10 +58,10 @@ class _BudgetInputSheetState extends State<_BudgetInputSheet> {
 
   void _saveBudget() {
     final text = _budgetController.text.trim();
-    final double enteredBudget =
-        text.isEmpty ? 0.0 : (double.tryParse(text) ?? 0.0);
-    final double sanitizedBudget =
-        enteredBudget < 0 ? 0.0 : enteredBudget;
+    final double enteredBudget = text.isEmpty
+        ? 0.0
+        : (double.tryParse(text) ?? 0.0);
+    final double sanitizedBudget = enteredBudget < 0 ? 0.0 : enteredBudget;
     widget.onBudgetChanged(sanitizedBudget);
     Navigator.of(context).pop();
   }
@@ -74,8 +76,9 @@ class _BudgetInputSheetState extends State<_BudgetInputSheet> {
     final double maxHeight =
         mediaQuery.size.height * (isLandscape && isKeyboardOpen ? 0.98 : 0.9);
     final double topPadding = (isLandscape && isKeyboardOpen) ? 4.0 : 20.0;
-    final double bottomOffset =
-        isKeyboardOpen ? (isLandscape ? 4.0 : 8.0) : 20.0;
+    final double bottomOffset = isKeyboardOpen
+        ? (isLandscape ? 4.0 : 8.0)
+        : 20.0;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -93,10 +96,7 @@ class _BudgetInputSheetState extends State<_BudgetInputSheet> {
             behavior: HitTestBehavior.opaque,
             onTap: () {}, // Prevent taps inside dialog from closing
             child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: 500,
-                maxHeight: maxHeight,
-              ),
+              constraints: BoxConstraints(maxWidth: 500, maxHeight: maxHeight),
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(

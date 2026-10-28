@@ -33,9 +33,10 @@ class _ResetButtonState extends State<ResetButton>
       duration: const Duration(seconds: 5),
       vsync: this,
     );
-    _holdProgress = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _holdController, curve: Curves.linear),
-    );
+    _holdProgress = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _holdController, curve: Curves.linear));
 
     _holdController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {

@@ -53,6 +53,18 @@ const List<_NavTabItem> _navTabs = [
   ),
 ];
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// NavWrapper: Global State Coordinator & Adaptive Navigation Shell
+//
+// Flutter Architecture Pattern (State Lifting):
+// Instead of storing transactions or budget inside HomeScreen, state is "lifted"
+// up to NavWrapper. This ensures:
+// 1. Data Persistence: Transactions stay loaded in RAM when swiping between tabs.
+// 2. Shared Access: Analytics (GraphScreen) and Home both receive the same data.
+// 3. Single Source of Truth: All mutations (add/edit/delete) funnel through here,
+//    persisting to SQLite first, then updating memory and triggering UI rebuilds.
+// ═══════════════════════════════════════════════════════════════════════════════
+
 class NavWrapper extends StatefulWidget {
   const NavWrapper({super.key});
 
@@ -61,33 +73,34 @@ class NavWrapper extends StatefulWidget {
 }
 
 class _NavWrapperState extends State<NavWrapper> {
+  // ─── Section 1: Navigation & Global State Fields ─────────────────────────────
+
+  // Controls PageView swiping and smooth programmatic tab transitions
   final PageController _pageController = PageController(initialPage: 2);
-  int _currentIndex = 2;
+  int _currentIndex = 2; // Default to Home tab (index 2)
   final ValueNotifier<double> _pagePosition = ValueNotifier<double>(2.0);
 
-  // The single DatabaseHelper instance (Singleton — same object app-wide).
+  // Singleton database access handle (same connection across entire app)
   final _db = DatabaseHelper();
 
-  // Lifted global state — persists across page switches.
-  // All of this is loaded from DB on startup and saved to DB on every change.
+  // Lifted financial state (loaded from SQLite, kept in RAM)
   List<TransactionModel> _transactions = [];
-  double _userSetBudget = 0.0; // loaded from DB; 0.0 = "not set yet"
-  double monthlyBudget = 0.0;
-  double spent = 0.0;
-  double budgetLeft = 0.0;
+  double _userSetBudget =
+      0.0; // Base budget set by user (0.0 = not yet configured)
+  double monthlyBudget =
+      0.0; // Calculated: _userSetBudget + 'add_to_budget' income
+  double spent = 0.0; // Calculated: expenses - 'deduct_from_spent' income
+  double budgetLeft = 0.0; // Calculated: max(0.0, monthlyBudget - spent)
 
-  // ── Lifecycle ───────────────────────────────────────────────────────────────
-
+  // ─── Section 2: Lifecycle & Database Synchronization ─────────────────────────
   CurrencyInfo? _prevCurrency;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    // Re-sync with SQLite if user switched active currency in Settings
     final currentCurrency = CurrencyProvider.watch(context);
     if (_prevCurrency != null && _prevCurrency!.code != currentCurrency.code) {
-      debugPrint(
-        '[NavWrapper] Currency change detected from ${_prevCurrency!.code} to ${currentCurrency.code}. Reloading DB...',
-      );
       _loadAllFromDB();
     }
     _prevCurrency = currentCurrency;
@@ -132,10 +145,6 @@ class _NavWrapperState extends State<NavWrapper> {
         lastReset: lastReset,
         intervalMonths: intervalMonths,
       )) {
-        debugPrint(
-          '[Nav] Reset interval due (delta: ${ResetIntervalService.calculateDeltaMonths(now, lastReset)}, interval: ${intervalMonths}M). Resetting cycle spent...',
-        );
-
         // 1. Delete all transactions for the new cycle
         final db = await _db.database;
         await db.delete('transactions');
@@ -190,10 +199,6 @@ class _NavWrapperState extends State<NavWrapper> {
 
       // 4. Recompute derived values (monthlyBudget, spent)
       recalculateGlobalBalances();
-
-      debugPrint('[Nav] Startup load complete:');
-      debugPrint('[Nav]   ${rows.length} transaction(s)');
-      debugPrint('[Nav]   budget = $loadedBudget');
     } catch (e) {
       debugPrint('[Nav] ERROR during startup load: $e');
     } finally {
@@ -201,8 +206,9 @@ class _NavWrapperState extends State<NavWrapper> {
     }
   }
 
-  // ── Navigation ──────────────────────────────────────────────────────────────
+  // ─── Section 3: Navigation Controller & Tab Animation ───────────────────────
 
+  /// Synchronizes the PageView swipe offset with the navigation bar highlight indicator.
   void _onScroll() {
     final double? page = _pageController.page;
     if (page != null) {
@@ -216,6 +222,7 @@ class _NavWrapperState extends State<NavWrapper> {
     }
   }
 
+  /// Triggered when the user finishes swiping to a new page.
   void _onPageChanged(int index) {
     if (_currentIndex != index) {
       setState(() {
@@ -224,6 +231,7 @@ class _NavWrapperState extends State<NavWrapper> {
     }
   }
 
+  /// Programmatically animates PageView when user taps a navigation tab icon.
   void _onNavTap(int index) {
     if (_currentIndex == index) return;
     setState(() {
@@ -236,10 +244,16 @@ class _NavWrapperState extends State<NavWrapper> {
     );
   }
 
-  // ── Balance calculation ──────────────────────────────────────────────────────
+  // ─── Section 4: Ground-Truth Balance Calculation ─────────────────────────────
 
-  /// Full recomputation of all balance variables from transaction ground truth.
-  /// This is the SINGLE source of truth — never use incremental delta math.
+  /// Computes monthly budget, total spent, and remaining budget directly from
+  /// the full transactions list.
+  ///
+  /// Educational Design Note:
+  /// Why ground-truth recalculation instead of incremental delta arithmetic?
+  /// If an app relies on `spent = spent + delta`, any missed event, deleted item,
+  /// or rounding drift causes permanent state corruption. Recomputing from the
+  /// source records ensures 100% mathematical consistency at all times.
   void recalculateGlobalBalances() {
     double totalExpenses = 0.0;
     double totalDeductions = 0.0;
@@ -249,6 +263,9 @@ class _NavWrapperState extends State<NavWrapper> {
       if (tx.isExpense) {
         totalExpenses += tx.amount;
       } else {
+        // Income transactions support two user strategies:
+        // 1. 'deduct_from_spent': Lowers the total spent counter (e.g. cashback/refund).
+        // 2. 'add_to_budget': Expands the monthly budget allowance (e.g. salary/bonus).
         if (tx.incomeStrategy == 'deduct_from_spent') {
           totalDeductions += tx.amount;
         } else if (tx.incomeStrategy == 'add_to_budget') {
@@ -265,10 +282,10 @@ class _NavWrapperState extends State<NavWrapper> {
     });
   }
 
-  // ── CRUD — Add ──────────────────────────────────────────────────────────────
+  // ─── Section 5: CRUD Operations (Database-First Pattern) ─────────────────────
 
-  /// Inserts [tx] into the DB, stamps back the AUTOINCREMENT id, then adds
-  /// the model to RAM. DB write is AWAITED before state update.
+  /// Inserts a new transaction into SQLite first, stamps the generated
+  /// AUTOINCREMENT ID onto the model, and then inserts it into memory.
   Future<void> _addTransaction(TransactionModel tx) async {
     try {
       double roundedAmount = tx.amount.roundToDouble();
@@ -373,8 +390,6 @@ class _NavWrapperState extends State<NavWrapper> {
         _userSetBudget = roundedBudget;
       });
       recalculateGlobalBalances();
-
-      debugPrint('[Nav] Budget saved: $val');
     } catch (e) {
       debugPrint('[Nav] ERROR saving budget: $e');
     }
@@ -407,8 +422,9 @@ class _NavWrapperState extends State<NavWrapper> {
     }
   }
 
-  // ── Build ────────────────────────────────────────────────────────────────────
+  // ─── Section 6: UI Shell & Responsive Navigation Bar ─────────────────────────
 
+  /// Selects background color based on active tab (smoothly animated during page transition).
   Color get _currentTabBackgroundColor {
     final locker = AppColorLocker.of(context);
     switch (_currentIndex) {
@@ -427,6 +443,11 @@ class _NavWrapperState extends State<NavWrapper> {
     }
   }
 
+  /// Builds the top-level Scaffold.
+  /// Uses extendBody: true so page content scrolls beneath the translucent navigation bar.
+  /// Responsive layout switches between:
+  /// - Portrait: Floating bottom navigation bar with frosted glass backdrop blur.
+  /// - Landscape: Compact top pill navigation to preserve vertical viewing height.
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
@@ -473,10 +494,7 @@ class _NavWrapperState extends State<NavWrapper> {
       onPageChanged: _onPageChanged,
       children: [
         const SocialScreen(),
-        GraphScreen(
-          isActive: _currentIndex == 1,
-          transactions: _transactions,
-        ),
+        GraphScreen(isActive: _currentIndex == 1, transactions: _transactions),
         HomeScreen(
           transactions: _transactions,
           onAddTransaction: _addTransaction,
@@ -509,7 +527,8 @@ class _NavWrapperState extends State<NavWrapper> {
     final double contentWidth = tabWidth * _navTabs.length; // 250.0
     const double horizontalPadding = 3.5;
     const double verticalPadding = 3.0;
-    const double outerRadius = (tabHeight + verticalPadding * 2 + 2.0) / 2; // 24.0
+    const double outerRadius =
+        (tabHeight + verticalPadding * 2 + 2.0) / 2; // 24.0
 
     return RepaintBoundary(
       child: Container(
@@ -528,101 +547,101 @@ class _NavWrapperState extends State<NavWrapper> {
           child: BackdropFilter(
             filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: horizontalPadding,
-              vertical: verticalPadding,
-            ),
-            decoration: BoxDecoration(
-              color: locker.frostedGlassBg,
-              borderRadius: BorderRadius.circular(outerRadius),
-              border: Border.all(
-                color: locker.frostedGlassBorder,
-                width: 1.0,
+              padding: const EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: verticalPadding,
               ),
-            ),
-            child: SizedBox(
-              width: contentWidth,
-              height: tabHeight,
-              child: Stack(
-                children: [
-                  // Horizontal Sliding Indicator
-                  ValueListenableBuilder<double>(
-                    valueListenable: _pagePosition,
-                    builder: (context, pos, _) {
-                      final double clampedPos = pos.clamp(
-                        0.0,
-                        (_navTabs.length - 1).toDouble(),
-                      );
-                      return Positioned(
-                        left: clampedPos * tabWidth + 1.5,
-                        top: 1.5,
-                        bottom: 1.5,
-                        width: tabWidth - 3.0,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: locker.navActiveCapsuleBg,
-                            borderRadius: BorderRadius.circular(
-                              (tabHeight - 3.0) / 2,
-                            ),
-                            border: Border.all(
-                              color: locker.navActiveCapsuleBorder,
-                              width: 1.0,
+              decoration: BoxDecoration(
+                color: locker.frostedGlassBg,
+                borderRadius: BorderRadius.circular(outerRadius),
+                border: Border.all(
+                  color: locker.frostedGlassBorder,
+                  width: 1.0,
+                ),
+              ),
+              child: SizedBox(
+                width: contentWidth,
+                height: tabHeight,
+                child: Stack(
+                  children: [
+                    // Horizontal Sliding Indicator
+                    ValueListenableBuilder<double>(
+                      valueListenable: _pagePosition,
+                      builder: (context, pos, _) {
+                        final double clampedPos = pos.clamp(
+                          0.0,
+                          (_navTabs.length - 1).toDouble(),
+                        );
+                        return Positioned(
+                          left: clampedPos * tabWidth + 1.5,
+                          top: 1.5,
+                          bottom: 1.5,
+                          width: tabWidth - 3.0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: locker.navActiveCapsuleBg,
+                              borderRadius: BorderRadius.circular(
+                                (tabHeight - 3.0) / 2,
+                              ),
+                              border: Border.all(
+                                color: locker.navActiveCapsuleBorder,
+                                width: 1.0,
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                  // Tab Icons Row (Only icons appear)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (int i = 0; i < _navTabs.length; i++)
-                        SizedBox(
-                          width: tabWidth,
-                          height: tabHeight,
-                          child: Material(
-                            type: MaterialType.transparency,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(
-                                tabHeight / 2,
-                              ),
-                              onTap: () => _onNavTap(i),
-                              child: Center(
-                                child: ValueListenableBuilder<double>(
-                                  valueListenable: _pagePosition,
-                                  builder: (context, pos, _) {
-                                    final double dist = (pos - i).abs();
-                                    final bool isItemActive = dist < 0.5;
-                                    final Color iconColor = Color.lerp(
-                                      locker.navActiveFg,
-                                      locker.navInactiveFg,
-                                      dist.clamp(0.0, 1.0),
-                                    )!;
-                                    return Icon(
-                                      isItemActive
-                                          ? _navTabs[i].filledIcon
-                                          : _navTabs[i].outlinedIcon,
-                                      color: iconColor,
-                                      size: iconSize,
-                                    );
-                                  },
+                        );
+                      },
+                    ),
+                    // Tab Icons Row (Only icons appear)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (int i = 0; i < _navTabs.length; i++)
+                          SizedBox(
+                            width: tabWidth,
+                            height: tabHeight,
+                            child: Material(
+                              type: MaterialType.transparency,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(
+                                  tabHeight / 2,
+                                ),
+                                onTap: () => _onNavTap(i),
+                                child: Center(
+                                  child: ValueListenableBuilder<double>(
+                                    valueListenable: _pagePosition,
+                                    builder: (context, pos, _) {
+                                      final double dist = (pos - i).abs();
+                                      final bool isItemActive = dist < 0.5;
+                                      final Color iconColor = Color.lerp(
+                                        locker.navActiveFg,
+                                        locker.navInactiveFg,
+                                        dist.clamp(0.0, 1.0),
+                                      )!;
+                                      return Icon(
+                                        isItemActive
+                                            ? _navTabs[i].filledIcon
+                                            : _navTabs[i].outlinedIcon,
+                                        color: iconColor,
+                                        size: iconSize,
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildBottomNavBar(
     BuildContext context,
@@ -642,8 +661,9 @@ class _NavWrapperState extends State<NavWrapper> {
         // Adaptive bar sizing
         final double navHeight = isTablet ? 82.0 : (isLargePhone ? 74.0 : 70.0);
         final double iconSize = isTablet ? 28.0 : (isLargePhone ? 25.0 : 23.0);
-        final double labelFontSize =
-            isTablet ? 15.0 : (isLargePhone ? 13.0 : 12.0);
+        final double labelFontSize = isTablet
+            ? 15.0
+            : (isLargePhone ? 13.0 : 12.0);
         final double maxBarWidth = isTablet ? 680.0 : double.infinity;
         final double barBottomPadding = isTablet ? 32.0 : 24.0;
         final double barHorizontalPadding = isTablet ? 18.0 : 10.0;

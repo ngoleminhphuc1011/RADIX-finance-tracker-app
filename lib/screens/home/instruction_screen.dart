@@ -25,64 +25,104 @@ class InstructionScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-        children: [
-          // Section 1
-          _buildSection(
-            locker,
-            title: '1. RECORD TRANSACTIONS',
-            icon: Icons.add_card_outlined,
-            body:
-                '- Tap the "+" button at the bottom of the Home screen.\n'
-                '- Select Expense or Income, pick a category icon, enter amount and save.',
-          ),
-          const SizedBox(height: 28),
+      body: ScrollConfiguration(
+        behavior: const ScrollBehavior().copyWith(scrollbars: false),
+        child: ListView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          children: [
+            // Section 1: Transactions
+            _buildSection(
+              locker,
+              title: '1. RECORD & MANAGE TRANSACTIONS',
+              icon: Icons.add_card_outlined,
+              body:
+                  '• Tap the "+" button on the Home screen to log an Expense or Income.\n'
+                  '• For Income, choose a strategy: "Deduct from Spent" (refunds/cashback) or "Add to Budget" (salary/bonus).\n'
+                  '• Tap any transaction tile in your feed to expand inline controls: edit title, amount, category, or delete.',
+            ),
+            const SizedBox(height: 26),
 
-          // Section 2
-          _buildSection(
-            locker,
-            title: '2. MONTHLY BUDGETING',
-            icon: Icons.track_changes_outlined,
-            body:
-                '- Set your monthly spending limit on the Home screen.\n'
-                '- Track spent vs. remaining budget instantly as you add records.',
-          ),
-          const SizedBox(height: 28),
+            // Section 2: Budgeting
+            _buildSection(
+              locker,
+              title: '2. BUDGETING & BALANCE TRACKING',
+              icon: Icons.account_balance_wallet_outlined,
+              body:
+                  '• Tap the balance card at the top of Home to set or adjust your monthly budget limit.\n'
+                  '• Track your Monthly Budget, Total Spent, and Remaining Balance in real time with self-healing calculations.',
+            ),
+            const SizedBox(height: 26),
 
-          // Section 3
-          _buildSection(
-            locker,
-            title: '3. CHARTS & ANALYTICS',
-            icon: Icons.analytics_outlined,
-            body:
-                '- View cash flow trends and category shares on the Charts tab.\n'
-                '- Tap chart slices to view detailed percentage breakdowns.',
-          ),
-          const SizedBox(height: 28),
+            // Section 3: Analytics & Charts
+            _buildSection(
+              locker,
+              title: '3. EXPENSE ANALYTICS & DRILL-DOWN',
+              icon: Icons.donut_large_outlined,
+              body:
+                  '• Navigate to the Analytics tab to visualize spending distribution across categories via the Donut Chart.\n'
+                  '• Tap any category in the breakdown list below the chart to view a detailed drill-down of all its records.',
+            ),
+            const SizedBox(height: 26),
 
-          // Section 4
-          _buildSection(
-            locker,
-            title: '4. CURRENCY SETTINGS',
-            icon: Icons.currency_exchange_outlined,
-            body:
-                '- Change active currency in Settings (USD, EUR, CNY, VND, etc.).\n'
-                '- Note: All transaction amounts and budgets convert automatically based on exchange rates.',
-            isWarning: false,
-          ),
-          const SizedBox(height: 28),
+            // Section 4: Multi-Currency
+            _buildSection(
+              locker,
+              title: '4. MULTI-CURRENCY CONVERSION',
+              icon: Icons.currency_exchange_outlined,
+              body:
+                  '• Select your preferred currency in Settings (USD, EUR, CNY, VND, GBP, JPY, AUD, CAD).\n'
+                  '• All transaction amounts and monthly budgets convert automatically using baseline exchange rates.',
+            ),
+            const SizedBox(height: 26),
 
-          // Section 5
-          _buildSection(
-            locker,
-            title: '5. RESET ALL DATA',
-            icon: Icons.restart_alt_outlined,
-            body:
-                '- Wipe all transaction records and settings to start fresh.\n'
-                '- Go to Settings and hold the reset button for 5 seconds.',
-          ),
-        ],
+            // Section 5: Reset Intervals
+            _buildSection(
+              locker,
+              title: '5. AUTOMATIC CYCLE RESET',
+              icon: Icons.update_outlined,
+              body:
+                  '• Choose your budget reset interval in Settings: 1M, 2M, 3M, 4M, 5M, or 6M (every 1 to 6 months).\n'
+                  '• When a new cycle begins, Radix resets your spent counter for the new cycle while preserving your budget limit.',
+            ),
+            const SizedBox(height: 26),
+
+            // Section 6: Data Export & Backup
+            _buildSection(
+              locker,
+              title: '6. BACKUP, RESTORE & CSV EXPORT',
+              icon: Icons.cloud_sync_outlined,
+              body:
+                  '• Export your financial records to CSV spreadsheets to view or share in Excel or Google Sheets.\n'
+                  '• Save or share complete JSON backups, or restore past data anytime under Settings > Data & Backup.',
+            ),
+            const SizedBox(height: 26),
+
+            // Section 7: Responsive Layout & Haptics
+            _buildSection(
+              locker,
+              title: '7. LANDSCAPE DASHBOARD & HAPTICS',
+              icon: Icons.screen_rotation_outlined,
+              body:
+                  '• Rotate your device to Landscape mode to access an expanded 2-column split-view financial workspace.\n'
+                  '• Toggle tactile haptic feedback in Settings for pleasant physical feedback when interacting with buttons.',
+            ),
+            const SizedBox(height: 26),
+
+            // Section 8: Danger Zone (Reset)
+            _buildSection(
+              locker,
+              title: '8. RESET ALL DATA',
+              icon: Icons.restart_alt_outlined,
+              body:
+                  '• Wipe all transaction records and reset your budget to start fresh.\n'
+                  '• Go to Settings > Danger Zone, then press and hold the reset button for 5 seconds to confirm.\n'
+                  '• Your theme and currency preferences will be preserved.',
+              isWarning: true,
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }

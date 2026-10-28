@@ -7,6 +7,16 @@ import 'widgets/donut_chart_card.dart';
 import 'widgets/category_breakdown_list.dart';
 import 'widgets/category_detail_list.dart';
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// GraphScreen: Expense Analytics & Category Breakdown View
+//
+// Data Flow & Analytics Pipeline:
+// 1. Receives raw transactions list from NavWrapper.
+// 2. Filters strictly for expense transactions (`tx.isExpense`).
+// 3. Groups expenses by category key, summing amounts and computing percentages.
+// 4. Renders an interactive CustomPainter Donut Chart and category drill-down list.
+// ═══════════════════════════════════════════════════════════════════════════════
+
 class GraphScreen extends StatefulWidget {
   final bool isActive;
   final List<TransactionModel> transactions;
@@ -27,11 +37,12 @@ class _GraphScreenState extends State<GraphScreen> {
   double _swipeProgress = 1.0;
   bool _scrollThrottled = false;
 
-  // ── Memoization caches ────────────────────────────────────────────────────
+  // ── Performance: Memoization Caches ─────────────────────────────────────────
   List<AggregatedCategory>? _cachedCategories;
   int _cachedTxLength = -1;
   final Map<String, List<TransactionModel>> _detailCache = {};
 
+  /// Aggregates all expense transactions into categorized sums with spend percentages.
   List<AggregatedCategory> _aggregateExpenses(BuildContext context) {
     final expenses = widget.transactions.where((tx) => tx.isExpense).toList();
     if (expenses.isEmpty) return [];
@@ -39,8 +50,9 @@ class _GraphScreenState extends State<GraphScreen> {
     final Map<String, double> sums = {};
     for (final tx in expenses) {
       final rawKey = tx.category;
-      final resolvedKey =
-          categoryRegistry.containsKey(rawKey) ? rawKey : '_other';
+      final resolvedKey = categoryRegistry.containsKey(rawKey)
+          ? rawKey
+          : '_other';
       sums[resolvedKey] = (sums[resolvedKey] ?? 0.0) + tx.amount;
     }
 

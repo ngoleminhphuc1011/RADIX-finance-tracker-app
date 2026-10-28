@@ -89,9 +89,7 @@ class AboutScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: locker.settingsBadgeBackground,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: locker.settingsBadgeBorder,
-                      ),
+                      border: Border.all(color: locker.settingsBadgeBorder),
                     ),
                     child: Text(
                       'v1.0.0 (Build 2)',
@@ -348,10 +346,7 @@ class AboutScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: locker.settingsCardBackground,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: locker.settingsCardBorder,
-          width: 1.0,
-        ),
+        border: Border.all(color: locker.settingsCardBorder, width: 1.0),
       ),
       child: child,
     );
@@ -414,11 +409,7 @@ class AboutScreen extends StatelessWidget {
   Widget _buildPackageDivider(AppColorLocker locker) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Divider(
-        height: 1,
-        thickness: 0.8,
-        color: locker.dividerColor,
-      ),
+      child: Divider(height: 1, thickness: 0.8, color: locker.dividerColor),
     );
   }
 }

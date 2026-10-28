@@ -163,7 +163,10 @@ void main() {
       final controller = PageController(initialPage: 2);
       int currentIndex = 2;
 
-      Widget buildTree({required bool isLandscape, required bool preserveInStack}) {
+      Widget buildTree({
+        required bool isLandscape,
+        required bool preserveInStack,
+      }) {
         final pageView = PageView(
           controller: controller,
           onPageChanged: (i) => currentIndex = i,
@@ -176,23 +179,29 @@ void main() {
                 ? Stack(
                     children: [
                       pageView,
-                      if (isLandscape) const Positioned(top: 0, child: Text('Landscape Nav')),
+                      if (isLandscape)
+                        const Positioned(top: 0, child: Text('Landscape Nav')),
                     ],
                   )
                 : (isLandscape
-                    ? Stack(
-                        children: [
-                          pageView,
-                          const Positioned(top: 0, child: Text('Landscape Nav')),
-                        ],
-                      )
-                    : pageView),
+                      ? Stack(
+                          children: [
+                            pageView,
+                            const Positioned(
+                              top: 0,
+                              child: Text('Landscape Nav'),
+                            ),
+                          ],
+                        )
+                      : pageView),
           ),
         );
       }
 
       // 1. Initial portrait render:
-      await tester.pumpWidget(buildTree(isLandscape: false, preserveInStack: false));
+      await tester.pumpWidget(
+        buildTree(isLandscape: false, preserveInStack: false),
+      );
       await tester.pumpAndSettle();
       expect(find.text('Screen 2'), findsOneWidget);
 
@@ -204,7 +213,9 @@ void main() {
 
       // 2. Rotate to landscape WITH unmounting (preserveInStack: false)
       tester.view.physicalSize = const Size(800, 400);
-      await tester.pumpWidget(buildTree(isLandscape: true, preserveInStack: false));
+      await tester.pumpWidget(
+        buildTree(isLandscape: true, preserveInStack: false),
+      );
       await tester.pumpAndSettle();
 
       // Confirms the root cause: without unified Stack, PageView unmounts and resets to screen 2
@@ -225,9 +236,13 @@ void main() {
                   key: const PageStorageKey('preserved_pv'),
                   controller: preservedController,
                   onPageChanged: (i) => preservedIndex = i,
-                  children: List.generate(5, (i) => Center(child: Text('Preserved Screen $i'))),
+                  children: List.generate(
+                    5,
+                    (i) => Center(child: Text('Preserved Screen $i')),
+                  ),
                 ),
-                if (isLandscape) const Positioned(top: 0, child: Text('Landscape Nav')),
+                if (isLandscape)
+                  const Positioned(top: 0, child: Text('Landscape Nav')),
               ],
             ),
           ),
@@ -256,53 +271,52 @@ void main() {
     },
   );
 
-  testWidgets(
-    'Tapping balance card opens budget dialog and saves',
-    (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(400, 800);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+  testWidgets('Tapping balance card opens budget dialog and saves', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
 
-      double? newBudget;
-      await tester.pumpWidget(
-        MediaQuery(
-          data: const MediaQueryData(size: Size(400, 800)),
-          child: ThemeProvider(
-            notifier: ValueNotifier<ThemeMode>(ThemeMode.light),
-            child: CurrencyProvider(
-              notifier: ValueNotifier<CurrencyInfo>(CurrencyInfo.find('USD')),
-              child: MaterialApp(
-                home: Scaffold(
-                  body: HomeScreen(
-                    transactions: const [],
-                    onAddTransaction: (_) {},
-                    onDeleteTransaction: (_) {},
-                    monthlyBudget: 500,
-                    spent: 150,
-                    budgetLeft: 350,
-                    onBudgetChanged: (b) => newBudget = b,
-                    onSpentChanged: (_) {},
-                  ),
+    double? newBudget;
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(size: Size(400, 800)),
+        child: ThemeProvider(
+          notifier: ValueNotifier<ThemeMode>(ThemeMode.light),
+          child: CurrencyProvider(
+            notifier: ValueNotifier<CurrencyInfo>(CurrencyInfo.find('USD')),
+            child: MaterialApp(
+              home: Scaffold(
+                body: HomeScreen(
+                  transactions: const [],
+                  onAddTransaction: (_) {},
+                  onDeleteTransaction: (_) {},
+                  monthlyBudget: 500,
+                  spent: 150,
+                  budgetLeft: 350,
+                  onBudgetChanged: (b) => newBudget = b,
+                  onSpentChanged: (_) {},
                 ),
               ),
             ),
           ),
         ),
-      );
-      await tester.pumpAndSettle();
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      await tester.tap(find.text('SPENT'));
-      await tester.pumpAndSettle();
+    await tester.tap(find.text('SPENT'));
+    await tester.pumpAndSettle();
 
-      expect(find.text('ENTER MONTHLY BUDGET'), findsOneWidget);
+    expect(find.text('ENTER MONTHLY BUDGET'), findsOneWidget);
 
-      await tester.enterText(find.byType(TextField), '1200');
-      await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), '1200');
+    await tester.pumpAndSettle();
 
-      await tester.tap(find.text('SAVE BUDGET'));
-      await tester.pumpAndSettle();
+    await tester.tap(find.text('SAVE BUDGET'));
+    await tester.pumpAndSettle();
 
-      expect(newBudget, 1200.0);
-    },
-  );
+    expect(newBudget, 1200.0);
+  });
 }

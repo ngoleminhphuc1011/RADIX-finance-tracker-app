@@ -70,7 +70,8 @@ class DataExportService {
       targetDir = await getApplicationDocumentsDirectory();
     } else if (!kIsWeb) {
       // Windows, Linux
-      targetDir = await getDownloadsDirectory() ??
+      targetDir =
+          await getDownloadsDirectory() ??
           await getApplicationDocumentsDirectory();
     }
 
@@ -188,10 +189,7 @@ class DataExportService {
       } catch (_) {}
 
       if (context.mounted && saved) {
-        showToast(
-          context,
-          'Saved: $filename',
-        );
+        showToast(context, 'Saved: $filename');
       }
     } catch (e) {
       debugPrint('[DataExportService] Error exporting CSV: $e');
@@ -223,7 +221,8 @@ class DataExportService {
         } catch (_) {}
       }
 
-      final double budget = double.tryParse(settings['monthly_budget'] ?? '0') ?? 0.0;
+      final double budget =
+          double.tryParse(settings['monthly_budget'] ?? '0') ?? 0.0;
 
       final backupData = {
         'app': 'RADIX',
@@ -239,7 +238,9 @@ class DataExportService {
         'transactions': transactions.map((t) => t.toMap()).toList(),
       };
 
-      final jsonContent = const JsonEncoder.withIndent('  ').convert(backupData);
+      final jsonContent = const JsonEncoder.withIndent(
+        '  ',
+      ).convert(backupData);
       final timestamp = DateFormat('yyyyMMdd_HHmm').format(DateTime.now());
       final filename = 'RADIX_backup_$timestamp.json';
       final bytes = Uint8List.fromList(utf8.encode(jsonContent));
@@ -371,7 +372,10 @@ class DataExportService {
 
       if (context.mounted) {
         final txCount = (decoded['transactions'] as List).length;
-        showToast(context, 'Successfully restored $txCount transactions & budget.');
+        showToast(
+          context,
+          'Successfully restored $txCount transactions & budget.',
+        );
       }
     } catch (e) {
       debugPrint('[DataExportService] Error restoring backup: $e');
@@ -399,10 +403,7 @@ class DataExportService {
     if (overlay == null) {
       // Fallback for isolated widget tests without an Overlay hierarchy
       ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: const Duration(seconds: 2),
-        ),
+        SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
       );
       return;
     }
@@ -518,10 +519,9 @@ class _ToastOverlayState extends State<_ToastOverlay>
 
     final shadowColor = widget.locker.toastShadow;
 
-    final iconBgColor = (widget.isError
-            ? widget.locker.accentRed
-            : widget.locker.accentGreen)
-        .withValues(alpha: isDark ? 0.18 : 0.12);
+    final iconBgColor =
+        (widget.isError ? widget.locker.accentRed : widget.locker.accentGreen)
+            .withValues(alpha: isDark ? 0.18 : 0.12);
 
     return Positioned(
       top: topPadding > 0 ? topPadding + 14 : 32,
@@ -544,10 +544,7 @@ class _ToastOverlayState extends State<_ToastOverlay>
                   decoration: BoxDecoration(
                     color: backgroundColor,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: borderColor,
-                      width: 1.0,
-                    ),
+                    border: Border.all(color: borderColor, width: 1.0),
                     boxShadow: [
                       BoxShadow(
                         color: shadowColor,

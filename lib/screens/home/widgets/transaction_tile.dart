@@ -17,7 +17,8 @@ class TransactionTile extends StatefulWidget {
     String newIcon,
     String newDescription,
     double newAmount,
-  )? onUpdateTransaction;
+  )?
+  onUpdateTransaction;
   final void Function(int id)? onDeleteTransaction;
   final VoidCallback? onCollapse;
 
@@ -61,7 +62,8 @@ class _TransactionTileState extends State<TransactionTile>
   late TextEditingController _descController;
   late TextEditingController _amountController;
   final ScrollController _descScrollController = _NoAnimationScrollController();
-  final ScrollController _amountScrollController = _NoAnimationScrollController();
+  final ScrollController _amountScrollController =
+      _NoAnimationScrollController();
   final FocusNode _descFocusNode = FocusNode();
   final FocusNode _amountFocusNode = FocusNode();
   late String _selectedCategory;
@@ -230,9 +232,10 @@ class _TransactionTileState extends State<TransactionTile>
     final locker = AppColorLocker.of(context);
     final colors = widget.model.getColors(context);
     final Color fgColor = isExpense ? locker.expenseFg : locker.incomeFg;
-    final IconData? resolvedHeaderIcon = iconOptions[_selectedCategory.isNotEmpty
-        ? _selectedCategory
-        : widget.model.category];
+    final IconData? resolvedHeaderIcon =
+        iconOptions[_selectedCategory.isNotEmpty
+            ? _selectedCategory
+            : widget.model.category];
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
@@ -251,102 +254,106 @@ class _TransactionTileState extends State<TransactionTile>
             );
           },
           child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: colors.bg,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isExpense ? locker.expenseBorder : locker.incomeBorder,
-              width: 0.9,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: colors.bg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isExpense ? locker.expenseBorder : locker.incomeBorder,
+                width: 0.9,
+              ),
             ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header Row (Always visible; tapping toggles expand/collapse)
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: widget.onTap,
-                child: Row(
-                  children: [
-                    // Icon square — icon sits directly on tinted bg
-                    SizedBox(
-                      width: 48,
-                      height: 48,
-                      child: Icon(
-                        resolvedHeaderIcon ?? Icons.widgets_outlined,
-                        color: fgColor,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Title
-                    Expanded(
-                      child: Text(
-                        widget.model.title,
-                        style: _titleStyle.copyWith(color: locker.textPrimary),
-                      ),
-                    ),
-                    // Amount
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 120),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerRight,
-                        child: RadixCurrencyText(
-                          isExpense: isExpense,
-                          amount: widget.model.amount,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header Row (Always visible; tapping toggles expand/collapse)
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: widget.onTap,
+                  child: Row(
+                    children: [
+                      // Icon square — icon sits directly on tinted bg
+                      SizedBox(
+                        width: 48,
+                        height: 48,
+                        child: Icon(
+                          resolvedHeaderIcon ?? Icons.widgets_outlined,
                           color: fgColor,
+                          size: 24,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 6),
-                    RotationTransition(
-                      turns: Tween<double>(begin: 0.0, end: 0.5)
-                          .animate(_expandAnimation),
-                      child: Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        size: 20,
-                        color: fgColor.withValues(alpha: 0.55),
+                      const SizedBox(width: 12),
+                      // Title
+                      Expanded(
+                        child: Text(
+                          widget.model.title,
+                          style: _titleStyle.copyWith(
+                            color: locker.textPrimary,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              // Inline Expandable Accordion Panel with smooth size and fade expansion
-              AnimatedBuilder(
-                animation: _expandAnimation,
-                builder: (context, child) {
-                  if (_expandAnimation.value == 0.0 && !widget.isExpanded) {
-                    return const SizedBox.shrink();
-                  }
-                  return ClipRect(
-                    child: SizeTransition(
-                      sizeFactor: _expandAnimation,
-                      alignment: Alignment.topLeft,
-                      child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: child,
+                      // Amount
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 120),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: RadixCurrencyText(
+                            isExpense: isExpense,
+                            amount: widget.model.amount,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: fgColor,
+                          ),
+                        ),
                       ),
-                    ),
-                  );
-                },
-                child: _buildExpandedContent(
-                  context,
-                  locker,
-                  colors,
-                  fgColor,
+                      const SizedBox(width: 6),
+                      RotationTransition(
+                        turns: Tween<double>(
+                          begin: 0.0,
+                          end: 0.5,
+                        ).animate(_expandAnimation),
+                        child: Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 20,
+                          color: fgColor.withValues(alpha: 0.55),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                // Inline Expandable Accordion Panel with smooth size and fade expansion
+                AnimatedBuilder(
+                  animation: _expandAnimation,
+                  builder: (context, child) {
+                    if (_expandAnimation.value == 0.0 && !widget.isExpanded) {
+                      return const SizedBox.shrink();
+                    }
+                    return ClipRect(
+                      child: SizeTransition(
+                        sizeFactor: _expandAnimation,
+                        alignment: Alignment.topLeft,
+                        child: FadeTransition(
+                          opacity: _fadeAnimation,
+                          child: child,
+                        ),
+                      ),
+                    );
+                  },
+                  child: _buildExpandedContent(
+                    context,
+                    locker,
+                    colors,
+                    fgColor,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildExpandedContent(
     BuildContext context,
@@ -395,10 +402,7 @@ class _TransactionTileState extends State<TransactionTile>
                   decoration: BoxDecoration(
                     color: pickerBg,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: pickerBorder,
-                      width: 1,
-                    ),
+                    border: Border.all(color: pickerBorder, width: 1),
                   ),
                   child: Stack(
                     alignment: Alignment.center,
@@ -511,8 +515,9 @@ class _TransactionTileState extends State<TransactionTile>
                     focusNode: _amountFocusNode,
                     scrollController: _amountScrollController,
                     scrollPhysics: const ClampingScrollPhysics(),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     style: TextStyle(
                       fontFamily: 'MonumentExtended',
                       fontSize: 18,
@@ -632,24 +637,17 @@ class _GoogleBorderBeamPainter extends CustomPainter {
           beamColor.withValues(alpha: 0.0),
           beamColor.withValues(alpha: 0.35 * opacity),
           beamColor.withValues(alpha: 0.9 * opacity),
-          Color.lerp(beamColor, Colors.white, 0.65)!
-              .withValues(alpha: 1.0 * opacity),
+          Color.lerp(
+            beamColor,
+            Colors.white,
+            0.65,
+          )!.withValues(alpha: 1.0 * opacity),
           beamColor.withValues(alpha: 0.9 * opacity),
           beamColor.withValues(alpha: 0.35 * opacity),
           beamColor.withValues(alpha: 0.0),
           Colors.transparent,
         ],
-        stops: const [
-          0.0,
-          0.36,
-          0.42,
-          0.48,
-          0.50,
-          0.52,
-          0.58,
-          0.64,
-          1.0,
-        ],
+        stops: const [0.0, 0.36, 0.42, 0.48, 0.50, 0.52, 0.58, 0.64, 1.0],
       ).createShader(rect);
 
     canvas.drawRRect(rrect, paint);

@@ -5,46 +5,43 @@ import 'package:path/path.dart';
 import '../../models/transaction_model.dart';
 import '../theme/currency_provider.dart';
 
-/// A Singleton helper that owns the single SQLite connection for the app.
-///
-/// ── Tables ───────────────────────────────────────────────────────────────────
-///   transactions  — all expense / income records
-///   settings      — key-value store for user preferences (budget, etc.)
-///
-/// ── Path ─────────────────────────────────────────────────────────────────────
-/// On Android: /data/data/com.example.finance_tracker/databases/radix_database.db
-/// On iOS:     ~/Documents/radix_database.db
-/// On web:     IndexedDB (via sqflite_common_ffi_web, factory set in main.dart)
-///
-/// This is a PHYSICAL file, NOT ':memory:'. Data survives app restarts.
+// ═══════════════════════════════════════════════════════════════════════════════
+// DatabaseHelper: SQLite Storage & Persistence Layer
+//
+// Flutter Architecture Pattern (Database Singleton):
+// - Singleton Instance: Only ONE connection pool exists across the app,
+//   preventing database file locks or race conditions.
+// - Lazy Connection: The database is opened on first query via `await database`.
+// - Cross-Platform Storage:
+//   * Android: /data/data/com.example.finance_tracker/databases/radix_database.db
+//   * iOS:     ~/Documents/radix_database.db
+//   * Web:     IndexedDB (via sqflite_common_ffi_web)
+// ═══════════════════════════════════════════════════════════════════════════════
+
 class DatabaseHelper {
-  // ─── Singleton wiring ──────────────────────────────────────────────────────
+  // ─── Section 1: Singleton Pattern & Lazy Connection Handle ───────────────────
 
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   factory DatabaseHelper() => _instance;
   DatabaseHelper._internal();
 
-  // ─── Constants ──────────────────────────────────────────────────────────────
-
   static const String _dbFileName = 'radix_database.db';
-  static const int _dbVersion = 2; // bumped from 1 → 2 to add settings table
-
-  // ─── Database handle ───────────────────────────────────────────────────────
+  static const int _dbVersion = 2; // Version 2 added 'settings' key-value table
 
   static Database? _database;
 
+  /// Returns the active SQLite connection, opening it if not yet initialized.
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDatabase();
     return _database!;
   }
 
-  // ─── Initialisation ────────────────────────────────────────────────────────
+  // ─── Section 2: Database Initialization & Version Migrations ─────────────────
 
   Future<Database> _initDatabase() async {
     try {
       final String dbPath = join(await getDatabasesPath(), _dbFileName);
-      debugPrint('[DB] Opening database at: $dbPath');
 
       final db = await openDatabase(
         dbPath,
@@ -52,23 +49,18 @@ class DatabaseHelper {
 
         // Fresh install — create both tables from scratch.
         onCreate: (Database db, int version) async {
-          debugPrint('[DB] onCreate — creating all tables (version $version).');
           await _createTransactionsTable(db);
           await _createSettingsTable(db);
-          debugPrint('[DB] All tables created successfully.');
         },
 
         // Existing DB — add any missing tables for the new version.
         onUpgrade: (Database db, int oldVersion, int newVersion) async {
-          debugPrint('[DB] onUpgrade — $oldVersion → $newVersion.');
           if (oldVersion < 2) {
             await _createSettingsTable(db);
-            debugPrint('[DB] Added settings table (upgrade to v2).');
           }
         },
       );
 
-      debugPrint('[DB] Database opened successfully (version $_dbVersion).');
       return db;
     } catch (e, stackTrace) {
       debugPrint('[DB] ERROR — Failed to initialise database: $e');
@@ -102,9 +94,7 @@ class DatabaseHelper {
     ''');
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // TRANSACTION CRUD
-  // ═══════════════════════════════════════════════════════════════════════════
+  // ─── Section 3: Transactions Table CRUD ─────────────────────────────────────
 
   /// Inserts [transaction] into the DB.
   /// Returns the auto-assigned AUTOINCREMENT id.
@@ -116,7 +106,6 @@ class DatabaseHelper {
         transaction.toMap(),
         conflictAlgorithm: ConflictAlgorithm.abort,
       );
-      debugPrint('[DB] Inserted transaction → id: $newId');
       return newId;
     } catch (e, stackTrace) {
       debugPrint('[DB] ERROR — insertTransaction: $e');
@@ -134,7 +123,6 @@ class DatabaseHelper {
         orderBy: 'date DESC',
       );
       final transactions = rows.map(TransactionModel.fromMap).toList();
-      debugPrint('[DB] Fetched ${transactions.length} transaction(s).');
       return transactions;
     } catch (e, stackTrace) {
       debugPrint('[DB] ERROR — getTransactions: $e');
@@ -158,7 +146,6 @@ class DatabaseHelper {
         where: 'id = ?',
         whereArgs: [id],
       );
-      debugPrint('[DB] Updated transaction id: $id ($rowsAffected row(s))');
       return rowsAffected;
     } catch (e, stackTrace) {
       debugPrint('[DB] ERROR — updateTransaction: $e');
@@ -179,7 +166,6 @@ class DatabaseHelper {
           whereArgs: [id],
         );
       });
-      debugPrint('[DB] Deleted transaction id: $id ($rowsAffected row(s))');
       return rowsAffected;
     } catch (e, stackTrace) {
       debugPrint('[DB] ERROR — deleteTransaction: $e');
@@ -208,13 +194,14 @@ class DatabaseHelper {
           whereArgs: ['monthly_budget'],
         );
       });
-      debugPrint('[DB] Reset data keeping theme/currency successfully.');
     } catch (e, stackTrace) {
       debugPrint('[DB] ERROR — resetDataKeepSettings: $e');
       debugPrint('[DB] StackTrace: $stackTrace');
       rethrow;
     }
   }
+
+  // ─── Section 4: Settings Key-Value Store ────────────────────────────────────
 
   /// Reads a setting value by [key]. Returns null if not found.
   Future<String?> getSetting(String key) async {
@@ -228,7 +215,6 @@ class DatabaseHelper {
       );
       if (rows.isEmpty) return null;
       final value = rows.first['value'] as String;
-      debugPrint('[DB] getSetting("$key") → "$value"');
       return value;
     } catch (e, stackTrace) {
       debugPrint('[DB] ERROR — getSetting("$key"): $e');
@@ -246,7 +232,6 @@ class DatabaseHelper {
         {'key': key, 'value': value},
         conflictAlgorithm: ConflictAlgorithm.replace, // upsert
       );
-      debugPrint('[DB] setSetting("$key", "$value") ✓');
     } catch (e, stackTrace) {
       debugPrint('[DB] ERROR — setSetting("$key"): $e');
       debugPrint('[DB] StackTrace: $stackTrace');
@@ -275,7 +260,10 @@ class DatabaseHelper {
     }
   }
 
-  /// Restores all transactions and settings atomically inside a single transaction.
+  // ─── Section 5: Atomic Batch Transactions & Data Conversion ─────────────────
+
+  /// Restores all transactions and settings atomically inside a single SQLite transaction.
+  /// If any error occurs during restoration, all changes are automatically rolled back.
   Future<void> restoreFromBackupData(Map<String, dynamic> backupData) async {
     try {
       final db = await database;
@@ -293,7 +281,8 @@ class DatabaseHelper {
               final type = item['type']?.toString() ?? 'expense';
               final incomeStrategy = item['income_strategy']?.toString();
               final category = item['category']?.toString() ?? 'fastfood';
-              final date = item['date']?.toString() ??
+              final date =
+                  item['date']?.toString() ??
                   DateTime.now().toIso8601String().substring(0, 10);
 
               await txn.insert('transactions', {
@@ -312,15 +301,13 @@ class DatabaseHelper {
         final dynamic rawSettings = backupData['settings'];
         if (rawSettings is Map) {
           for (final entry in rawSettings.entries) {
-            await txn.insert(
-              'settings',
-              {'key': entry.key.toString(), 'value': entry.value.toString()},
-              conflictAlgorithm: ConflictAlgorithm.replace,
-            );
+            await txn.insert('settings', {
+              'key': entry.key.toString(),
+              'value': entry.value.toString(),
+            }, conflictAlgorithm: ConflictAlgorithm.replace);
           }
         }
       });
-      debugPrint('[DB] Atomically restored database from backup data.');
     } catch (e, stackTrace) {
       debugPrint('[DB] ERROR — restoreFromBackupData: $e');
       debugPrint('[DB] StackTrace: $stackTrace');
@@ -343,10 +330,6 @@ class DatabaseHelper {
       final double toRate =
           CurrencyInfo.exchangeRates[toCode.toUpperCase()] ?? 1.0;
       final double factor = fromRate > 0 ? (toRate / fromRate) : 1.0;
-
-      debugPrint(
-        '[DB] convertAllTransactionsAndBudget: $fromCode -> $toCode (factor: $factor)',
-      );
 
       await db.transaction((txn) async {
         // 1. Convert all transaction amounts
@@ -391,7 +374,6 @@ class DatabaseHelper {
           );
         }
       });
-      debugPrint('[DB] Bulk currency conversion completed successfully.');
     } catch (e, stackTrace) {
       debugPrint('[DB] ERROR — convertAllTransactionsAndBudget: $e');
       debugPrint('[DB] StackTrace: $stackTrace');

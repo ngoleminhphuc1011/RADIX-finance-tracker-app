@@ -175,11 +175,7 @@ class TermsOfServiceScreen extends StatelessWidget {
     final locker = AppColorLocker.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24),
-      child: Divider(
-        height: 1,
-        thickness: 1,
-        color: locker.dividerColor,
-      ),
+      child: Divider(height: 1, thickness: 1, color: locker.dividerColor),
     );
   }
 }

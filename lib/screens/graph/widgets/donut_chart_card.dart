@@ -48,8 +48,9 @@ class DonutChartCard extends StatelessWidget {
       } else if (progress >= sliceEnd) {
         animatedValues.add(targetVal);
       } else {
-        final sliceFraction =
-            targetPct > 0 ? (progress - sliceStart) / targetPct : 0.0;
+        final sliceFraction = targetPct > 0
+            ? (progress - sliceStart) / targetPct
+            : 0.0;
         animatedValues.add(targetVal * sliceFraction);
       }
       accumulatedProgress = sliceEnd;

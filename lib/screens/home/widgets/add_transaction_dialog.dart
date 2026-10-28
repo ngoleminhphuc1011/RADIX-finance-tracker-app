@@ -108,9 +108,12 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
     final bool isLandscape = mediaQuery.orientation == Orientation.landscape;
     final double keyboardInset = mediaQuery.viewInsets.bottom;
     final bool isKeyboardOpen = keyboardInset > 0;
-    final double maxHeight = mediaQuery.size.height * (isLandscape && isKeyboardOpen ? 0.98 : 0.9);
+    final double maxHeight =
+        mediaQuery.size.height * (isLandscape && isKeyboardOpen ? 0.98 : 0.9);
     final double topPadding = (isLandscape && isKeyboardOpen) ? 4.0 : 20.0;
-    final double bottomOffset = isKeyboardOpen ? (isLandscape ? 4.0 : 8.0) : 20.0;
+    final double bottomOffset = isKeyboardOpen
+        ? (isLandscape ? 4.0 : 8.0)
+        : 20.0;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,

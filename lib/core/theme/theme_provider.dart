@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ThemeProvider: Reactive Theme State Management via InheritedNotifier
+//
+// Flutter Architecture Concept:
+// InheritedNotifier wraps a ValueNotifier<ThemeMode>. When `notifier.value`
+// updates, Flutter automatically triggers a rebuild only on widgets that subscribed
+// to this provider via `ThemeProvider.of(context)`, avoiding manual setState calls.
+// ═══════════════════════════════════════════════════════════════════════════════
+
 /// InheritedNotifier that propagates a [ValueNotifier<ThemeMode>] down the
 /// widget tree. Any descendant can read the current theme mode and listen for
 /// changes via `ThemeProvider.of(context)`.

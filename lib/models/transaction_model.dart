@@ -84,8 +84,8 @@ class TransactionModel {
     final double rawAmount = (map['amount'] as num?)?.toDouble() ?? 0.0;
     final double cleanAmount =
         (rawAmount < 0 || rawAmount.isNaN || rawAmount.isInfinite)
-            ? 0.0
-            : rawAmount;
+        ? 0.0
+        : rawAmount;
     return TransactionModel(
       id: map['id'] as int?,
       title: map['title'] as String? ?? 'Untitled',
@@ -140,15 +140,8 @@ class TransactionModel {
   }
 
   @override
-  int get hashCode => Object.hash(
-        id,
-        title,
-        amount,
-        type,
-        incomeStrategy,
-        category,
-        date,
-      );
+  int get hashCode =>
+      Object.hash(id, title, amount, type, incomeStrategy, category, date);
 }
 
 String _formatDate(DateTime dt) {

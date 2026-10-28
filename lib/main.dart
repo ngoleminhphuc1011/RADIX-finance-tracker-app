@@ -9,9 +9,15 @@ import 'core/theme/theme_provider.dart';
 import 'core/theme/currency_provider.dart';
 import 'core/database/database_helper.dart';
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// RADIX: Application Entry Point & Root Configuration
+// ═══════════════════════════════════════════════════════════════════════════════
+
 void main() async {
+  // Step 1: Ensure Flutter widget tree bindings are initialized before async calls
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Step 2: Lock supported orientations (both portrait and landscape allowed)
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -19,14 +25,13 @@ void main() async {
     DeviceOrientation.landscapeRight,
   ]);
 
-  // On web, we must set the database factory BEFORE any DB call.
-  // This tells sqflite to use IndexedDB + WebAssembly SQLite instead
-  // of native C SQLite (which doesn't exist in a browser).
+  // Step 3: Web platform check — swap native C SQLite with IndexedDB WebAssembly
   if (kIsWeb) {
     databaseFactory = databaseFactoryFfiWeb;
-    debugPrint('[main] Web detected — databaseFactory set to ffi_web.');
   }
 
+  // Step 4: Pre-load persisted theme and currency settings BEFORE rendering UI.
+  // This prevents any visual "flash" or jump when the app first launches.
   ThemeMode initialTheme = ThemeMode.light;
   String initialCurrencyCode = 'USD';
   try {
@@ -45,6 +50,8 @@ void main() async {
     debugPrint('[main] Error loading initial settings: $e');
   }
 
+  // Step 5: Start the app with global InheritedNotifier providers at the root.
+  // Any descendant widget in the app tree can listen to or modify these notifiers.
   runApp(
     ThemeProvider(
       notifier: ValueNotifier<ThemeMode>(initialTheme),
@@ -58,12 +65,16 @@ void main() async {
   );
 }
 
+// ── Root Widget ───────────────────────────────────────────────────────────────
+/// Configures MaterialApp with dynamic themes and launches SplashScreen.
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Rebuilds automatically when ThemeProvider's ValueNotifier emits a change
     final themeMode = ThemeProvider.of(context).value;
+
     return MaterialApp(
       title: 'RADIX',
       debugShowCheckedModeBanner: false,

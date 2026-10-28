@@ -30,7 +30,6 @@ class ResetIntervalService {
       final prefs = await SharedPreferences.getInstance();
       final clamped = months.clamp(1, 6);
       await prefs.setInt(keyIntervalMonths, clamped);
-      debugPrint('[ResetIntervalService] Persisted interval: ${clamped}M');
     } catch (e) {
       debugPrint('[ResetIntervalService] Error saving interval: $e');
     }
@@ -69,9 +68,6 @@ class ResetIntervalService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(keyLastResetTimestamp, timestamp.toIso8601String());
-      debugPrint(
-        '[ResetIntervalService] Updated last reset: ${timestamp.toIso8601String()}',
-      );
     } catch (e) {
       debugPrint('[ResetIntervalService] Error saving last reset: $e');
     }

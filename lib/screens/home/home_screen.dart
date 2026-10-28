@@ -13,6 +13,15 @@ import 'widgets/add_transaction_dialog.dart';
 import '../../core/widgets/radix_currency_text.dart';
 import '../../core/services/haptic_helper.dart';
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// HomeScreen: Primary Financial Dashboard & Transaction Feed
+//
+// Flutter Architecture Pattern (Unidirectional Data Flow):
+// - Data Down: Receives transactions and calculated budget balances from NavWrapper.
+// - Events Up: Triggers onAddTransaction, onUpdateTransaction, onDeleteTransaction
+//   callbacks so the parent coordinator handles persistence and math.
+// ═══════════════════════════════════════════════════════════════════════════════
+
 class HomeScreen extends StatefulWidget {
   final List<TransactionModel> transactions;
   final void Function(TransactionModel) onAddTransaction;
@@ -48,7 +57,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // -- Base TextStyles (colors applied via locker in build) --
+  // -- Base Typography (color theming applied dynamically via AppColorLocker) --
   static const TextStyle _styleSpentLabelBase = TextStyle(
     fontFamily: 'MonumentExtended',
     fontSize: 16,
@@ -60,7 +69,9 @@ class _HomeScreenState extends State<HomeScreen> {
     fontWeight: FontWeight.bold,
   );
 
-  // ── Memoization cache for grouped transactions ──────────────────────────
+  // ── Performance Optimization: Memoization Cache for Date Grouping ────────────
+  // Grouping transactions by date ("Today", "Yesterday", etc.) requires parsing
+  // dates. Caching the grouped Map prevents re-running this on every frame build.
   Map<String, List<TransactionModel>>? _cachedGrouped;
   int _cachedGroupedHash = -1;
   String _cachedGroupedSort = '';
@@ -81,7 +92,9 @@ class _HomeScreenState extends State<HomeScreen> {
       _cachedGrouped = null;
       _cachedGroupedHash = -1;
       if (_expandedTransactionKey != null &&
-          !widget.transactions.any((t) => _getTxKey(t) == _expandedTransactionKey)) {
+          !widget.transactions.any(
+            (t) => _getTxKey(t) == _expandedTransactionKey,
+          )) {
         _expandedTransactionKey = null;
       }
     }
@@ -311,7 +324,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         locker,
                         groupedKeys,
                         grouped,
-                        padding: const EdgeInsets.only(bottom: 24, left: 8, right: 8),
+                        padding: const EdgeInsets.only(
+                          bottom: 24,
+                          left: 8,
+                          right: 8,
+                        ),
                       ),
                     ),
                   ],
@@ -563,33 +580,31 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildDateHeader(dateStr, groupTxs),
-                  ...groupTxs.map(
-                    (tx) {
-                      final String tileKey = _getTxKey(tx);
-                      return TransactionTile(
-                        key: ValueKey('tx_tile_$tileKey'),
-                        model: tx,
-                        isExpanded: _expandedTransactionKey == tileKey,
-                        onTap: () {
-                          HapticHelper.selectionClick();
-                          setState(() {
-                            if (_expandedTransactionKey == tileKey) {
-                              _expandedTransactionKey = null;
-                            } else {
-                              _expandedTransactionKey = tileKey;
-                            }
-                          });
-                        },
-                        onCollapse: () {
-                          setState(() {
+                  ...groupTxs.map((tx) {
+                    final String tileKey = _getTxKey(tx);
+                    return TransactionTile(
+                      key: ValueKey('tx_tile_$tileKey'),
+                      model: tx,
+                      isExpanded: _expandedTransactionKey == tileKey,
+                      onTap: () {
+                        HapticHelper.selectionClick();
+                        setState(() {
+                          if (_expandedTransactionKey == tileKey) {
                             _expandedTransactionKey = null;
-                          });
-                        },
-                        onUpdateTransaction: widget.onUpdateTransaction,
-                        onDeleteTransaction: widget.onDeleteTransaction,
-                      );
-                    },
-                  ),
+                          } else {
+                            _expandedTransactionKey = tileKey;
+                          }
+                        });
+                      },
+                      onCollapse: () {
+                        setState(() {
+                          _expandedTransactionKey = null;
+                        });
+                      },
+                      onUpdateTransaction: widget.onUpdateTransaction,
+                      onDeleteTransaction: widget.onDeleteTransaction,
+                    );
+                  }),
                 ],
               );
             },

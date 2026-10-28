@@ -207,10 +207,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             decoration: BoxDecoration(
               color: locker.settingsCardBackground,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: locker.settingsCardBorder,
-                width: 1.0,
-              ),
+              border: Border.all(color: locker.settingsCardBorder, width: 1.0),
             ),
             child: child,
           ),
@@ -239,12 +236,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               constraints: BoxConstraints(maxHeight: maxHeight),
               decoration: BoxDecoration(
                 color: locker.sheetBackground,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
                 border: Border(
-                  top: BorderSide(
-                    color: locker.sheetBorder,
-                    width: 1.0,
-                  ),
+                  top: BorderSide(color: locker.sheetBorder, width: 1.0),
                 ),
               ),
               child: SafeArea(
@@ -302,7 +298,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         iconColor: locker.accentGreen,
                         onTap: () {
                           Navigator.pop(sheetContext);
-                          DataExportService.createBackupJson(context, share: false);
+                          DataExportService.createBackupJson(
+                            context,
+                            share: false,
+                          );
                         },
                       ),
                       const SizedBox(height: 14),
@@ -316,7 +315,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         iconColor: locker.textPrimary,
                         onTap: () {
                           Navigator.pop(sheetContext);
-                          DataExportService.createBackupJson(context, share: true);
+                          DataExportService.createBackupJson(
+                            context,
+                            share: true,
+                          );
                         },
                       ),
                       const SizedBox(height: 14),
@@ -370,9 +372,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             decoration: BoxDecoration(
               color: locker.settingsModalTileBackground,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: locker.settingsCardBorder,
-              ),
+              border: Border.all(color: locker.settingsCardBorder),
             ),
             child: Row(
               children: [
@@ -510,7 +510,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // Export Data (.CSV) Tile
                 _buildTileContainer(
                   locker: locker,
-                  onTap: () => DataExportService.exportTransactionsCsv(context, share: false),
+                  onTap: () => DataExportService.exportTransactionsCsv(
+                    context,
+                    share: false,
+                  ),
                   child: Row(
                     children: [
                       Container(
