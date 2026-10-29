@@ -47,3 +47,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local release build artifacts & DevTools
+releases/
+devtools_options.yaml
